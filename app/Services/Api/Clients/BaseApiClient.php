@@ -25,15 +25,18 @@ abstract class BaseApiClient
 
     protected int $retrySleepMilliseconds;
 
+    /**
+     * Initialize API client with config values from services.php/.env.
+     * Never hardcode credentials or URLs.
+     */
     public function __construct()
     {
-        $config = config('services.astrorajumaharaj');
-
+        $config = config('services.astro_api');
         $this->baseUrl = (string) ($config['base_url'] ?? '');
         $this->token = $config['token'] ?? null;
         $this->timeoutSeconds = (int) ($config['timeout'] ?? 10);
-        $this->retryTimes = (int) ($config['retry_times'] ?? 3);
-        $this->retrySleepMilliseconds = (int) ($config['retry_sleep'] ?? 200);
+        $this->retryTimes = (int) ($config['retry'] ?? 2);
+        $this->retrySleepMilliseconds = 200; // ms, can be made configurable
     }
 
     /**
@@ -44,6 +47,15 @@ abstract class BaseApiClient
      * @param array<string, mixed> $options
      *
      * @return array<string, mixed>|array<int, mixed>
+     */
+    /**
+     * Centralized request handler for API calls.
+     * Handles retries, timeouts, and error logging.
+     *
+     * @param string $method
+     * @param string $uri
+     * @param array $options
+     * @return array
      */
     protected function request(string $method, string $uri, array $options = []): array
     {
@@ -109,6 +121,12 @@ abstract class BaseApiClient
 
     /**
      * Build the configured HTTP client instance.
+     */
+    /**
+     * Build the configured HTTP client instance.
+     * Adds Bearer token, timeout, retry, and JSON headers.
+     *
+     * @return PendingRequest
      */
     protected function buildRequest(): PendingRequest
     {

@@ -35,13 +35,12 @@ return [
         ],
     ],
 
-    'astrorajumaharaj' => [
-        'base_url' => env('ASTRO_RAJU_API_BASE_URL', 'https://admin.astrorajumaharaj.com/api/v1'),
-        'token' => env('ASTRO_RAJU_API_TOKEN'),
-        'timeout' => env('ASTRO_RAJU_API_TIMEOUT', 10), // seconds
-        'retry_times' => env('ASTRO_RAJU_API_RETRY_TIMES', 3),
-        'retry_sleep' => env('ASTRO_RAJU_API_RETRY_SLEEP', 200), // milliseconds
-        'cache_ttl' => env('ASTRO_RAJU_API_CACHE_TTL', 300), // seconds
+    'astro_api' => [
+        'base_url' => env('ASTRO_API_BASE_URL', 'https://admin.astrorajumaharaj.com/api/v1'),
+        'token' => env('ASTRO_API_TOKEN'),
+        'timeout' => env('ASTRO_API_TIMEOUT', 10),
+        'retry' => env('ASTRO_API_RETRY', 2),
+        'cache_ttl' => env('ASTRO_API_CACHE_TTL', 60),
     ],
 
 ];

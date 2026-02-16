@@ -136,8 +136,8 @@
             <div class="offer">&nbsp;</div>
           @endif
           <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-cart" onclick="addToCart()">Add to Cart</button>
-            <button class="btn btn-buy" onclick="buyNow('{{ $product['name'] ?? 'Product' }}')">Buy Now</button>
+            <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
+            <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>
           </div>
         </div>
       </div>
@@ -146,85 +146,7 @@
     @endforelse
   </div>
 
-  <!-- <div class="row g-4 d-none d-md-flex">
 
-   
-    <div class="col-md-3 col-sm-6">
-      <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
-        <img src="images/product-1.jpg">
-        <div class="rating">⭐ 4.8 | 316</div>
-        <h6 class="mt-2">Rose Gold Princess Earrings</h6>
-        <div>
-          <span class="price">₹3,499</span>
-          <span class="old-price ms-2">₹5,799</span>
-        </div>
-        <div class="offer">EXTRA 16% OFF with coupon</div>
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart" onclick="addToCart()">Add to Cart</button>
-          <button class="btn btn-buy" onclick="buyNow('Rose Gold Princess Earrings')">Buy Now</button>
-        </div>
-      </div>
-    </div>
-
-  
-    <div class="col-md-3 col-sm-6">
-      <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
-        <img src="images/product-1.jpg">
-        <div class="rating">⭐ 4.8 | 217</div>
-        <h6 class="mt-2">Anushka Sharma Rose Gold Bracelet</h6>
-        <div>
-          <span class="price">₹6,499</span>
-          <span class="old-price ms-2">₹12,999</span>
-        </div>
-        <div class="offer">EXTRA 20% OFF with coupon</div>
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart" onclick="addToCart()">Add to Cart</button>
-          <button class="btn btn-buy" onclick="buyNow('Rose Gold Bracelet')">Buy Now</button>
-        </div>
-      </div>
-    </div>
-
-    
-    <div class="col-md-3 col-sm-6">
-      <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
-        <img src="images/product-1.jpg">
-        <div class="rating">⭐ 4.7 | 203</div>
-        <h6 class="mt-2">Silver Zircon Love Island Ring</h6>
-        <div>
-          <span class="price">₹1,899</span>
-          <span class="old-price ms-2">₹3,299</span>
-          <div class="offer">&nbsp;</div>
-        </div>
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart" onclick="addToCart()">Add to Cart</button>
-          <button class="btn btn-buy" onclick="buyNow('Silver Zircon Ring')">Buy Now</button>
-        </div>
-      </div>
-    </div>
-
-  
-    <div class="col-md-3 col-sm-6">
-      <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
-        <img src="images/product-1.jpg">
-        <div class="rating">⭐ 4.8 | 244</div>
-        <h6 class="mt-2">Oxidised Silver Moonstone Pendant</h6>
-        <div>
-          <span class="price">₹3,799</span>
-          <span class="old-price ms-2">₹5,999</span>
-        </div>
-        <div class="offer">EXTRA 16% OFF with coupon</div>
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart" onclick="addToCart()">Add to Cart</button>
-          <button class="btn btn-buy" onclick="buyNow('Moonstone Pendant')">Buy Now</button>
-        </div>
-      </div>
-    </div>
-
-  </div> -->
 
 </div>
 
@@ -258,3 +180,102 @@
 
 
 @endsection
+
+@push('scripts')
+<script>
+// showMessage replaced by toast for all notifications
+function showMessage(message, type = 'success') {
+  toast(type === 'danger' ? 'Network error' : message, type === 'danger' ? message : '', type === 'danger' ? 'error' : type);
+}
+
+// Use SweetAlert2 for toast notifications
+function toast(title, message = '', icon = 'success') {
+  Swal.fire({
+    icon: icon,
+    title: title,
+    text: message,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true
+  });
+}
+
+function setLoading(btn, loading) {
+  if (!btn) return;
+  if (loading) {
+    btn.disabled = true;
+    btn.dataset.originalText = btn.innerHTML;
+    btn.innerHTML = 'Loading...';
+  } else {
+    btn.disabled = false;
+    if (btn.dataset.originalText) btn.innerHTML = btn.dataset.originalText;
+  }
+}
+
+function getCsrfToken() {
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+}
+
+function addToCart(payload, btn) {
+  setLoading(btn, true);
+  fetch('/api/cart/add-to-cart', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': getCsrfToken(),
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      toast('Added to cart!', '', 'success');
+    } else if (data.errors) {
+      toast('Validation error', Object.values(data.errors).join(', '), 'error');
+    } else {
+      toast('Error', data.error || 'Failed to add to cart', 'error');
+    }
+  })
+  .catch(() => showMessage('Network error', 'danger'))
+  .catch(() => toast('Network error', '', 'error'))
+  .finally(() => setLoading(btn, false));
+}
+
+function buyNow(payload, btn) {
+  setLoading(btn, true);
+  fetch('/api/cart/buy-now', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': getCsrfToken(),
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      toast('Purchase successful!', '', 'success');
+      // Optionally redirect to checkout or order page
+    } else if (data.errors) {
+      toast('Validation error', Object.values(data.errors).join(', '), 'error');
+    } else {
+      toast('Error', data.error || 'Failed to buy now', 'error');
+    }
+  })
+  .catch(() => showMessage('Network error', 'danger'))
+  .catch(() => toast('Network error', '', 'error'))
+  .finally(() => setLoading(btn, false));
+}
+
+$(document).on('click', '.pagination a', function(e) {
+  var href = $(this).attr('href');
+  if (href && href !== '#') {
+    window.location.href = href;
+  }
+});
+</script>
+@endpush

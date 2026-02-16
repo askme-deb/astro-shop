@@ -2,77 +2,50 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Api\CartApiService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class CartController extends Controller
 {
     /**
-     * Show the current cart.
+     * Display the user's cart.
+     *
+     * @param Request $request
+     * @param CartApiService $cartApiService
+     * @return View|RedirectResponse
      */
-    public function index(Request $request)
+    public function index(Request $request, CartApiService $cartApiService)
     {
-        $cart = $request->session()->get('cart', []);
-
-        return view('cart.index', [
-            'cart' => $cart,
-        ]);
-    }
-
-    /**
-     * Add an item to the cart.
-     */
-    public function add(Request $request)
-    {
-        $data = $request->validate([
-            'slug' => 'required|string',
-            'name' => 'nullable|string',
-            'price' => 'nullable|numeric',
-            'qty' => 'nullable|integer|min:1',
-        ]);
-
-        $slug = $data['slug'];
-        $qty = $data['qty'] ?? 1;
-
-        $cart = $request->session()->get('cart', []);
-
-        if (isset($cart[$slug])) {
-            $cart[$slug]['qty'] += $qty;
-        } else {
-            $cart[$slug] = [
-                'slug' => $slug,
-                'name' => $data['name'] ?? $slug,
-                'price' => $data['price'] ?? 0,
-                'qty' => $qty,
-            ];
+        // Get guest_user_id from cookie or generate if missing
+        $guestUserId = $request->cookie('guest_user_id');
+        if (!$guestUserId) {
+            $guestUserId = uniqid('guest_', true);
+            Cookie::queue('guest_user_id', $guestUserId, 60 * 24 * 30);
         }
 
-        $request->session()->put('cart', $cart);
-
-        return back();
-    }
-
-    /**
-     * Remove a single item from the cart.
-     */
-    public function remove(Request $request, string $slug)
-    {
-        $cart = $request->session()->get('cart', []);
-
-        if (isset($cart[$slug])) {
-            unset($cart[$slug]);
-            $request->session()->put('cart', $cart);
+        // Validate guest_user_id format (basic example)
+        if (!preg_match('/^guest_[a-zA-Z0-9._-]+$/', $guestUserId)) {
+            return redirect()->route('home')->withErrors('Invalid guest user ID.');
         }
 
-        return back();
-    }
-
-    /**
-     * Clear the entire cart.
-     */
-    public function clear(Request $request)
-    {
-        $request->session()->forget('cart');
-
-        return back();
+        try {
+           // dd($guestUserId);
+            $response = $cartApiService->getCart($guestUserId);
+           // dd($response['data']);
+            if ($response['status'] === 'success') {
+                $cart = $response['data'];
+                return view('carts.index', compact('cart'));
+            } else {
+                Log::error('Cart API error: ' . $response['message']);
+                return view('carts.index', ['cart' => null, 'error' => $response['message']]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Cart API Exception: ' . $e->getMessage(), ['exception' => $e]);
+            return view('cart.index', ['cart' => null, 'error' => 'Unable to load cart at this time. Please try again later.']);
+        }
     }
 }
