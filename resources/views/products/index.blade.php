@@ -232,7 +232,7 @@ function addToCart(payload, btn) {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      toast('Added to cart!', '', 'success');
+      toast(data.message, '', 'success');
     } else if (data.errors) {
       toast('Validation error', Object.values(data.errors).join(', '), 'error');
     } else {

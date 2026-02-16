@@ -13,7 +13,7 @@
             <div class="alert alert-danger">{{ $error }}</div>
         @endif
         @php
-            dd($cart);
+            //dd($cart);
         @endphp
         {{-- Cart Items --}}
         @if (!empty($cart) && is_array($cart) && count($cart))
