@@ -8,4 +8,7 @@ Route::prefix('cart')->middleware('cart.user.resolved')->group(function () {
     Route::post('add-to-cart', [CartController::class, 'addToCart']);
     Route::post('buy-now', [CartController::class, 'buyNow']);
     Route::get('count', [CartController::class, 'cartCount']);
+    Route::post('update-quantity', [CartController::class, 'updateQuantity']);
+    Route::post('delete-item', [CartController::class, 'deleteItem']);
+    Route::get('/', [CartController::class, 'getCart']);
 });

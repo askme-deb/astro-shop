@@ -7,38 +7,63 @@
 
     <h2 class="mb-4">Shopping Cart</h2>
 
-    <div id="cart-error-container"></div>
+    @if(isset($error))
+            <div class="alert alert-danger">{{ $error }}</div>
+    @endif
 
     <div class="cart-layout row g-4">
 
         <!-- LEFT: Cart items -->
-        <div class="col-lg-7" id="cart-items-container">
-            <!-- Initial Skeletons -->
-            <div class="skeleton-container">
-                <div class="skeleton-item-box">
-                    <div class="skeleton-img-box"></div>
-                    <div class="skeleton-content-box">
-                        <div class="skeleton-title-box"></div>
-                        <div class="skeleton-price-box"></div>
-                        <div class="skeleton-qty-box"></div>
-                        <div class="skeleton-total-box"></div>
+        <div class="col-lg-7">
+            @if(isset($cart) && is_array($cart) && count($cart) > 0)
+                @php $cartTotal = 0; @endphp
+
+                @foreach($cart as $item)
+                    @php
+                        $product = $item['product'] ?? [];
+                        $unitPrice = isset($product['total_price']) ? (float) $product['total_price'] : (float) ($item['amount'] ?? 0);
+                        $quantity = (int) ($item['quantity'] ?? 1);
+                        $lineTotal = $unitPrice * $quantity;
+                        $cartTotal += $lineTotal;
+                    @endphp
+
+                    <div class="cart-item d-flex align-items-start p-3 mb-3 border rounded" data-cart-item-id="{{ $item['id'] }}" data-product-id="{{ $item['product_id'] }}">
+                        <img src="{{ !empty($product['image_url']) ? $product['image_url'] : asset('assets/images/product-1.jpg') }}" 
+                                 alt="{{ $product['name'] ?? 'Product' }}" 
+                                 class="me-3" 
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+
+                        <div class="cart-details flex-grow-1">
+                            <div class="cart-title d-flex justify-content-between align-items-start">
+                                <h4 class="h6 mb-1">{{ $product['name'] ?? 'Unknown Product' }}</h4>
+                                <span class="close-btn" style="cursor:pointer" onclick="openPopup('{{ $item['id'] }}')">✕</span>
+                            </div>
+
+                            <div class="mb-2">
+                                <span class="price fw-bold">₹{{ number_format($unitPrice, 2) }}</span>
+                            </div>
+
+                            <div class="qty-box d-inline-flex align-items-center mb-2">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('{{ $item['id'] }}', {{ $item['product_id'] }}, -1)">−</button>
+                                <input type="number" class="form-control form-control-sm mx-2 text-center" style="width:70px" value="{{ $quantity }}" min="1" readonly>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('{{ $item['id'] }}', {{ $item['product_id'] }}, 1)">+</button>
+                            </div>
+
+                            <div class="total fw-semibold">
+                                Total: ₹<span>{{ number_format($lineTotal, 2) }}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="skeleton-item-box">
-                    <div class="skeleton-img-box"></div>
-                    <div class="skeleton-content-box">
-                        <div class="skeleton-title-box"></div>
-                        <div class="skeleton-price-box"></div>
-                        <div class="skeleton-qty-box"></div>
-                        <div class="skeleton-total-box"></div>
-                    </div>
-                </div>
-            </div>
+                @endforeach
+            @else
+                <p class="text-muted">Your cart is empty.</p>
+                <a href="/products" class="btn btn-primary mt-3" style="background:#f98700;border-color:#f98700;">Start Shopping</a>
+            @endif
         </div>
 
       
         <!-- RIGHT: Order summary & offers -->
-        <div class="col-lg-4" id="cart-summary-container" style="display: none;">
+        <div class="col-lg-4">
             <div class="cart-footer border rounded p-3">
 
                 <h3 class="h6 mb-3">Order Summary</h3>
@@ -46,7 +71,7 @@
                 <div class="totals d-flex justify-content-between align-items-center mb-2">
                     <h4 class="h6 mb-0">Estimated total:</h4>
                     <div class="totals_wrapper d-flex align-items-center gap-2">
-                        <p class="totals__total-value fw-bold mb-0" id="estimated-total">₹0.00</p>
+                        <p class="totals__total-value fw-bold mb-0">₹{{ isset($cartTotal) ? number_format($cartTotal, 2) : '0.00' }}</p>
                         <div class="tooltip">ⓘ
                             <span class="tooltiptext">
                                 Price inclusive of tax. Shipping and discounts calculated at checkout.
@@ -220,90 +245,6 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        fetchAndRenderCart();
-    });
-
-    async function fetchAndRenderCart() {
-        const itemsContainer = document.getElementById('cart-items-container');
-        const summaryContainer = document.getElementById('cart-summary-container');
-        const errorContainer = document.getElementById('cart-error-container');
-
-        try {
-            const response = await fetch('/api/cart', { credentials: 'include' });
-            const data = await response.json();
-
-            if (data.status === 'success') {
-                renderCart(data.data);
-                summaryContainer.style.display = 'block';
-            } else {
-                throw new Error(data.message || 'Failed to fetch cart');
-            }
-        } catch (err) {
-            console.error(err);
-            errorContainer.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
-            itemsContainer.innerHTML = '<p class="text-muted">Your cart is empty.</p>';
-        }
-    }
-
-    function renderCart(items) {
-        const itemsContainer = document.getElementById('cart-items-container');
-        let cartTotal = 0;
-
-        if (!items || items.length === 0) {
-            itemsContainer.innerHTML = `
-                <p class="text-muted">Your cart is empty.</p>
-                <a href="/products" class="btn btn-primary mt-3" style="background:#f98700;border-color:#f98700;">Start Shopping</a>
-            `;
-            document.getElementById('cart-summary-container').style.display = 'none';
-            return;
-        }
-
-        let html = '';
-        items.forEach(item => {
-            const product = item.product || {};
-            const unitPrice = parseFloat(product.total_price || item.amount || 0);
-            const quantity = parseInt(item.quantity || 1);
-            const lineTotal = unitPrice * quantity;
-            cartTotal += lineTotal;
-
-            const imageUrl = product.image_url ? product.image_url : '/assets/images/product-1.jpg';
-
-            html += `
-                <div class="cart-item d-flex align-items-start p-3 mb-3 border rounded" data-cart-item-id="${item.id}" data-product-id="${item.product_id}">
-                    <img src="${imageUrl}" 
-                             alt="${product.name || 'Product'}" 
-                             class="me-3" 
-                             style="width: 80px; height: 80px; object-fit: cover;">
-
-                    <div class="cart-details flex-grow-1">
-                        <div class="cart-title d-flex justify-content-between align-items-start">
-                            <h4 class="h6 mb-1">${product.name || 'Unknown Product'}</h4>
-                            <span class="close-btn" style="cursor:pointer" onclick="openPopup('${item.id}')">✕</span>
-                        </div>
-
-                        <div class="mb-2">
-                            <span class="price fw-bold">₹${unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                        </div>
-
-                        <div class="qty-box d-inline-flex align-items-center mb-2">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${item.id}', ${item.product_id}, -1)">−</button>
-                            <input type="number" class="form-control form-control-sm mx-2 text-center" style="width:70px" value="${quantity}" min="1" readonly>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="changeQty('${item.id}', ${item.product_id}, 1)">+</button>
-                        </div>
-
-                        <div class="total fw-semibold">
-                            Total: ₹<span>${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        itemsContainer.innerHTML = html;
-        document.getElementById('estimated-total').innerText = '₹' + cartTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 });
-    }
-
     function changeQty(cartItemId, productId, delta) {
         const itemEl = document.querySelector('.cart-item[data-cart-item-id="' + cartItemId + '"]');
         if (!itemEl) return;
@@ -318,6 +259,7 @@
         const csrfTokenEl = document.querySelector('meta[name="csrf-token"]');
         const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : '';
 
+        // User changed controller to expect 'cart_id' instead of 'cart_item_id'
         fetch('/api/cart/update-quantity', {
             method: 'POST',
             headers: {
@@ -330,9 +272,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success || data.status) {
-                fetchAndRenderCart();
-                // Update mini-cart count if available
-                if (typeof updateCartCount === 'function') updateCartCount();
+                window.location.reload();
             } else {
                 alert(data.message || data.error || 'Failed to update cart');
                 setLoadingState(false, cartItemId);
@@ -356,7 +296,7 @@
 
     function confirmRemoveItem() {
         if (!cartItemIdToRemove) return;
-        const targetId = cartItemIdToRemove;
+        const targetId = cartItemIdToRemove; // Copy to avoid closure issues
         setLoadingState(true, targetId);
         
         const csrfTokenEl = document.querySelector('meta[name="csrf-token"]');
@@ -374,8 +314,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.success || data.status) {
-                fetchAndRenderCart();
-                if (typeof updateCartCount === 'function') updateCartCount();
+                window.location.reload();
             } else {
                 alert(data.message || data.error || 'Failed to remove item');
                 setLoadingState(false, targetId);

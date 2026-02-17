@@ -232,7 +232,7 @@ class CartApiService extends BaseApiClient
         } else {
             $query['guest_user_id'] = $resolved['id'];
         }
-        $endpoint = 'carts';
+        $endpoint = 'cart/products';
         try {
             $result = $this->request('GET', $endpoint, [
                 'query' => $query,
@@ -272,7 +272,7 @@ class CartApiService extends BaseApiClient
     public function getGuestCart(string $guestUserId): array
     {
         $query = ['guest_user_id' => $guestUserId];
-        $endpoint = 'carts';
+        $endpoint = 'cart/products';
         try {
             $result = $this->request('GET', $endpoint, [
                 'query' => $query,
@@ -297,5 +297,46 @@ class CartApiService extends BaseApiClient
                 'message' => 'Cart service unavailable.',
             ];
         }
+    }
+    /**
+     * Update cart item quantity.
+     *
+     * @param array $payload
+     * @return array
+     */
+    public function updateCartQuantity(array $payload): array
+    {
+        $endpoint = 'update/cart/quantity';
+        // Ensure payload has necessary keys if not present, though controller should validate
+        $result = $this->request('POST', $endpoint, ['json' => $payload]);
+
+        if (isset($result['success']) && $result['success']) {
+            $this->invalidateCache('GET', 'cart');
+        } else if (isset($result['status']) && $result['status']) { // Handle 'status' => true as success
+             $this->invalidateCache('GET', 'cart');
+        }
+
+        return $this->normalizeResponse($result);
+    }
+
+    /**
+     * Delete item from cart.
+     *
+     * @param array $payload
+     * @return array
+     */
+    public function deleteCartItem(array $payload): array
+    {
+        $endpoint = 'delete/cart/item';
+        
+        $result = $this->request('POST', $endpoint, ['json' => $payload]);
+dd($result);
+        if (isset($result['success']) && $result['success']) {
+            $this->invalidateCache('GET', 'cart');
+        } else if (isset($result['status']) && $result['status']) {
+             $this->invalidateCache('GET', 'cart');
+        }
+
+        return $this->normalizeResponse($result);
     }
 }

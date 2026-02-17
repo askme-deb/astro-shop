@@ -55,66 +55,226 @@
             <div class="d-inline-flex gap-4 text-center">
                 <!-- Cart Icon -->
                 <div class="icon_warp position-relative" id="cartWrapper">
-                    <a href="javascript:void(0)" onclick="toggleCart()">
+                    <a href="javascript:void(0)" onclick="toggleCart(event)">
                         <i class="fa fa-bag-shopping fs-5"></i>
                         <span id="cartCount"
                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                             <span id="cartCountValue">0</span>
                         </span>
                         <div class="icon-text">CART</div>
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function () {
-                                fetch('/api/cart/count', { credentials: 'include' })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.status && typeof data.count !== 'undefined') {
-                                            document.getElementById('cartCountValue').textContent = data.count;
-                                        }
-                                    })
-                                    .catch(() => {
-                                        document.getElementById('cartCountValue').textContent = 0;
-                                    });
-                            });
-                        </script>
                     </a>
 
                     <!-- Mini Cart -->
-                    <div class="mini-cart shadow" id="miniCart">
+                    <div class="mini-cart shadow" id="miniCart" style="display: none; position: absolute; right: 0; top: 100%; width: 330px; background: #fff; z-index: 9999; padding: 15px; border-radius: 8px;">
                         <h6 class="fw-bold mb-3">Shopping Cart</h6>
-
-                        <!-- Item -->
-                        <div class="cart-item d-flex gap-2 mb-3">
-                            <img src="{{ asset('assets/images/product_10.png') }}" class="rounded" alt="">
-                            <div class="flex-grow-1">
-                                <p class="mb-0 fw-semibold">Diamond Ring</p>
-                                <small>Qty: 1</small>
-                                <p class="mb-0 text-muted">₹4,999</p>
+                        <div id="miniCartItems" style="max-height: 240px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">
+                            <!-- Skeleton loader initially -->
+                            <div class="mini-cart-skeleton">
+                                <div class="skeleton-item d-flex gap-2 mb-3">
+                                    <div class="skeleton-img"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-line w-75"></div>
+                                        <div class="skeleton-line w-50 mt-2"></div>
+                                    </div>
+                                </div>
+                                <div class="skeleton-item d-flex gap-2 mb-3">
+                                    <div class="skeleton-img"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-line w-75"></div>
+                                        <div class="skeleton-line w-50 mt-2"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <button class="btn btn-sm text-danger" onclick="removeCartItem(this)">×</button>
-                        </div>
-
-                        <!-- Item -->
-                        <div class="cart-item d-flex gap-2 mb-3">
-                            <img src="{{ asset('assets/images/product_10.png') }}" class="rounded" alt="">
-                            <div class="flex-grow-1">
-                                <p class="mb-0 fw-semibold">Gold Necklace</p>
-                                <small>Qty: 1</small>
-                                <p class="mb-0 text-muted">₹2,499</p>
-                            </div>
-                            <button class="btn btn-sm text-danger" onclick="removeCartItem(this)">×</button>
                         </div>
 
                         <hr>
 
                         <div class="d-flex justify-content-between fw-semibold">
                             <span>Total</span>
-                            <span id="cartTotal">₹7,498</span>
+                            <span id="miniCartTotal">₹0.00</span>
                         </div>
 
-                        <a href="#" class="btn btn-dark w-100 mt-3">View Cart</a>
-                        <a href="#" class="btn btn-outline-dark w-100 mt-2">Checkout</a>
+                        <a href="/cart" class="btn btn-dark w-100 mt-3">View Cart</a>
+                        <a href="{{ route('checkout.index') }}" class="btn btn-outline-dark w-100 mt-2">Checkout</a>
                     </div>
                 </div>
+
+                <style>
+                    .skeleton-img {
+                        width: 50px;
+                        height: 50px;
+                        background: #eee;
+                        border-radius: 4px;
+                        animation: skeleton-loading 1.5s infinite linear;
+                    }
+                    .skeleton-line {
+                        height: 12px;
+                        background: #eee;
+                        border-radius: 2px;
+                        animation: skeleton-loading 1.5s infinite linear;
+                    }
+                    .skeleton-line.w-75 { width: 75%; }
+                    .skeleton-line.w-50 { width: 50%; }
+                    @keyframes skeleton-loading {
+                        0% { background-color: #f0f0f0; }
+                        50% { background-color: #e0e0e0; }
+                        100% { background-color: #f0f0f0; }
+                    }
+                    /* Custom Scrollbar for Mini Cart */
+                    #miniCartItems::-webkit-scrollbar {
+                        width: 4px;
+                    }
+                    #miniCartItems::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                    }
+                    #miniCartItems::-webkit-scrollbar-thumb {
+                        background: #888;
+                        border-radius: 10px;
+                    }
+                    #miniCartItems::-webkit-scrollbar-thumb:hover {
+                        background: #555;
+                    }
+                </style>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        updateCartCount();
+                    });
+
+                    window.toggleCart = function(e) {
+                        if(e) e.preventDefault();
+                        if(e) e.stopPropagation();
+                        console.log('Toggling cart...');
+                        const miniCart = document.getElementById('miniCart');
+                        if (miniCart.style.display === 'none' || miniCart.style.display === '') {
+                            miniCart.style.display = 'block';
+                            fetchMiniCart();
+                        } else {
+                            miniCart.style.display = 'none';
+                        }
+                    }
+
+                    document.addEventListener('click', function(event) {
+                        const cartWrapper = document.getElementById('cartWrapper');
+                        const miniCart = document.getElementById('miniCart');
+                        if (miniCart && miniCart.style.display === 'block' && cartWrapper && !cartWrapper.contains(event.target)) {
+                            miniCart.style.display = 'none';
+                        }
+                    });
+
+                    function updateCartCount() {
+                        fetch('/api/cart/count', { credentials: 'include' })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status && typeof data.count !== 'undefined') {
+                                    document.getElementById('cartCountValue').textContent = data.count;
+                                }
+                            })
+                            .catch(() => {
+                                document.getElementById('cartCountValue').textContent = 0;
+                            });
+                    }
+
+                    function getSkeletonHtml() {
+                        return `
+                            <div class="mini-cart-skeleton">
+                                <div class="skeleton-item d-flex gap-2 mb-3">
+                                    <div class="skeleton-img"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-line w-75"></div>
+                                        <div class="skeleton-line w-50 mt-2"></div>
+                                    </div>
+                                </div>
+                                <div class="skeleton-item d-flex gap-2 mb-3">
+                                    <div class="skeleton-img"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton-line w-75"></div>
+                                        <div class="skeleton-line w-50 mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    function fetchMiniCart() {
+                        const miniCartItems = document.getElementById('miniCartItems');
+                        miniCartItems.innerHTML = getSkeletonHtml();
+                        
+                        fetch('/api/cart', { credentials: 'include' })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'success' && data.data && data.data.length > 0) {
+                                    renderMiniCartItems(data.data);
+                                } else {
+                                    miniCartItems.innerHTML = '<p class="text-center text-muted">Your cart is empty.</p>';
+                                    document.getElementById('miniCartTotal').textContent = '₹0.00';
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error fetching cart:', err);
+                                miniCartItems.innerHTML = '<p class="text-center text-danger">Failed to load cart.</p>';
+                            });
+                    }
+
+                    function renderMiniCartItems(items) {
+                        const container = document.getElementById('miniCartItems');
+                        let html = '';
+                        let total = 0;
+
+                        items.forEach(item => {
+                            const product = item.product || {};
+                            const price = parseFloat(product.total_price || item.amount || 0);
+                            const qty = parseInt(item.quantity || 1);
+                            total += price * qty;
+                            const imageUrl = product.image_url ? product.image_url : '/assets/images/product-1.jpg'; // Fallback
+
+                            html += `
+                                <div class="cart-item d-flex gap-2 mb-3">
+                                    <img src="${imageUrl}" class="rounded" alt="${product.name || 'Product'}" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <div class="flex-grow-1 text-start">
+                                        <p class="mb-0 fw-semibold text-truncate" style="max-width: 150px;">${product.name || 'Unknown Product'}</p>
+                                        <small>Qty: ${qty}</small>
+                                        <p class="mb-0 text-muted">₹${price.toFixed(2)}</p>
+                                    </div>
+                                    <button class="btn btn-sm text-danger" onclick="removeMiniCartItem('${item.id}', this)">×</button>
+                                </div>
+                            `;
+                        });
+
+                        container.innerHTML = html;
+                        document.getElementById('miniCartTotal').textContent = '₹' + total.toFixed(2);
+                    }
+
+                    function removeMiniCartItem(cartId, btn) {
+                        if(!confirm('Remove this item?')) return;
+
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        
+                        fetch('/api/cart/delete-item', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ cart_id: cartId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success || data.status) {
+                                fetchMiniCart(); // Refresh mini cart
+                                updateCartCount(); // Refresh count
+                                // If on cart page, maybe reload? For now, just refresh mini cart
+                                if (window.location.pathname === '/cart') {
+                                    window.location.reload();
+                                }
+                            } else {
+                                alert('Failed to remove item');
+                            }
+                        })
+                        .catch(err => console.error(err));
+                    }
+                </script>
 
                 <div class="icon_warp">
                     <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">

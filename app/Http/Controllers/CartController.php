@@ -26,24 +26,8 @@ class CartController extends Controller
         $this->cartUserResolverService = $cartUserResolverService;
     }
 
-    public function index(Request $request, CartApiService $cartApiService)
+    public function index(Request $request)
     {
-        // Use CartUserResolverService to get user/guest ID
-
-        try {
-            $response = $cartApiService->getCart($request);
-          
-            if ($response['status'] === 'success') {
-                $cart = $response['data'];
-
-                return view('carts.index', compact('cart'));
-            } else {
-                Log::error('Cart API error: ' . $response['message']);
-                return view('carts.index', ['cart' => null, 'error' => $response['message']]);
-            }
-        } catch (\Throwable $e) {
-            Log::error('Cart API Exception: ' . $e->getMessage(), ['exception' => $e]);
-            return view('carts.index', ['cart' => null, 'error' => 'Unable to load cart at this time. Please try again later.']);
-        }
+        return view('carts.index');
     }
 }

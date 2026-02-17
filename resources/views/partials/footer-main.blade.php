@@ -234,9 +234,9 @@ let cart = 0;
   }
 
   // Sort change
-  document.getElementById("sortSelect").addEventListener("change", e => {
-    console.log("Sort by:", e.target.value);
-  });
+  // document.getElementById("sortSelect").addEventListener("change", e => {
+  //   console.log("Sort by:", e.target.value);
+  // });
 </script>
 
 <script>
@@ -382,19 +382,19 @@ function qtyMinus() {
   updateTotal();
 }
 
-function updateTotal() {
-  let subtotal = qty * price;
-  if (document.getElementById("giftWrap").checked) {
-    subtotal += 50;
-  }
-  document.getElementById("subtotal").innerText = subtotal;
-  document.getElementById("total").innerText = subtotal;
-}
+// function updateTotal() {
+//   let subtotal = qty * price;
+//   if (document.getElementById("giftWrap").checked) {
+//     subtotal += 50;
+//   }
+//   document.getElementById("subtotal").innerText = subtotal;
+//   document.getElementById("total").innerText = subtotal;
+// }
 
-function removeItem() {
-  document.querySelector(".cart-item").remove();
-  document.getElementById("total").innerText = 0;
-}
+// function removeItem() {
+//   document.querySelector(".cart-item").remove();
+//   document.getElementById("total").innerText = 0;
+// }
 </script>
 <script>
 // Accordion toggle
@@ -430,9 +430,9 @@ document.getElementById('hide-more').onclick=()=>{
 };
 
 // Gift wrap
-document.getElementById('gift').addEventListener('change',()=>{
-  alert('Gift wrap option updated (+₹50 per item)');
-});
+// document.getElementById('gift').addEventListener('change',()=>{
+//   alert('Gift wrap option updated (+₹50 per item)');
+// });
 </script>
 
 <script>
@@ -488,26 +488,26 @@ function applyDiscount(){
 </script>
 
 <script>
-let price = 2599;
-let qty = 1;
+// let price = 2599;
+// let qty = 1;
 
-function updateQty(val){
-  qty = Math.max(1, qty + val);
-  document.getElementById("qty").value = qty;
-  calculate();
-}
+// function updateQty(val){
+//   qty = Math.max(1, qty + val);
+//   document.getElementById("qty").value = qty;
+//   calculate();
+// }
 
-function calculate(){
-  let subtotal = price * qty;
-  let tax = Math.round(subtotal * 0.03);
-  let total = subtotal + tax;
+// function calculate(){
+//   let subtotal = price * qty;
+//   let tax = Math.round(subtotal * 0.03);
+//   let total = subtotal + tax;
 
-  document.getElementById("subtotal").innerText = subtotal;
-  document.getElementById("tax").innerText = tax;
-  document.getElementById("total").innerText = total;
-}
+//   document.getElementById("subtotal").innerText = subtotal;
+//   document.getElementById("tax").innerText = tax;
+//   document.getElementById("total").innerText = total;
+// }
 
-calculate();
+// calculate();
 </script>
 
 <script>
@@ -527,46 +527,46 @@ function applyCoupon(){
   updateTotals();
 }
 
-function updateTotals(){
-  let discounted = subtotal - (subtotal * discount);
-  let tax = Math.round(discounted * taxRate);
-  let total = discounted + tax;
+// function updateTotals(){
+//   let discounted = subtotal - (subtotal * discount);
+//   let tax = Math.round(discounted * taxRate);
+//   let total = discounted + tax;
 
-  document.getElementById("subtotal").innerText = discounted;
-  document.getElementById("tax").innerText = tax;
-  document.getElementById("total").innerText = total;
-}
+//   document.getElementById("subtotal").innerText = discounted;
+//   document.getElementById("tax").innerText = tax;
+//   document.getElementById("total").innerText = total;
+// }
 
-updateTotals();
+// updateTotals();
 
  </script> 
 
 <script>
-  function qtyPlus() {
-    let qty = document.getElementById("qty");
-    qty.value = parseInt(qty.value) + 1;
-    updatePrice();
-  }
+  // function qtyPlus() {
+  //   let qty = document.getElementById("qty");
+  //   qty.value = parseInt(qty.value) + 1;
+  //   updatePrice();
+  // }
 
-  function qtyMinus() {
-    let qty = document.getElementById("qty");
-    if (parseInt(qty.value) > 1) {
-      qty.value = parseInt(qty.value) - 1;
-      updatePrice();
-    }
-  }
+  // function qtyMinus() {
+  //   let qty = document.getElementById("qty");
+  //   if (parseInt(qty.value) > 1) {
+  //     qty.value = parseInt(qty.value) - 1;
+  //     updatePrice();
+  //   }
+  // }
 
-  function updatePrice() {
-    const carat = document.getElementById("carat").value;
-    const qty = document.getElementById("qty").value;
+  // function updatePrice() {
+  //   const carat = document.getElementById("carat").value;
+  //   const qty = document.getElementById("qty").value;
 
-    // Example price logic
-    const basePrice = 10000; // per carat
-    const total = basePrice * carat * qty;
+  //   // Example price logic
+  //   const basePrice = 10000; // per carat
+  //   const total = basePrice * carat * qty;
 
-    console.log("Total Price:", total);
-    // You can show this in UI if needed
-  }
+  //   console.log("Total Price:", total);
+  //   // You can show this in UI if needed
+  // }
 </script>
 
 <!-- JS -->
@@ -580,32 +580,32 @@ updateTotals();
   }
 </script>
 <script>
-function toggleCart() {
-  document.getElementById("miniCart").classList.toggle("show");
-}
+// function toggleCart() {
+//   document.getElementById("miniCart").classList.toggle("show");
+// }
 
-function removeCartItem(btn) {
-  btn.closest(".cart-item").remove();
-  updateCart();
-}
+// function removeCartItem(btn) {
+//   btn.closest(".cart-item").remove();
+//   updateCart();
+// }
 
-function updateCart() {
-  const items = document.querySelectorAll(".cart-item").length;
-  document.getElementById("cartCount").innerText = items;
+// function updateCart() {
+//   const items = document.querySelectorAll(".cart-item").length;
+//   document.getElementById("cartCount").innerText = items;
 
-  if(items === 0){
-    document.getElementById("cartTotal").innerText = "₹0";
-  }
-}
+//   if(items === 0){
+//     document.getElementById("cartTotal").innerText = "₹0";
+//   }
+// }
 
 // Close cart when clicking outside
-document.addEventListener("click", function(e){
-  const cart = document.getElementById("miniCart");
-  const wrapper = document.getElementById("cartWrapper");
-  if (!wrapper.contains(e.target)) {
-    cart.classList.remove("show");
-  }
-});
+// document.addEventListener("click", function(e){
+//   const cart = document.getElementById("miniCart");
+//   const wrapper = document.getElementById("cartWrapper");
+//   if (!wrapper.contains(e.target)) {
+//     cart.classList.remove("show");
+//   }
+// });
 </script>
 
 <script>
