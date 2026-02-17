@@ -64,7 +64,7 @@
                         <div class="icon-text">CART</div>
                         <script>
                             document.addEventListener('DOMContentLoaded', function () {
-                                fetch('/api/cart/count')
+                                fetch('/api/cart/count', { credentials: 'include' })
                                     .then(response => response.json())
                                     .then(data => {
                                         if (data.status && typeof data.count !== 'undefined') {

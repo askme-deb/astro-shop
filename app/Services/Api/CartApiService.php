@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
+use App\Services\Api\CartUserResolverService;
+use Illuminate\Http\Request;
 
 /**
  * CartApiService
@@ -16,6 +18,13 @@ use Illuminate\Support\Facades\Validator;
  */
 class CartApiService extends BaseApiClient
 {
+    protected CartUserResolverService $userResolver;
+
+    public function __construct(CartUserResolverService $userResolver)
+    {
+        parent::__construct();
+        $this->userResolver = $userResolver;
+    }
     /**
      * Invalidate cart cache for a given method and key.
      *
@@ -73,20 +82,35 @@ class CartApiService extends BaseApiClient
     //     return $this->normalizeResponse($result);
     // }
 
-    public function addToCart(array $payload): array
+    /**
+     * Add product to cart. Resolves user/guest ID automatically.
+     * @param array $payload
+     * @param Request|null $request
+     * @return array
+     */
+    public function addToCart(array $payload, Request $request = null): array
     {
+        if ($request) {
+            $resolved = $this->userResolver->resolve($request);
+            // Debug: Check what is returned by resolver
+           // \Log::debug('CartUserResolverService::resolve() output', ['resolved' => $resolved]);
+            if ($resolved['type'] === 'user') {
+                $payload['user_id'] = $resolved['id'];
+                unset($payload['guest_user_id']);
+            } else {
+                $payload['guest_user_id'] = $resolved['id'];
+                unset($payload['user_id']);
+            }
+        }
         $endpoint = 'cart/add-to-cart';
-        $result = $this->request('POST', $endpoint, ['json' => $payload]);
 
-        // Invalidate cart cache on update
+        $result = $this->request('POST', $endpoint, ['json' => $payload]);
         if (isset($result['success']) && $result['success']) {
             $this->invalidateCache('GET', 'cart');
         }
-        // Also check for 'status' key
         if (isset($result['status']) && $result['status']) {
             $this->invalidateCache('GET', 'cart');
         }
-
         return $this->normalizeResponse($result);
     }
 
@@ -104,31 +128,29 @@ class CartApiService extends BaseApiClient
      * @param array $payload
      * @return array
      */
-    public function buyNow(array $payload): array
+    /**
+     * Buy now (direct purchase). Resolves user/guest ID automatically.
+     * @param array $payload
+     * @param Request|null $request
+     * @return array
+     */
+    public function buyNow(array $payload, Request $request = null): array
     {
-        $validator = Validator::make($payload, [
-            'product_id' => 'required|integer',
-            'quantity' => 'required|integer|min:1',
-            // Add more validation rules as needed
-        ]);
-
-        if ($validator->fails()) {
-            return [
-                'success' => false,
-                'error' => 'Validation failed',
-                'errors' => $validator->errors()->toArray(),
-                'status' => 422,
-            ];
+        if ($request) {
+            $resolved = $this->userResolver->resolve($request);
+            if ($resolved['type'] === 'user') {
+                $payload['user_id'] = $resolved['id'];
+                unset($payload['guest_user_id']);
+            } else {
+                $payload['guest_user_id'] = $resolved['id'];
+                unset($payload['user_id']);
+            }
         }
-
         $endpoint = '/api/v1/cart/buy-now';
         $result = $this->request('POST', $endpoint, ['json' => $payload]);
-
-        // Invalidate cart cache on update
-        if ($result['success']) {
+        if (isset($result['success']) && $result['success']) {
             $this->invalidateCache('GET', '/api/v1/cart');
         }
-
         return $this->normalizeResponse($result);
     }
 
@@ -159,19 +181,33 @@ class CartApiService extends BaseApiClient
      * @param string $guestUserId
      * @return int
      */
-    public function getCartCount(string $guestUserId): int
+    /**
+     * Get the cart item count for a user or guest.
+     * @param Request $request
+     * @return int
+     */
+    public function getCartCount(Request $request): int
     {
+        $resolved = $this->userResolver->resolve($request);
+        $query = [];
+        if ($resolved['type'] === 'user') {
+            $query['user_id'] = $resolved['id'];
+        } else {
+            $query['guest_user_id'] = $resolved['id'];
+        }
+
         try {
             $endpoint = 'cart/count';
             $result = $this->request('GET', $endpoint, [
-                'query' => ['guest_user_id' => $guestUserId],
+                'query' => $query,
             ]);
+           // dd($result);
             if ((isset($result['status']) && $result['status']) && isset($result['count'])) {
                 return (int) $result['count'];
             }
-            Log::warning('Cart count API returned false status or missing count', ['result' => $result]);
+            //Log::warning('Cart count API returned false status or missing count', ['result' => $result]);
         } catch (\Throwable $e) {
-            Log::error('Failed to fetch cart count', ['error' => $e->getMessage()]);
+           // Log::error('Failed to fetch cart count', ['error' => $e->getMessage()]);
         }
         return 0;
     }
@@ -182,14 +218,25 @@ class CartApiService extends BaseApiClient
      * @param string $guestUserId
      * @return array{status: string, data: mixed, message: string}
      */
-    public function getCart(string $guestUserId): array
+    /**
+     * Fetch cart data for user or guest.
+     * @param Request $request
+     * @return array{status: string, data: mixed, message: string}
+     */
+    public function getCart(Request $request): array
     {
+        $resolved = $this->userResolver->resolve($request);
+        $query = [];
+        if ($resolved['type'] === 'user') {
+            $query['user_id'] = $resolved['id'];
+        } else {
+            $query['guest_user_id'] = $resolved['id'];
+        }
         $endpoint = 'carts';
         try {
             $result = $this->request('GET', $endpoint, [
-                'query' => ['guest_user_id' => $guestUserId],
+                'query' => $query,
             ]);
-            dd($result);
             if ((isset($result['status']) && $result['status']) && isset($result['data'])) {
                 return [
                     'status' => 'success',
@@ -200,6 +247,43 @@ class CartApiService extends BaseApiClient
             Log::error('Cart API error', [
                 'result' => $result,
             ]);
+            return [
+                'status' => 'error',
+                'data' => null,
+                'message' => 'Failed to fetch cart data.',
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Cart API Exception', ['exception' => $e]);
+            return [
+                'status' => 'error',
+                'data' => null,
+                'message' => 'Cart service unavailable.',
+            ];
+        }
+    }
+
+    /**
+     * Fetch cart data for a specific guest ID.
+     * Useful for merging carts after login.
+     *
+     * @param string $guestUserId
+     * @return array
+     */
+    public function getGuestCart(string $guestUserId): array
+    {
+        $query = ['guest_user_id' => $guestUserId];
+        $endpoint = 'carts';
+        try {
+            $result = $this->request('GET', $endpoint, [
+                'query' => $query,
+            ]);
+            if ((isset($result['status']) && $result['status']) && isset($result['data'])) {
+                return [
+                    'status' => 'success',
+                    'data' => $result['data'],
+                    'message' => 'Cart fetched successfully.',
+                ];
+            }
             return [
                 'status' => 'error',
                 'data' => null,

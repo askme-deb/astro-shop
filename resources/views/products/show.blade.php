@@ -141,7 +141,7 @@
 
       <!-- Buttons -->
       <div class="d-grid gap-3 my-4">
-        <button class="btn btn-dark btn-lg" onclick="addToCart()">
+        <button class="btn btn-dark btn-lg" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">
           <i class="fa fa-bag-shopping me-2"></i>Add to Cart
         </button>
 

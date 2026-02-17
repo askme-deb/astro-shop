@@ -12,7 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'cart.user.resolved' => \App\Http\Middleware\EnsureCartUserResolved::class,
+        ]);
+        $middleware->encryptCookies(except: [
+            'guest_user_id',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
