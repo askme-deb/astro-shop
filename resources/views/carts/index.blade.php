@@ -110,9 +110,9 @@
                     </label>
                 </div>
 
-                <button class="cart__checkout-button" onclick="window.location.href='{{ route('checkout.index') }}'">
+                <a href="{{ route('checkout.index') }}" class="cart__checkout-button">
                     Checkout Securely
-                </button>
+                </a>
 
             </div>
 

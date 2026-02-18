@@ -2,12 +2,11 @@
   <div class="footer-row">
     <ul class="payment-icons">
 
-      <li><img src="{{ asset('assets/images/payments/visa.svg') }}" alt="Visa"></li>
-      <li><img src="{{ asset('assets/images/payments/mastercard.svg') }}" alt="Mastercard"></li>
-      <li><img src="{{ asset('assets/images/payments/paypal.svg') }}" alt="PayPal" class="paypal"></li>
-      <li><img src="{{ asset('assets/images/payments/netbanking.svg') }}" alt="Net Banking"></li>
-      <li><img src="{{ asset('assets/images/payments/american-express.svg') }}" alt="American Express"></li>
-      <li><img src="{{ asset('assets/images/payments/rupay.png') }}" alt="RuPay"></li>
+      <li><img src="{{ asset('assets/images/payments/maestro.svg') }}" alt="Visa"></li>
+      <li><img src="{{ asset('assets/images/payments/mastercard.png') }}" alt="Mastercard"></li>
+      <li><img src="{{ asset('assets/images/payments/razorpay.svg') }}" alt="Net Banking"></li>
+      <li><img src="{{ asset('assets/images/payments/rupay.png') }}" alt="American Express"></li>
+      <li><img src="{{ asset('assets/images/payments/visa.svg') }}" alt="RuPay"></li>
       <li><img src="{{ asset('assets/images/payments/bhim.svg') }}" alt="BHIM UPI"></li>
 
       <li class="custom-option">

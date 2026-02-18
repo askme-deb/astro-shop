@@ -311,10 +311,20 @@
                 </div>
 
                 <div class="icon_warp">
-                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">
-                        <i class="fa fa-user fs-5"></i>
-                        <div class="icon-text">LOGIN</div>
-                    </a>
+                    @if(session()->has('auth.api_token'))
+                        <form id="header-logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+                            @csrf
+                        </form>
+                        <a href="javascript:void(0)" id="header-logout-trigger">
+                            <i class="fa fa-user fs-5"></i>
+                            <div class="icon-text">LOGOUT</div>
+                        </a>
+                    @else
+                        <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">
+                            <i class="fa fa-user fs-5"></i>
+                            <div class="icon-text">LOGIN</div>
+                        </a>
+                    @endif
                 </div>
 
 
@@ -387,58 +397,294 @@
             <!-- Close -->
             <button type="button" class="btn-close position-absolute end-0 m-3" data-bs-dismiss="modal"></button>
 
-            <!-- Tabs -->
-            <ul class="nav nav-tabs mb-4" id="authTabs">
-                <li class="nav-item">
-                    <button class="nav-link active cdtr" onclick="showLogin()">Login</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link cdtr" onclick="showRegister()">Register</button>
-                </li>
-            </ul>
+            <h5 class="mb-3">Login with OTP</h5>
 
-            <!-- LOGIN FORM -->
-            <div id="loginForm">
+            <div id="header-otp-alert" class="alert alert-info d-none" role="alert"></div>
 
-                <h5 class="mb-3">Login to Your Account</h5>
-
-                <!-- Username & Password -->
-                <div id="passwordLogin">
-                    <input type="text" class="form-control mb-3" placeholder="Username or Email">
-                    <input type="password" class="form-control mb-3" placeholder="Password">
-                    <button class="btn btn-dark w-100 mb-3 cdtr">Login</button>
-                    <div class="text-center">
-                        <a href="javascript:void(0)" onclick="showOTP()">Login with OTP</a>
-                    </div>
+            <!-- STEP 1: Mobile input -->
+            <div id="header-otp-step-mobile">
+                <div class="mb-3">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="tel" id="header-otp-mobile" class="form-control" placeholder="Enter mobile number" autocomplete="tel" inputmode="numeric">
                 </div>
-
-                <!-- OTP LOGIN -->
-                <div id="otpLogin" style="display:none;">
-                    <input type="text" class="form-control mb-3" placeholder="Enter Mobile Number">
-                    <button class="btn btn-dark w-100 mb-3 cdtr" onclick="sendOTP()">Send OTP</button>
-
-                    <div id="otpBox" style="display:none;">
-                        <input type="text" class="form-control mb-3" placeholder="Enter OTP">
-                        <button class="btn btn-success w-100">Verify & Login</button>
-                    </div>
-
-                    <div class="text-center mt-2">
-                        <a href="javascript:void(0)" onclick="showPasswordLogin()">Login with Password</a>
-                    </div>
-                </div>
-
+                <button type="button" class="btn btn-dark w-100 cdtr" id="header-otp-send-btn">Send OTP</button>
             </div>
 
-            <!-- REGISTER FORM -->
-            <div id="registerForm" style="display:none;">
-                <h5 class="mb-3">Create Account</h5>
-                <input type="text" class="form-control mb-3" placeholder="Full Name">
-                <input type="email" class="form-control mb-3" placeholder="Email Address">
-                <input type="text" class="form-control mb-3" placeholder="Mobile Number">
-                <input type="password" class="form-control mb-3" placeholder="Password">
-                <button class="btn btn-dark w-100 cdtr">Register</button>
+            <!-- STEP 2: OTP verify -->
+            <div id="header-otp-step-verify" style="display:none;">
+                <div class="mb-2 small text-muted" id="header-otp-instructions">
+                    Enter the OTP sent to your mobile number.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="tel" id="header-otp-mobile-readonly" class="form-control" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">OTP</label>
+                    <div class="d-flex gap-2 justify-content-between" style="max-width: 220px;">
+                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
+                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
+                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
+                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-success w-100 mb-2" id="header-otp-verify-btn">Verify &amp; Login</button>
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-link p-0" id="header-otp-change-mobile">Change mobile</button>
+                    <button type="button" class="btn btn-link p-0" id="header-otp-resend-btn">Resend OTP</button>
+                    <span class="small text-muted" id="header-otp-resend-timer" style="display:none;"></span>
+                </div>
             </div>
 
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const logoutTrigger = document.getElementById('header-logout-trigger');
+        if (logoutTrigger) {
+            logoutTrigger.addEventListener('click', function () {
+                const form = document.getElementById('header-logout-form');
+                if (!form) return;
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                })
+                    .then(() => window.location.reload());
+            });
+        }
+
+        const alertBox = document.getElementById('header-otp-alert');
+        const stepMobile = document.getElementById('header-otp-step-mobile');
+        const stepVerify = document.getElementById('header-otp-step-verify');
+        const mobileInput = document.getElementById('header-otp-mobile');
+        const mobileReadonly = document.getElementById('header-otp-mobile-readonly');
+        const otpInputs = Array.from(document.querySelectorAll('.header-otp-digit'));
+        const sendBtn = document.getElementById('header-otp-send-btn');
+        const verifyBtn = document.getElementById('header-otp-verify-btn');
+        const changeMobileBtn = document.getElementById('header-otp-change-mobile');
+        const resendBtn = document.getElementById('header-otp-resend-btn');
+        const resendTimer = document.getElementById('header-otp-resend-timer');
+
+        let headerResendCountdown = null;
+
+        function showHeaderAlert(message, type = 'info') {
+            if (!alertBox) return;
+            alertBox.classList.remove('d-none', 'alert-info', 'alert-danger', 'alert-success');
+            alertBox.classList.add('alert-' + type);
+            alertBox.textContent = message;
+        }
+
+        function clearHeaderAlert() {
+            if (!alertBox) return;
+            alertBox.classList.add('d-none');
+            alertBox.textContent = '';
+        }
+
+        function setHeaderLoading(button, isLoading) {
+            if (!button) return;
+            button.disabled = isLoading;
+            if (isLoading) {
+                button.dataset.originalText = button.innerText;
+                button.innerText = 'Please wait...';
+            } else if (button.dataset.originalText) {
+                button.innerText = button.dataset.originalText;
+            }
+        }
+
+        function startHeaderResendCountdown(seconds) {
+            if (!resendTimer || !resendBtn) return;
+            let remaining = seconds;
+            resendTimer.style.display = 'inline';
+            resendBtn.style.pointerEvents = 'none';
+            resendBtn.style.opacity = '0.5';
+            resendTimer.textContent = '(' + remaining + 's)';
+
+            if (headerResendCountdown) clearInterval(headerResendCountdown);
+            headerResendCountdown = setInterval(function () {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(headerResendCountdown);
+                    resendTimer.style.display = 'none';
+                    resendBtn.style.pointerEvents = 'auto';
+                    resendBtn.style.opacity = '1';
+                } else {
+                    resendTimer.textContent = '(' + remaining + 's)';
+                }
+            }, 1000);
+        }
+
+        function headerPostJson(url, payload, onSuccess) {
+            clearHeaderAlert();
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload),
+            })
+                .then(async (response) => {
+                    const data = await response.json().catch(() => ({ success: false, message: 'Unexpected server response.' }));
+
+                    if (!response.ok || data.success === false) {
+                        const message = data.message || 'Unable to process request.';
+                        showHeaderAlert(message, 'danger');
+                        return;
+                    }
+
+                    onSuccess(data);
+                })
+                .catch(() => {
+                    showHeaderAlert('Unable to reach authentication service. Please try again.', 'danger');
+                });
+        }
+
+        function getHeaderOtp() {
+            if (!otpInputs.length) return '';
+            return otpInputs.map(function (input) {
+                return (input.value || '').trim();
+            }).join('');
+        }
+
+        function clearHeaderOtp() {
+            otpInputs.forEach(function (input) {
+                input.value = '';
+            });
+            if (otpInputs[0]) {
+                otpInputs[0].focus();
+            }
+        }
+
+        // OTP input UX: auto-advance and backspace behavior
+        otpInputs.forEach(function (input, index) {
+            input.addEventListener('input', function (e) {
+                const value = input.value.replace(/[^0-9]/g, '');
+                input.value = value.slice(-1);
+
+                if (value && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        if (sendBtn) {
+            sendBtn.addEventListener('click', function () {
+                const mobile = (mobileInput?.value || '').trim();
+                if (!mobile) {
+                    showHeaderAlert('Please enter your mobile number.', 'danger');
+                    return;
+                }
+
+                setHeaderLoading(sendBtn, true);
+
+                headerPostJson("{{ route('login.otp.request') }}", {
+                    mobile_no: mobile,
+                    country_code: '91',
+                    context: 'header',
+                }, function (data) {
+                    showHeaderAlert(data.message || 'OTP sent successfully.', 'success');
+                    if (mobileReadonly) mobileReadonly.value = mobile;
+                    if (stepMobile && stepVerify) {
+                        stepMobile.style.display = 'none';
+                        stepVerify.style.display = 'block';
+                    }
+                    startHeaderResendCountdown(30);
+                });
+
+                setTimeout(function () {
+                    setHeaderLoading(sendBtn, false);
+                }, 600);
+            });
+        }
+
+        if (verifyBtn) {
+            verifyBtn.addEventListener('click', function () {
+                const mobile = (mobileReadonly?.value || '').trim();
+                const otp = getHeaderOtp();
+
+                if (!otp || otp.length < 4) {
+                    showHeaderAlert('Please enter the 4-digit OTP.', 'danger');
+                    return;
+                }
+
+                setHeaderLoading(verifyBtn, true);
+
+                headerPostJson("{{ route('login.otp.verify') }}", {
+                    mobile_no: mobile,
+                    country_code: '+91',
+                    otp: otp,
+                    context: 'header',
+                }, function (data) {
+                    showHeaderAlert(data.message || 'Logged in successfully.', 'success');
+                    const modal = document.getElementById('authModal');
+                    if (modal) {
+                        const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);
+                        bsModal.hide();
+                    }
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
+                });
+
+                setTimeout(function () {
+                    setHeaderLoading(verifyBtn, false);
+                }, 600);
+            });
+        }
+
+        if (changeMobileBtn) {
+            changeMobileBtn.addEventListener('click', function () {
+                if (stepMobile && stepVerify) {
+                    stepVerify.style.display = 'none';
+                    stepMobile.style.display = 'block';
+                    clearHeaderAlert();
+                    clearHeaderOtp();
+                }
+            });
+        }
+
+        if (resendBtn) {
+            resendBtn.addEventListener('click', function () {
+                const mobile = (mobileReadonly?.value || '').trim();
+                if (!mobile) {
+                    showHeaderAlert('Mobile number is missing. Please go back and enter it again.', 'danger');
+                    return;
+                }
+
+                setHeaderLoading(resendBtn, true);
+
+                headerPostJson("{{ route('login.otp.resend') }}", {
+                    mobile_no: mobile,
+                    country_code: '+91',
+                    context: 'header',
+                }, function (data) {
+                    showHeaderAlert(data.message || 'OTP resent.', 'success');
+                    startHeaderResendCountdown(30);
+                });
+
+                setTimeout(function () {
+                    setHeaderLoading(resendBtn, false);
+                }, 600);
+            });
+        }
+    });
+</script>

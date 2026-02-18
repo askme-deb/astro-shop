@@ -9,40 +9,66 @@
         <div class="checkout-left">
             <h2 class="checkout-title">Checkout</h2>
 
-            <!-- STEP 1: LOGIN / CUSTOMER -->
+            <!-- STEP 1: LOGIN / CUSTOMER (MOBILE + OTP) -->
             <section class="checkout-card checkout-step">
                 <div class="checkout-step-header">
                     <span class="step-number">1</span>
                     <h3 class="step-title">LOGIN / CUSTOMER DETAILS</h3>
-                    <button type="button" class="step-action" onclick="showCustomerEdit()">CHANGE</button>
                 </div>
                 <div class="checkout-step-body">
-                    <div class="logged-in-summary" id="customer-summary">
-                        <div class="logged-in-name">John Doe</div>
-                        <div class="logged-in-contact">
-                            <span>john.doe@example.com</span>
-                            <span>• +91-9876543210</span>
+
+                    <!-- LOGGED-IN SUMMARY (shown when API-authenticated session exists) -->
+                    <div id="step-logged-in" class="checkout-step-pane" style="display: {{ session()->has('auth.api_token') ? 'block' : 'none' }};">
+                        <div class="logged-in-summary" id="customer-summary">
+                            @php($authUser = session('auth.user'))
+                            <div class="logged-in-name">{{ $authUser['first_name'] ?? 'Guest' }}</div>
+                            <div class="logged-in-contact">
+                                <span>{{ $authUser['email'] ?? 'No email on file' }}</span>
+                                <span>• {{ ($authUser['mobile_no'] ?? '') ? '+91-' . $authUser['mobile_no'] : '' }}</span>
+                            </div>
+                            <div class="logged-in-note">You are logged in. Customer details are pre-filled.</div>
                         </div>
-                        <div class="logged-in-note">You are logged in. Customer details are pre-filled.</div>
                     </div>
 
-                    <div id="customer-edit-form" style="display:none;">
+                    <!-- STEP 1A: ENTER MOBILE (for guests, AJAX OTP request) -->
+                    <div id="step-mobile" class="checkout-step-pane" style="display: {{ session()->has('auth.api_token') ? 'none' : 'block' }};">
+                        <div id="checkout-otp-alert" class="logged-in-note" style="display:none;"></div>
                         <div class="form-row">
-                            <label>Full Name</label>
-                            <input type="text" placeholder="Enter your full name" value="John Doe">
-                        </div>
-                        <div class="form-row">
-                            <label>Email Address</label>
-                            <input type="email" placeholder="Enter your email" value="john.doe@example.com">
-                        </div>
-                        <div class="form-row">
-                            <label>Phone Number</label>
-                            <input type="tel" placeholder="Enter your phone number" value="+91-9876543210">
+                            <label for="checkout-mobile-input">Mobile Number</label>
+                            <input type="tel" id="checkout-mobile-input" placeholder="Enter your mobile number" autocomplete="tel" inputmode="numeric">
                         </div>
                         <div class="customer-edit-actions">
-                            <button type="button" class="change-cancel" onclick="hideCustomerEdit()">CANCEL</button>
+                            <button type="button" class="btn-deliver" id="btn-checkout-send-otp">Send OTP</button>
                         </div>
+                        <p class="logged-in-note">
+                            We’ll send an OTP to this number and then log you in securely.
+                        </p>
                     </div>
+
+                    <!-- STEP 1B: VERIFY OTP (AJAX OTP verification) -->
+                    <div id="step-login" class="checkout-step-pane" style="display:none;">
+                        <div class="logged-in-note" id="checkout-otp-instructions">
+                            We found an account with this mobile number. Please enter the OTP sent to your phone.
+                        </div>
+                        <div class="form-row">
+                            <label>Mobile Number</label>
+                            <input type="tel" id="checkout-login-mobile" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label for="checkout-login-otp">OTP Code</label>
+                            <input type="text" id="checkout-login-otp" placeholder="Enter OTP" inputmode="numeric">
+                        </div>
+                        <div class="customer-edit-actions">
+                            <button type="button" class="btn-deliver" id="btn-checkout-verify-otp">Verify OTP &amp; Login</button>
+                            <button type="button" class="btn-link" id="btn-checkout-change-mobile">Change Mobile</button>
+                        </div>
+                        <p class="logged-in-note">
+                            Didn’t receive the OTP?
+                            <span class="btn-link" id="btn-checkout-resend-otp" style="padding-left:0;">Resend OTP</span>
+                            <span id="checkout-resend-timer" class="logged-in-note" style="display:none; margin-left:6px;"></span>
+                        </p>
+                    </div>
+
                 </div>
             </section>
 
@@ -702,24 +728,6 @@
 
 @push('scripts')
     <script>
-        function showCustomerEdit() {
-            var summary = document.getElementById('customer-summary');
-            var form = document.getElementById('customer-edit-form');
-            if (summary && form) {
-                summary.style.display = 'none';
-                form.style.display = 'block';
-            }
-        }
-
-        function hideCustomerEdit() {
-            var summary = document.getElementById('customer-summary');
-            var form = document.getElementById('customer-edit-form');
-            if (summary && form) {
-                form.style.display = 'none';
-                summary.style.display = 'block';
-            }
-        }
-
         function showAddAddressForm() {
             var form = document.getElementById('address-add-form');
             if (form) {
@@ -751,5 +759,197 @@
                 });
             });
         });
+
+        // --- OTP Checkout AJAX Flow ---
+        (function () {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            const mobileInput = document.getElementById('checkout-mobile-input');
+            const loginMobile = document.getElementById('checkout-login-mobile');
+            const loginOtp = document.getElementById('checkout-login-otp');
+            const sendOtpBtn = document.getElementById('btn-checkout-send-otp');
+            const verifyOtpBtn = document.getElementById('btn-checkout-verify-otp');
+            const changeMobileBtn = document.getElementById('btn-checkout-change-mobile');
+            const resendOtpBtn = document.getElementById('btn-checkout-resend-otp');
+            const alertBox = document.getElementById('checkout-otp-alert');
+            const stepMobile = document.getElementById('step-mobile');
+            const stepLogin = document.getElementById('step-login');
+            const resendTimer = document.getElementById('checkout-resend-timer');
+
+            let resendCountdown = null;
+
+            function setLoading(button, isLoading) {
+                if (!button) return;
+                button.disabled = isLoading;
+                if (isLoading) {
+                    button.dataset.originalText = button.innerText;
+                    button.innerText = 'Please wait...';
+                } else if (button.dataset.originalText) {
+                    button.innerText = button.dataset.originalText;
+                }
+            }
+
+            function showAlert(message, isError = false) {
+                if (!alertBox) return;
+                alertBox.style.display = 'block';
+                alertBox.textContent = message;
+                alertBox.style.color = isError ? '#d32f2f' : '#2e7d32';
+            }
+
+            function clearAlert() {
+                if (!alertBox) return;
+                alertBox.style.display = 'none';
+                alertBox.textContent = '';
+            }
+
+            function startResendCountdown(seconds) {
+                if (!resendTimer) return;
+                let remaining = seconds;
+                resendTimer.style.display = 'inline';
+                resendOtpBtn.style.pointerEvents = 'none';
+                resendOtpBtn.style.opacity = '0.5';
+
+                resendTimer.textContent = '(Resend available in ' + remaining + 's)';
+
+                if (resendCountdown) clearInterval(resendCountdown);
+                resendCountdown = setInterval(function () {
+                    remaining -= 1;
+                    if (remaining <= 0) {
+                        clearInterval(resendCountdown);
+                        resendTimer.style.display = 'none';
+                        resendOtpBtn.style.pointerEvents = 'auto';
+                        resendOtpBtn.style.opacity = '1';
+                    } else {
+                        resendTimer.textContent = '(Resend available in ' + remaining + 's)';
+                    }
+                }, 1000);
+            }
+
+            function postJson(url, payload, onSuccess) {
+                clearAlert();
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(payload),
+                })
+                    .then(async (response) => {
+                        const data = await response.json().catch(() => ({ success: false, message: 'Unexpected server response.' }));
+
+                        if (!response.ok || data.success === false) {
+                            const message = data.message || 'Something went wrong. Please try again.';
+                            showAlert(message, true);
+                            return;
+                        }
+
+                        onSuccess(data);
+                    })
+                    .catch(() => {
+                        showAlert('Unable to reach authentication service. Please try again.', true);
+                    });
+            }
+
+            if (sendOtpBtn) {
+                sendOtpBtn.addEventListener('click', function () {
+                    const mobile = (mobileInput?.value || '').trim();
+                    if (!mobile) {
+                        showAlert('Please enter your mobile number.', true);
+                        return;
+                    }
+
+                    setLoading(sendOtpBtn, true);
+
+                    postJson("{{ route('login.otp.request') }}", {
+                        mobile_no: mobile,
+                        country_code: '91',
+                        context: 'checkout',
+                    }, function (data) {
+                        showAlert(data.message || 'OTP sent successfully.', false);
+                        if (loginMobile) loginMobile.value = mobile;
+                        if (stepMobile && stepLogin) {
+                            stepMobile.style.display = 'none';
+                            stepLogin.style.display = 'block';
+                        }
+                        startResendCountdown(30);
+                    });
+
+                    setTimeout(function () {
+                        setLoading(sendOtpBtn, false);
+                    }, 600);
+                });
+            }
+
+            if (verifyOtpBtn) {
+                verifyOtpBtn.addEventListener('click', function () {
+                    const mobile = (loginMobile?.value || '').trim();
+                    const otp = (loginOtp?.value || '').trim();
+
+                    if (!otp) {
+                        showAlert('Please enter the OTP.', true);
+                        return;
+                    }
+
+                    setLoading(verifyOtpBtn, true);
+
+                    postJson("{{ route('login.otp.verify') }}", {
+                        mobile_no: mobile,
+                        country_code: '+91',
+                        otp: otp,
+                        context: 'checkout',
+                    }, function (data) {
+                        showAlert(data.message || 'Logged in successfully.', false);
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+
+                    setTimeout(function () {
+                        setLoading(verifyOtpBtn, false);
+                    }, 600);
+                });
+            }
+
+            if (changeMobileBtn) {
+                changeMobileBtn.addEventListener('click', function () {
+                    if (stepMobile && stepLogin) {
+                        stepLogin.style.display = 'none';
+                        stepMobile.style.display = 'block';
+                        clearAlert();
+                        if (loginOtp) loginOtp.value = '';
+                    }
+                });
+            }
+
+            if (resendOtpBtn) {
+                resendOtpBtn.addEventListener('click', function () {
+                    const mobile = (loginMobile?.value || '').trim();
+                    if (!mobile) {
+                        showAlert('Mobile number is missing. Please go back and enter it again.', true);
+                        return;
+                    }
+
+                    setLoading(resendOtpBtn, true);
+
+                    postJson("{{ route('login.otp.resend') }}", {
+                        mobile_no: mobile,
+                        country_code: '+91',
+                        context: 'checkout',
+                    }, function (data) {
+                        showAlert(data.message || 'OTP resent.', false);
+                        startResendCountdown(30);
+                    });
+
+                    setTimeout(function () {
+                        setLoading(resendOtpBtn, false);
+                    }, 600);
+                });
+            }
+        })();
     </script>
 @endpush
