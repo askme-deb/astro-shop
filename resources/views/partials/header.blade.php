@@ -137,6 +137,8 @@
                 </style>
 
                 <script>
+                    let miniCartItemIdToRemove = null;
+
                     document.addEventListener('DOMContentLoaded', function () {
                         updateCartCount();
                     });
@@ -199,7 +201,7 @@
                     function fetchMiniCart() {
                         const miniCartItems = document.getElementById('miniCartItems');
                         miniCartItems.innerHTML = getSkeletonHtml();
-                        
+
                         fetch('/api/cart', { credentials: 'include' })
                             .then(response => response.json())
                             .then(data => {
@@ -246,10 +248,23 @@
                     }
 
                     function removeMiniCartItem(cartId, btn) {
-                        if(!confirm('Remove this item?')) return;
+                        miniCartItemIdToRemove = cartId;
+                        const popup = document.getElementById('mini-cart-popup');
+                        if (popup) popup.style.display = 'block';
+                    }
 
+                    function closeMiniCartPopup() {
+                        miniCartItemIdToRemove = null;
+                        const popup = document.getElementById('mini-cart-popup');
+                        if (popup) popup.style.display = 'none';
+                    }
+
+                    function confirmMiniCartRemoveItem() {
+                        if (!miniCartItemIdToRemove) return;
+
+                        const cartId = miniCartItemIdToRemove;
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                        
+
                         fetch('/api/cart/delete-item', {
                             method: 'POST',
                             headers: {
@@ -262,9 +277,8 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success || data.status) {
-                                fetchMiniCart(); // Refresh mini cart
-                                updateCartCount(); // Refresh count
-                                // If on cart page, maybe reload? For now, just refresh mini cart
+                                fetchMiniCart();
+                                updateCartCount();
                                 if (window.location.pathname === '/cart') {
                                     window.location.reload();
                                 }
@@ -272,9 +286,29 @@
                                 alert('Failed to remove item');
                             }
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => console.error(err))
+                        .finally(() => {
+                            closeMiniCartPopup();
+                        });
                     }
                 </script>
+
+                <!-- Mini Cart Remove Confirmation Popup (separate ID to avoid conflict with cart page popup) -->
+                <div class="popup" id="mini-cart-popup" style="display:none;">
+                    <div class="popup-content">
+                        <div class="popup-header">
+                            <h3>Move from cart?</h3>
+                            <span onclick="closeMiniCartPopup()" style="cursor:pointer">✕</span>
+                        </div>
+
+                        <p>Move this item to your wishlist and buy later.</p>
+
+                        <div class="popup-actions">
+                            <a onclick="confirmMiniCartRemoveItem()">Remove</a>
+                            <a onclick="closeMiniCartPopup()">Cancel</a>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="icon_warp">
                     <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">

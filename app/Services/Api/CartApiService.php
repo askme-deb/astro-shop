@@ -328,9 +328,8 @@ class CartApiService extends BaseApiClient
     public function deleteCartItem(array $payload): array
     {
         $endpoint = 'delete/cart/item';
-        
+
         $result = $this->request('POST', $endpoint, ['json' => $payload]);
-dd($result);
         if (isset($result['success']) && $result['success']) {
             $this->invalidateCache('GET', 'cart');
         } else if (isset($result['status']) && $result['status']) {
