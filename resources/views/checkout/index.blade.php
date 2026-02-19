@@ -41,7 +41,7 @@
                         <div id="checkout-otp-alert" class="logged-in-note" style="display:none;"></div>
                         <div class="form-row">
                             <label for="checkout-mobile-input">Mobile Number</label>
-                            <input type="tel" id="checkout-mobile-input" placeholder="Enter your mobile number"
+                            <input type="tel" id="checkout-mobile-input" placeholder="Enter your WhatsApp  number"
                                 autocomplete="tel" inputmode="numeric">
                         </div>
                         <div class="customer-edit-actions">
@@ -62,8 +62,14 @@
                             <input type="tel" id="checkout-login-mobile" readonly>
                         </div>
                         <div class="form-row">
-                            <label for="checkout-login-otp">OTP Code</label>
-                            <input type="text" id="checkout-login-otp" placeholder="Enter OTP" inputmode="numeric">
+                            <label for="checkout-login-otp-1">OTP Code</label>
+                            <div class="otp-input-group" id="checkout-otp-group">
+                                <input type="text" id="checkout-login-otp-1" class="otp-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
+                                <input type="text" id="checkout-login-otp-2" class="otp-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
+                                <input type="text" id="checkout-login-otp-3" class="otp-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
+                                <input type="text" id="checkout-login-otp-4" class="otp-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
+                            </div>
+                            <input type="hidden" id="checkout-login-otp">
                         </div>
                         <div class="customer-edit-actions">
                             <button type="button" class="btn-deliver" id="btn-checkout-verify-otp">Verify OTP &amp;
@@ -359,34 +365,12 @@
             <div class="summary-box">
 
                 <h3>Order Summary</h3>
-
-                <div class="summary-item">
-                    <img src="images/product_13.png" alt="Product">
-                    <div>
-                        <p class="product-name">Rose Gold Personalised Eternal Necklace</p>
-                        <span class="product-meta">Qty: 1 • No Charm</span>
-                    </div>
-                    <strong>₹2,599</strong>
+                <div id="checkout-summary-items" class="summary-items">
+                    <p class="logged-in-note">Loading your cart...</p>
                 </div>
 
-                <div class="accordion">
-                    <div class="accordion__intro">EXTRA 16% OFF above ₹1999</div>
-                    <div class="accordion__content offer" data-code="SWEET16">
-                        <div id="offer-code">SWEET16</div>
-                        <div class="copy-code">Copy Code</div>
-                        <div class="copied">Copied</div>
-                    </div>
-                </div>
-
-                <div class="accordion">
-                    <div class="accordion__intro">FLAT 20% OFF above ₹4499</div>
-                    <div class="accordion__content offer" data-code="LOVE20">
-                        <div id="offer-code">LOVE20</div>
-                        <div class="copy-code">Copy Code</div>
-                        <div class="copied">Copied</div>
-                    </div>
-                </div>
-
+                <!-- Dynamic coupons from external API will be rendered here -->
+                <div id="checkout-dynamic-coupons"></div>
 
                 <!-- COUPON -->
                 <div class="coupon-row">
@@ -722,6 +706,83 @@
             color: #878787;
         }
 
+        /* Checkout summary skeleton loading */
+        .summary-skeleton {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .summary-skeleton-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-skeleton-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background: #eee;
+            animation: skeleton-shimmer 1.5s infinite linear;
+        }
+
+        .summary-skeleton-text {
+            flex: 1;
+        }
+
+        .summary-skeleton-line {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            animation: skeleton-shimmer 1.5s infinite linear;
+        }
+
+        .summary-skeleton-line--title {
+            width: 70%;
+        }
+
+        .summary-skeleton-line--meta {
+            width: 45%;
+        }
+
+        .summary-skeleton-price {
+            width: 60px;
+            height: 12px;
+            border-radius: 4px;
+            background: #eee;
+            animation: skeleton-shimmer 1.5s infinite linear;
+        }
+
+        /* OTP input boxes */
+        .otp-input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .otp-input {
+            width: 48px !important;
+            height: 48px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid #d0d0d0;
+            background: #fafafa;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: #f98700;
+            box-shadow: 0 0 0 1px rgba(249, 135, 0, 0.18);
+            background: #fff;
+            transform: translateY(-1px);
+        }
+
         /* Address list (Flipkart-style) */
         .address-list {
             display: flex;
@@ -840,6 +901,7 @@
             margin-top: 4px;
         }
 
+        /* Primary action button (visible by default) */
         .btn-deliver {
             padding: 6px 12px;
             border-radius: 2px;
@@ -850,6 +912,10 @@
             font-weight: 600;
             cursor: pointer;
             text-transform: uppercase;
+        }
+
+        /* In address list, hide deliver button until hover/selected */
+        .address-actions .btn-deliver {
             opacity: 0;
             visibility: hidden;
             transform: translateY(2px);
@@ -932,7 +998,7 @@
             padding: 6px 14px;
             border-radius: 2px;
             border: none;
-            background: #fb641b;
+            background: #f67f00;
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -2161,6 +2227,7 @@
             const mobileInput = document.getElementById('checkout-mobile-input');
             const loginMobile = document.getElementById('checkout-login-mobile');
             const loginOtp = document.getElementById('checkout-login-otp');
+            const otpInputs = Array.from(document.querySelectorAll('.otp-input'));
             const sendOtpBtn = document.getElementById('btn-checkout-send-otp');
             const verifyOtpBtn = document.getElementById('btn-checkout-verify-otp');
             const changeMobileBtn = document.getElementById('btn-checkout-change-mobile');
@@ -2171,6 +2238,25 @@
             const resendTimer = document.getElementById('checkout-resend-timer');
 
             let resendCountdown = null;
+
+            function getOtpValue() {
+                if (!otpInputs || !otpInputs.length) return (loginOtp?.value || '').trim();
+                const value = otpInputs.map(function(input) {
+                    return (input.value || '').trim();
+                }).join('');
+                if (loginOtp) loginOtp.value = value;
+                return value;
+            }
+
+            function clearOtpInputs() {
+                if (otpInputs && otpInputs.length) {
+                    otpInputs.forEach(function(input) {
+                        input.value = '';
+                    });
+                    otpInputs[0].focus();
+                }
+                if (loginOtp) loginOtp.value = '';
+            }
 
             function setLoading(button, isLoading) {
                 if (!button) return;
@@ -2283,7 +2369,7 @@
             if (verifyOtpBtn) {
                 verifyOtpBtn.addEventListener('click', function() {
                     const mobile = (loginMobile?.value || '').trim();
-                    const otp = (loginOtp?.value || '').trim();
+                    const otp = getOtpValue();
 
                     if (!otp) {
                         showAlert('Please enter the OTP.', true);
@@ -2318,8 +2404,38 @@
                         stepLogin.style.display = 'none';
                         stepMobile.style.display = 'block';
                         clearAlert();
-                        if (loginOtp) loginOtp.value = '';
+                        clearOtpInputs();
                     }
+                });
+            }
+
+            if (otpInputs && otpInputs.length) {
+                otpInputs.forEach(function(input, index) {
+                    input.addEventListener('input', function(e) {
+                        let value = (e.target.value || '').replace(/[^0-9]/g, '');
+                        if (value.length > 1) {
+                            value = value.slice(-1);
+                        }
+                        e.target.value = value;
+
+                        if (value && index < otpInputs.length - 1) {
+                            otpInputs[index + 1].focus();
+                        }
+                    });
+
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                            otpInputs[index - 1].focus();
+                        }
+                        if (e.key === 'ArrowLeft' && index > 0) {
+                            e.preventDefault();
+                            otpInputs[index - 1].focus();
+                        }
+                        if (e.key === 'ArrowRight' && index < otpInputs.length - 1) {
+                            e.preventDefault();
+                            otpInputs[index + 1].focus();
+                        }
+                    });
                 });
             }
 
@@ -2347,6 +2463,291 @@
                     }, 600);
                 });
             }
+        })();
+
+        // --- Checkout Order Summary with Cart API ---
+        (function() {
+            const summaryBox = document.querySelector('.summary-box');
+            const itemsContainer = document.getElementById('checkout-summary-items');
+            const subtotalEl = document.getElementById('subtotal');
+            const taxEl = document.getElementById('tax');
+            const totalEl = document.getElementById('total');
+            const placeOrderBtn = summaryBox ? summaryBox.querySelector('.cart__checkout-button') : null;
+            const dynamicCouponsContainer = document.getElementById('checkout-dynamic-coupons');
+
+            if (!summaryBox || !itemsContainer) {
+                return;
+            }
+
+            function formatCurrency(amount) {
+                return Number(amount || 0).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function showSummarySkeleton() {
+                itemsContainer.innerHTML = `
+                    <div class="summary-skeleton">
+                        <div class="summary-skeleton-item">
+                            <div class="summary-skeleton-img"></div>
+                            <div class="summary-skeleton-text">
+                                <div class="summary-skeleton-line summary-skeleton-line--title"></div>
+                                <div class="summary-skeleton-line summary-skeleton-line--meta"></div>
+                            </div>
+                            <div class="summary-skeleton-price"></div>
+                        </div>
+                        <div class="summary-skeleton-item">
+                            <div class="summary-skeleton-img"></div>
+                            <div class="summary-skeleton-text">
+                                <div class="summary-skeleton-line summary-skeleton-line--title"></div>
+                                <div class="summary-skeleton-line summary-skeleton-line--meta"></div>
+                            </div>
+                            <div class="summary-skeleton-price"></div>
+                        </div>
+                    </div>`;
+            }
+
+            function renderEmpty() {
+                itemsContainer.innerHTML = '<p class="logged-in-note">Your cart is empty.</p>';
+                if (subtotalEl) subtotalEl.textContent = '0.00';
+                if (taxEl) taxEl.textContent = '0.00';
+                if (totalEl) totalEl.textContent = '0.00';
+                if (placeOrderBtn) {
+                    placeOrderBtn.disabled = true;
+                    placeOrderBtn.classList.add('disabled');
+                }
+            }
+
+            function renderSummary(items) {
+                if (!items || !items.length) {
+                    renderEmpty();
+                    return;
+                }
+
+                let subtotal = 0;
+                let html = '';
+
+                items.forEach(function(item) {
+                    const product = item.product || {};
+                    const unitPrice = parseFloat(product.total_price || item.amount || 0) || 0;
+                    const comparePriceRaw = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
+                    const quantity = parseInt(item.quantity || 1, 10) || 1;
+                    const lineTotal = unitPrice * quantity;
+                    subtotal += lineTotal;
+
+                    const imageUrl = product.image_url || '/assets/images/product-1.jpg';
+                    const name = product.name || 'Product';
+                    const options = product.options_text || '';
+                    const metaParts = ['Qty: ' + quantity];
+                    if (options) {
+                        metaParts.push(options);
+                    }
+                    const metaText = metaParts.join(' • ');
+
+                    const lineCompareTotal = comparePriceRaw ? (comparePriceRaw * quantity) : null;
+
+                    html += `
+                        <div class="summary-item">
+                            <img src="${imageUrl}" alt="${name}">
+                            <div>
+                                <p class="product-name">${name}</p>
+                                <span class="product-meta">${metaText}</span>
+                            </div>
+                            <div class="summary-price">
+                                <strong>₹${formatCurrency(lineTotal)}</strong>
+                                ${lineCompareTotal && lineCompareTotal > lineTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
+                            </div>
+                        </div>`;
+                });
+
+                itemsContainer.innerHTML = html;
+
+                const taxAmount = subtotal * 0.03;
+                const total = subtotal + taxAmount;
+
+                if (subtotalEl) subtotalEl.textContent = formatCurrency(subtotal);
+                if (taxEl) taxEl.textContent = formatCurrency(taxAmount);
+                if (totalEl) totalEl.textContent = formatCurrency(total);
+                if (placeOrderBtn) {
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.classList.remove('disabled');
+                }
+            }
+
+            function fetchCheckoutCart() {
+                showSummarySkeleton();
+
+                fetch('/api/cart', {
+                        credentials: 'include'
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: 'error',
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        if (!result.response.ok || !result.data || result.data.status !== 'success') {
+                            renderEmpty();
+                            return;
+                        }
+                        renderSummary(result.data.data || []);
+                    })
+                    .catch(function() {
+                        renderEmpty();
+                    });
+            }
+
+            function renderCoupons(coupons) {
+                if (!dynamicCouponsContainer) {
+                    return;
+                }
+
+                if (!Array.isArray(coupons) || coupons.length === 0) {
+                    dynamicCouponsContainer.innerHTML = '';
+                    return;
+                }
+
+                let html = '';
+
+                coupons.forEach(function(coupon) {
+                    if (!coupon || typeof coupon !== 'object') {
+                        return;
+                    }
+
+                    const rawCode = coupon.code || coupon.coupon_code || '';
+                    const code = String(rawCode).trim();
+                    if (!code) {
+                        return;
+                    }
+
+                    const title = coupon.title || coupon.name || code;
+                    const minOrder = coupon.min_order_value || coupon.min_order || null;
+                    const usageLimit = coupon.usage_limit || coupon.max_uses || null;
+
+                    let intro = title;
+                    if (minOrder) {
+                        intro += ' (Min ₹' + formatCurrency(minOrder) + ')';
+                    }
+
+                    let subtitleParts = [];
+                    if (coupon.description) {
+                        subtitleParts.push(String(coupon.description));
+                    }
+                    if (usageLimit) {
+                        subtitleParts.push('Usage limit: ' + usageLimit);
+                    }
+
+                    html += `
+                        <div class="accordion">
+                            <div class="accordion__intro">${intro}</div>
+                            <div class="accordion__content offer" data-code="${code}">
+                                <div class="offer-code">${code}</div>
+                                <div class="copy-code">Copy Code</div>
+                                <div class="copied">Copied</div>
+                            </div>
+                        </div>`;
+                });
+
+                dynamicCouponsContainer.innerHTML = html;
+
+                // Re-bind copy handlers for all offers, including the new ones.
+                bindOfferCopyButtons();
+            }
+
+            function fetchCoupons() {
+                if (!dynamicCouponsContainer) {
+                    return;
+                }
+
+                fetch('/api/coupons', {
+                    credentials: 'include',
+                })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data,
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected coupon server response.',
+                                    coupons: [],
+                                },
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        if (!result.response.ok || !result.data || !result.data.status) {
+                            return;
+                        }
+
+                        renderCoupons(result.data.coupons || []);
+                    })
+                    .catch(function() {
+                        // Silently ignore coupon errors; checkout can proceed without them.
+                    });
+            }
+
+            function bindOfferCopyButtons() {
+                const offers = document.querySelectorAll('.summary-box .offer');
+                offers.forEach(function(offer) {
+                    const code = offer.getAttribute('data-code');
+                    const copyBtn = offer.querySelector('.copy-code');
+                    const copiedEl = offer.querySelector('.copied');
+                    if (!code || !copyBtn) return;
+
+                    copyBtn.addEventListener('click', function() {
+                        if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                            window.alert('Unable to copy code. Please copy it manually: ' + code);
+                            return;
+                        }
+                        navigator.clipboard.writeText(code).then(function() {
+                            if (copiedEl) {
+                                copyBtn.style.display = 'none';
+                                copiedEl.style.display = 'block';
+                                setTimeout(function() {
+                                    copiedEl.style.display = '';
+                                    copyBtn.style.display = '';
+                                }, 1500);
+                            }
+                        });
+                    });
+                });
+            }
+
+            window.applyCoupon = function() {
+                const input = document.getElementById('coupon');
+                const code = (input && input.value || '').trim();
+                if (!code) {
+                    window.alert('Please enter a discount code.');
+                    return;
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(code).catch(function() {});
+                }
+                window.alert('Coupon "' + code + '" will be applied at payment.');
+            };
+
+            document.addEventListener('DOMContentLoaded', function() {
+                fetchCheckoutCart();
+                fetchCoupons();
+                bindOfferCopyButtons();
+            });
         })();
     </script>
 @endpush

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CouponController;
 use Illuminate\Support\Facades\Route;
 
 // Remove the 'api' prefix - Laravel adds it automatically in api.php
@@ -12,3 +13,6 @@ Route::prefix('cart')->middleware('cart.user.resolved')->group(function () {
     Route::post('delete-item', [CartController::class, 'deleteItem']);
     Route::get('/', [CartController::class, 'getCart']);
 });
+
+Route::get('coupons', [CouponController::class, 'index'])
+    ->middleware('cart.user.resolved');
