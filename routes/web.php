@@ -17,6 +17,20 @@ Route::get('/cart', [CartController::class, 'index'])->middleware('cart.user.res
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/user-addresses', [CheckoutController::class, 'userAddresses'])
+    ->name('checkout.user-addresses');
+Route::post('/checkout/address-update', [CheckoutController::class, 'updateAddress'])
+    ->name('checkout.address-update');
+Route::post('/checkout/address-delete', [CheckoutController::class, 'deleteAddress'])
+    ->name('checkout.address-delete');
+Route::post('/checkout/address-default', [CheckoutController::class, 'setDefaultAddress'])
+    ->name('checkout.address-default');
+Route::post('/checkout/address-save', [CheckoutController::class, 'saveAddress'])
+    ->name('checkout.address-save');
+Route::post('/checkout/state-list', [CheckoutController::class, 'stateList'])
+    ->name('checkout.state-list');
+Route::post('/checkout/city-list', [CheckoutController::class, 'cityList'])
+    ->name('checkout.city-list');
 
 Route::middleware(['guest'])->group(function () {
     Route::post('/login/otp/request', [OtpAuthController::class, 'requestOtp'])

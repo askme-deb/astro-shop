@@ -107,12 +107,14 @@ class OtpAuthController extends Controller
 
         Session::regenerate();
         Session::put('auth.api_token', $token);
-        Session::put('auth.user', [
-            'id' => $userPayload['id'] ?? null,
-            'name' => $userPayload['name'] ?? null,
-            'mobile_no' => $userPayload['mobile_no'] ?? $request->string('mobile_no')->toString(),
-            'email' => $userPayload['email'] ?? null,
-        ]);
+
+        $userData = $userPayload ?? [];
+
+        if (! isset($userData['mobile_no'])) {
+            $userData['mobile_no'] = $request->string('mobile_no')->toString();
+        }
+
+        Session::put('auth.user', $userData);
 
         $redirectUrl = $context === 'checkout'
             ? route('checkout.index')

@@ -13,29 +13,36 @@
             <section class="checkout-card checkout-step">
                 <div class="checkout-step-header">
                     <span class="step-number">1</span>
-                    <h3 class="step-title">LOGIN / CUSTOMER DETAILS</h3>
+                    <h3 class="step-title">
+                        {{ session()->has('auth.api_token') ? 'CUSTOMER DETAILS' : 'LOGIN / CUSTOMER DETAILS' }}
+                    </h3>
                 </div>
                 <div class="checkout-step-body">
 
                     <!-- LOGGED-IN SUMMARY (shown when API-authenticated session exists) -->
-                    <div id="step-logged-in" class="checkout-step-pane" style="display: {{ session()->has('auth.api_token') ? 'block' : 'none' }};">
+                    <div id="step-logged-in" class="checkout-step-pane"
+                        style="display: {{ session()->has('auth.api_token') ? 'block' : 'none' }};">
                         <div class="logged-in-summary" id="customer-summary">
                             @php($authUser = session('auth.user'))
-                            <div class="logged-in-name">{{ $authUser['first_name'] ?? 'Guest' }}</div>
+                            <div class="logged-in-name">
+                                {{ trim(($authUser['first_name'] ?? '') . ' ' . ($authUser['last_name'] ?? '')) ?: 'Guest' }}
+                            </div>
                             <div class="logged-in-contact">
                                 <span>{{ $authUser['email'] ?? 'No email on file' }}</span>
-                                <span>• {{ ($authUser['mobile_no'] ?? '') ? '+91-' . $authUser['mobile_no'] : '' }}</span>
+                                <span> {{ $authUser['mobile_no'] ?? '' ? '+91-' . $authUser['mobile_no'] : '' }}</span>
                             </div>
                             <div class="logged-in-note">You are logged in. Customer details are pre-filled.</div>
                         </div>
                     </div>
 
                     <!-- STEP 1A: ENTER MOBILE (for guests, AJAX OTP request) -->
-                    <div id="step-mobile" class="checkout-step-pane" style="display: {{ session()->has('auth.api_token') ? 'none' : 'block' }};">
+                    <div id="step-mobile" class="checkout-step-pane"
+                        style="display: {{ session()->has('auth.api_token') ? 'none' : 'block' }};">
                         <div id="checkout-otp-alert" class="logged-in-note" style="display:none;"></div>
                         <div class="form-row">
                             <label for="checkout-mobile-input">Mobile Number</label>
-                            <input type="tel" id="checkout-mobile-input" placeholder="Enter your mobile number" autocomplete="tel" inputmode="numeric">
+                            <input type="tel" id="checkout-mobile-input" placeholder="Enter your mobile number"
+                                autocomplete="tel" inputmode="numeric">
                         </div>
                         <div class="customer-edit-actions">
                             <button type="button" class="btn-deliver" id="btn-checkout-send-otp">Send OTP</button>
@@ -59,13 +66,15 @@
                             <input type="text" id="checkout-login-otp" placeholder="Enter OTP" inputmode="numeric">
                         </div>
                         <div class="customer-edit-actions">
-                            <button type="button" class="btn-deliver" id="btn-checkout-verify-otp">Verify OTP &amp; Login</button>
+                            <button type="button" class="btn-deliver" id="btn-checkout-verify-otp">Verify OTP &amp;
+                                Login</button>
                             <button type="button" class="btn-link" id="btn-checkout-change-mobile">Change Mobile</button>
                         </div>
                         <p class="logged-in-note">
                             Didn’t receive the OTP?
                             <span class="btn-link" id="btn-checkout-resend-otp" style="padding-left:0;">Resend OTP</span>
-                            <span id="checkout-resend-timer" class="logged-in-note" style="display:none; margin-left:6px;"></span>
+                            <span id="checkout-resend-timer" class="logged-in-note"
+                                style="display:none; margin-left:6px;"></span>
                         </p>
                     </div>
 
@@ -73,60 +82,50 @@
             </section>
 
             <!-- STEP 2: DELIVERY ADDRESS -->
-            <section class="checkout-card checkout-step">
+            <section
+                class="checkout-card checkout-step {{ session()->has('auth.api_token') ? '' : 'checkout-step-disabled' }}">
                 <div class="checkout-step-header">
                     <span class="step-number">2</span>
                     <h3 class="step-title">DELIVERY ADDRESS</h3>
                 </div>
-                <div class="checkout-step-body">
+                <div class="checkout-step-body collapsed">
                     <div class="address-list">
-                        <!-- Default selected address -->
-                        <div class="address-item address-item-selected">
-                            <div class="address-header">
-                                <label class="address-radio">
-                                    <input type="radio" name="delivery_address" checked>
-                                    <span class="radio-custom"></span>
-                                    <span class="address-name">John Doe</span>
-                                    <span class="address-tag">Home</span>
-                                    <span class="address-default">Default</span>
-                                </label>
+                        <div id="addressListSkeleton" class="address-skeleton-list">
+                            <div class="address-item skeleton-card">
+                                <div class="address-header">
+                                    <span class="skeleton-circle"></span>
+                                    <span class="skeleton-line skeleton-line--short"></span>
+                                    <span class="skeleton-line skeleton-line--tag"></span>
+                                </div>
+                                <div class="address-body">
+                                    <p class="skeleton-line"></p>
+                                    <p class="skeleton-line skeleton-line--medium"></p>
+                                    <p class="skeleton-line skeleton-line--short"></p>
+                                </div>
                             </div>
-                            <div class="address-body">
-                                <p class="address-text">
-                                    221B Baker Street, Near Central Park, <br>
-                                    London, London - 560001
-                                </p>
-                                <p class="address-phone">Mobile: +91-9876543210</p>
-                            </div>
-                            <div class="address-actions">
-                                <button type="button" class="btn-deliver">DELIVER HERE</button>
-                                <button type="button" class="btn-link">EDIT</button>
+                            <div class="address-item skeleton-card">
+                                <div class="address-header">
+                                    <span class="skeleton-circle"></span>
+                                    <span class="skeleton-line skeleton-line--short"></span>
+                                    <span class="skeleton-line skeleton-line--tag"></span>
+                                </div>
+                                <div class="address-body">
+                                    <p class="skeleton-line"></p>
+                                    <p class="skeleton-line skeleton-line--medium"></p>
+                                    <p class="skeleton-line skeleton-line--short"></p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Another saved address -->
-                        <div class="address-item">
-                            <div class="address-header">
-                                <label class="address-radio">
-                                    <input type="radio" name="delivery_address">
-                                    <span class="radio-custom"></span>
-                                    <span class="address-name">John Doe</span>
-                                    <span class="address-tag">Work</span>
-                                </label>
-                            </div>
-                            <div class="address-body">
-                                <p class="address-text">
-                                    14 MG Road, Business Tower, 3rd Floor, <br>
-                                    Bengaluru, Karnataka - 560002
-                                </p>
-                                <p class="address-phone">Mobile: +91-9876543211</p>
-                            </div>
-                            <div class="address-actions">
-                                <button type="button" class="btn-deliver">DELIVER HERE</button>
-                                <button type="button" class="btn-link">EDIT</button>
-                                <button type="button" class="btn-link">REMOVE</button>
-                            </div>
+                        <div id="addressError" class="logged-in-note" style="display:none;"></div>
+
+                        <div id="addressListContainer" class="address-list-container" style="display:none;"></div>
+
+                        <div id="addressEmptyState" class="logged-in-note" style="display:none;">
+                            No saved addresses found. Add a new address.
                         </div>
+
+                        <input type="hidden" id="selectedAddressId" name="selected_address_id" value="">
 
                         <!-- Add new address CTA -->
                         <div class="address-add-new" onclick="showAddAddressForm()">
@@ -135,60 +134,74 @@
 
                         <!-- Add new address form (hidden by default) -->
                         <div class="address-add-form" id="address-add-form" style="display:none;">
-                            <div class="form-row">
-                                <label>Full Name</label>
-                                <input type="text" placeholder="Enter full name">
+                            <div id="addressAddError" class="logged-in-note" style="display:none;"></div>
+                            <div class="form-row form-row-half">
+                                <div>
+                                    <label>First Name</label>
+                                    <input type="text" id="addFirstName" placeholder="First name">
+                                </div>
+                                <div>
+                                    <label>Last Name</label>
+                                    <input type="text" id="addLastName" placeholder="Last name" required>
+                                </div>
                             </div>
                             <div class="form-row form-row-half">
                                 <div>
                                     <label>Mobile Number</label>
-                                    <input type="tel" placeholder="10-digit mobile number">
+                                    <input type="tel" id="addPhone" placeholder="10-digit mobile number">
                                 </div>
                                 <div>
                                     <label>Pincode</label>
-                                    <input type="text" placeholder="Pincode">
+                                    <input type="text" id="addPincode" placeholder="Pincode">
                                 </div>
                             </div>
                             <div class="form-row">
                                 <label>Address (House no, Building, Area)</label>
-                                <input type="text" placeholder="Flat / House no., Building, Street, Area">
+                                <input type="text" id="addAddress"
+                                    placeholder="Flat / House no., Building, Street, Area">
                             </div>
                             <div class="form-row form-row-half">
                                 <div>
-                                    <label>City / District</label>
-                                    <input type="text" placeholder="City / District">
-                                </div>
-                                <div>
                                     <label>State</label>
-                                    <input type="text" placeholder="State">
+                                    <select id="addState">
+                                        <option value="">Select State</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label>City / District</label>
+                                    <select id="addCity" disabled>
+                                        <option value="">Select City</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <label>Landmark (Optional)</label>
-                                <input type="text" placeholder="Nearby landmark">
+                                <input type="text" id="addLandmark" placeholder="Nearby landmark">
                             </div>
                             <div class="form-row address-type-row">
                                 <label>Address Type</label>
                                 <div class="address-type-options">
                                     <label>
-                                        <input type="radio" name="address_type" checked>
+                                        <input type="radio" name="address_type" value="home" checked>
                                         <span class="radio-custom"></span>
                                         Home
                                     </label>
                                     <label>
-                                        <input type="radio" name="address_type">
+                                        <input type="radio" name="address_type" value="office">
                                         <span class="radio-custom"></span>
-                                        Work
+                                        Office
                                     </label>
                                     <label>
-                                        <input type="radio" name="address_type">
+                                        <input type="radio" name="address_type" value="others">
                                         <span class="radio-custom"></span>
                                         Other
                                     </label>
                                 </div>
                             </div>
                             <div class="address-add-actions">
-                                <button type="button" class="btn-save-address">SAVE AND DELIVER HERE</button>
+                                <button type="button" class="btn-save-address" id="addressAddSaveBtn">SAVE AND DELIVER
+                                    HERE</button>
                                 <button type="button" class="btn-link" onclick="hideAddAddressForm()">CANCEL</button>
                             </div>
                         </div>
@@ -196,8 +209,114 @@
                 </div>
             </section>
 
+            <!-- Address Remove Confirmation Popup -->
+            <div class="popup" id="addressRemovePopup" style="display:none;">
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <h3>Remove address?</h3>
+                        <button type="button" class="popup-close" id="addressRemoveCloseBtn">✕</button>
+                    </div>
+
+                    <p class="popup-text">Are you sure you want to remove this address?</p>
+
+                    <div class="popup-actions">
+                        <button type="button" class="btn-remove-confirm" id="addressRemoveConfirmBtn">Remove</button>
+                        <button type="button" class="btn-remove-cancel" id="addressRemoveCancelBtn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Edit Modal -->
+            <div id="addressEditModal" class="address-modal" style="display:none;">
+                <div class="address-modal__backdrop"></div>
+                <div class="address-modal__content">
+                    <div class="address-modal__header">
+                        <h4>Edit Address</h4>
+                        <button type="button" class="address-modal__close" id="addressEditCloseBtn">&times;</button>
+                    </div>
+                    <div class="address-modal__body">
+                        <div id="addressEditError" class="logged-in-note" style="display:none;"></div>
+                        <form id="addressEditForm">
+                            <input type="hidden" id="editAddressId" name="address_id">
+                            <input type="hidden" id="editCountry" name="country">
+                            <div class="form-row form-row-half">
+                                <div>
+                                    <label>First Name</label>
+                                    <input type="text" id="editFirstName" name="first_name" required>
+                                </div>
+                                <div>
+                                    <label>Last Name</label>
+                                    <input type="text" id="editLastName" name="last_name" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label>Email</label>
+                                <input type="email" id="editEmail" name="email" required>
+                            </div>
+                            <div class="form-row form-row-half">
+                                <div>
+                                    <label>Mobile Number</label>
+                                    <input type="tel" id="editPhone" name="phone" required>
+                                </div>
+                                <div>
+                                    <label>Pincode</label>
+                                    <input type="text" id="editPincode" name="pincode" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <label>Address</label>
+                                <input type="text" id="editAddress" name="address" required>
+                            </div>
+                            <div class="form-row">
+                                <label>Landmark (Optional)</label>
+                                <input type="text" id="editLandmark" name="landmark" placeholder="Nearby landmark">
+                            </div>
+                            <div class="form-row address-type-row">
+                                <label>Address Type</label>
+                                <div class="address-type-options">
+                                    <label>
+                                        <input type="radio" name="edit_address_type" value="home" checked>
+                                        <span class="radio-custom"></span>
+                                        Home
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="edit_address_type" value="office">
+                                        <span class="radio-custom"></span>
+                                        Office
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="edit_address_type" value="others">
+                                        <span class="radio-custom"></span>
+                                        Other
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-row form-row-half">
+                                <div>
+                                    <label>State</label>
+                                    <select id="editState" name="state" required>
+                                        <option value="">Select State</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>City</label>
+                                    <select id="editCity" name="city" required disabled>
+                                        <option value="">Select City</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="address-modal__footer">
+                        <button type="button" class="btn-link" id="addressEditCancelBtn">Cancel</button>
+                        <button type="button" class="btn-save-address" id="addressEditSaveBtn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- STEP 3: PAYMENT OPTIONS -->
-            <section class="checkout-card checkout-step">
+            <section
+                class="checkout-card checkout-step {{ session()->has('auth.api_token') ? '' : 'checkout-step-disabled' }}">
                 <div class="checkout-step-header">
                     <span class="step-number">3</span>
                     <h3 class="step-title">PAYMENT OPTIONS</h3>
@@ -335,6 +454,11 @@
             overflow: hidden;
         }
 
+        .checkout-step-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
         .checkout-step-header {
             display: flex;
             align-items: center;
@@ -383,6 +507,79 @@
 
         .checkout-step-body.collapsed {
             display: none;
+        }
+
+        /* Skeleton loader for address list */
+        .address-skeleton-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .skeleton-card {
+            position: relative;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .skeleton-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150px;
+            height: 100%;
+            width: 150px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+            animation: skeleton-shimmer 1.2s ease-in-out infinite;
+        }
+
+        .skeleton-line {
+            display: block;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            width: 100%;
+        }
+
+        .skeleton-line--short {
+            width: 40%;
+        }
+
+        .skeleton-line--medium {
+            width: 70%;
+        }
+
+        .skeleton-line--tag {
+            width: 60px;
+            height: 12px;
+        }
+
+        .skeleton-circle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            margin-right: 8px;
+        }
+
+        .address-list-container {
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+        }
+
+        .address-list-container.address-list-container--visible {
+            opacity: 1;
+        }
+
+        @keyframes skeleton-shimmer {
+            0% {
+                transform: translateX(-150px);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         .logged-in-summary {
@@ -439,6 +636,15 @@
             border-radius: 2px;
             border: 1px solid #e0e0e0;
             font-size: 14px;
+        }
+
+        .form-row select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 2px;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+            background-color: #fff;
         }
 
         .form-row-half {
@@ -520,18 +726,27 @@
         .address-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 0;
         }
 
         .address-item {
             background: #fff;
             border: 1px solid #e0e0e0;
-            border-radius: 2px;
+            border-radius: 4px;
             padding: 10px 12px;
+            margin-bottom: 10px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
         }
 
         .address-item-selected {
             border-color: #f98700;
+            box-shadow: 0 0 0 1px rgba(249, 135, 0, 0.12);
+        }
+
+        .address-item:hover {
+            border-color: #f98700;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            transform: translateY(-1px);
         }
 
         .address-header {
@@ -635,6 +850,17 @@
             font-weight: 600;
             cursor: pointer;
             text-transform: uppercase;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(2px);
+            transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+        }
+
+        .address-item:hover .address-actions .btn-deliver,
+        .address-item.address-item-selected .address-actions .btn-deliver {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
         .btn-link {
@@ -714,6 +940,143 @@
             text-transform: uppercase;
         }
 
+        /* Address remove popup (styled similar to modal) */
+        .popup {
+            position: fixed;
+            inset: 0;
+            z-index: 1060;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-content {
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-width: 360px;
+            width: 100%;
+            padding: 12px 16px 10px;
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .popup-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #212121;
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .popup-text {
+            font-size: 13px;
+            color: #424242;
+            margin: 4px 0 10px;
+        }
+
+        .popup-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn-remove-confirm {
+            padding: 6px 12px;
+            border-radius: 2px;
+            border: none;
+            background: #d32f2f;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-remove-cancel {
+            padding: 6px 12px;
+            border-radius: 2px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            color: #212121;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* Address edit modal */
+        .address-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+        }
+
+        .address-modal__backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .address-modal__content {
+            position: relative;
+            max-width: 520px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .address-modal__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .address-modal__header h4 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .address-modal__close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .address-modal__body {
+            padding: 12px 16px 4px;
+        }
+
+        .address-modal__footer {
+            padding: 10px 16px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #f0f0f0;
+        }
+
         @media (max-width: 767px) {
             .checkout-wrapper {
                 flex-direction: column;
@@ -728,6 +1091,1031 @@
 
 @push('scripts')
     <script>
+        (function() {
+            const hasAuthToken = @json(session()->has('auth.api_token'));
+            const loggedInEmail = @json(data_get(session('auth.user'), 'email', ''));
+
+            if (!hasAuthToken) {
+                return;
+            }
+
+            const addressListContainer = document.getElementById('addressListContainer');
+            const skeletonContainer = document.getElementById('addressListSkeleton');
+            const emptyStateEl = document.getElementById('addressEmptyState');
+            const errorEl = document.getElementById('addressError');
+            const selectedAddressInput = document.getElementById('selectedAddressId');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            // Edit modal elements
+            const editModal = document.getElementById('addressEditModal');
+            const editForm = document.getElementById('addressEditForm');
+            const editErrorEl = document.getElementById('addressEditError');
+            const editCloseBtn = document.getElementById('addressEditCloseBtn');
+            const editCancelBtn = document.getElementById('addressEditCancelBtn');
+            const editSaveBtn = document.getElementById('addressEditSaveBtn');
+            const editAddressIdInput = document.getElementById('editAddressId');
+            const editFirstNameInput = document.getElementById('editFirstName');
+            const editLastNameInput = document.getElementById('editLastName');
+            const editEmailInput = document.getElementById('editEmail');
+            const editPhoneInput = document.getElementById('editPhone');
+            const editPincodeInput = document.getElementById('editPincode');
+            const editAddressInput = document.getElementById('editAddress');
+            const editLandmarkInput = document.getElementById('editLandmark');
+            const editCityInput = document.getElementById('editCity');
+            const editStateInput = document.getElementById('editState');
+            const editCountryInput = document.getElementById('editCountry');
+            const editTypeRadios = document.querySelectorAll('input[name="edit_address_type"]');
+
+            // Add new address form elements
+            const addForm = document.getElementById('address-add-form');
+            const addErrorEl = document.getElementById('addressAddError');
+            const addFirstNameInput = document.getElementById('addFirstName');
+            const addLastNameInput = document.getElementById('addLastName');
+            const addPhoneInput = document.getElementById('addPhone');
+            const addPincodeInput = document.getElementById('addPincode');
+            const addAddressInput = document.getElementById('addAddress');
+            const addLandmarkInput = document.getElementById('addLandmark');
+            const addCityInput = document.getElementById('addCity');
+            const addStateInput = document.getElementById('addState');
+            const addTypeRadios = document.querySelectorAll('input[name="address_type"]');
+            const addSaveBtn = document.getElementById('addressAddSaveBtn');
+
+            // Remove confirmation popup elements
+            const removePopup = document.getElementById('addressRemovePopup');
+            const removeConfirmBtn = document.getElementById('addressRemoveConfirmBtn');
+            const removeCancelBtn = document.getElementById('addressRemoveCancelBtn');
+            const removeCloseBtn = document.getElementById('addressRemoveCloseBtn');
+
+            let pendingRemoveAddressId = null;
+            let pendingRemoveButton = null;
+
+            const addressMap = {};
+
+            // Cached state and city lists
+            let statesCache = [];
+            const citiesCache = {};
+            let statesLoadingPromise = null;
+
+            if (!addressListContainer) {
+                return;
+            }
+
+            function populateStateSelect(selectEl, selectedId) {
+                if (!selectEl) return;
+
+                const currentValue = selectedId != null ? String(selectedId) : '';
+
+                selectEl.innerHTML = '';
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = 'Select State';
+                selectEl.appendChild(placeholder);
+
+                statesCache.forEach(function(state) {
+                    const opt = document.createElement('option');
+                    opt.value = String(state.id ?? '');
+                    opt.textContent = state.name || '';
+                    if (currentValue && String(state.id) === currentValue) {
+                        opt.selected = true;
+                    }
+                    selectEl.appendChild(opt);
+                });
+            }
+
+            function populateCitySelect(selectEl, stateId, selectedId) {
+                if (!selectEl) return;
+
+                const list = stateId ? (citiesCache[String(stateId)] || []) : [];
+                const currentValue = selectedId != null ? String(selectedId) : '';
+
+                selectEl.innerHTML = '';
+                const placeholder = document.createElement('option');
+                placeholder.value = '';
+                placeholder.textContent = list.length ? 'Select City' : 'No cities';
+                selectEl.appendChild(placeholder);
+
+                if (!list.length) {
+                    selectEl.disabled = true;
+                    return;
+                }
+
+                list.forEach(function(city) {
+                    const opt = document.createElement('option');
+                    opt.value = String(city.id ?? '');
+                    opt.textContent = city.name || '';
+                    if (currentValue && String(city.id) === currentValue) {
+                        opt.selected = true;
+                    }
+                    selectEl.appendChild(opt);
+                });
+
+                selectEl.disabled = false;
+            }
+
+            function ensureStatesLoaded() {
+                if (statesCache.length > 0) {
+                    return Promise.resolve(statesCache);
+                }
+
+                if (statesLoadingPromise) {
+                    return statesLoadingPromise;
+                }
+
+                statesLoadingPromise = fetch("{{ route('checkout.state-list') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            country_id: 101
+                        }),
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            throw new Error(result.data.message || 'Unable to load states.');
+                        }
+
+                        statesCache = Array.isArray(result.data.states) ? result.data.states : [];
+
+                        if (addStateInput) {
+                            populateStateSelect(addStateInput, null);
+                        }
+                        if (editStateInput) {
+                            populateStateSelect(editStateInput, null);
+                        }
+
+                        return statesCache;
+                    })
+                    .finally(function() {
+                        statesLoadingPromise = null;
+                    });
+
+                return statesLoadingPromise;
+            }
+
+            function loadCitiesForState(stateId) {
+                if (!stateId) {
+                    return Promise.resolve([]);
+                }
+
+                const key = String(stateId);
+                if (citiesCache[key]) {
+                    return Promise.resolve(citiesCache[key]);
+                }
+
+                return fetch("{{ route('checkout.city-list') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            state_id: stateId
+                        }),
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            throw new Error(result.data.message || 'Unable to load cities.');
+                        }
+
+                        const cities = Array.isArray(result.data.cities) ? result.data.cities : [];
+                        citiesCache[key] = cities;
+                        return cities;
+                    });
+            }
+
+            function showSkeleton() {
+                if (skeletonContainer) skeletonContainer.style.display = 'block';
+                addressListContainer.style.display = 'none';
+                addressListContainer.classList.remove('address-list-container--visible');
+                if (emptyStateEl) emptyStateEl.style.display = 'none';
+                if (errorEl) {
+                    errorEl.style.display = 'none';
+                    errorEl.textContent = '';
+                }
+            }
+
+            function hideSkeleton() {
+                if (skeletonContainer) skeletonContainer.style.display = 'none';
+            }
+
+            function closeEditModal() {
+                if (!editModal) return;
+                editModal.style.display = 'none';
+                if (editErrorEl) {
+                    editErrorEl.style.display = 'none';
+                    editErrorEl.textContent = '';
+                }
+                if (editForm) {
+                    editForm.reset();
+                }
+            }
+
+            function showEditError(message) {
+                if (!editErrorEl) return;
+                editErrorEl.textContent = message || 'Unable to update address.';
+                editErrorEl.style.display = 'block';
+            }
+
+            function showAddError(message) {
+                if (!addErrorEl) return;
+                addErrorEl.textContent = message || 'Unable to add address.';
+                addErrorEl.style.display = 'block';
+            }
+
+            function showError(message, canRetry = true) {
+                if (!errorEl) return;
+                errorEl.style.display = 'block';
+                errorEl.innerHTML = '';
+
+                const text = document.createElement('span');
+                text.textContent = message || 'Unable to load addresses.';
+                errorEl.appendChild(text);
+
+                if (canRetry) {
+                    const retry = document.createElement('button');
+                    retry.type = 'button';
+                    retry.className = 'btn-link';
+                    retry.style.marginLeft = '8px';
+                    retry.textContent = 'Retry';
+                    retry.addEventListener('click', function() {
+                        retry.disabled = true;
+                        fetchAddresses().finally(function() {
+                            retry.disabled = false;
+                        });
+                    });
+                    errorEl.appendChild(retry);
+                }
+            }
+
+            function setSelectedAddress(id) {
+                if (!id || !addressListContainer) return;
+
+                if (selectedAddressInput) {
+                    selectedAddressInput.value = String(id);
+                }
+
+                const items = addressListContainer.querySelectorAll('.address-item');
+                items.forEach(function(item) {
+                    const radio = item.querySelector('input[type="radio"][name="delivery_address"]');
+                    const isMatch = radio && String(radio.value) === String(id);
+                    item.classList.toggle('address-item-selected', !!isMatch);
+                    if (radio) {
+                        radio.checked = !!isMatch;
+                    }
+                });
+            }
+
+            function openEditModalById(id) {
+                if (!editModal || !addressMap[id]) return;
+
+                const address = addressMap[id];
+                const raw = address.raw || {};
+
+                const shippingCountry = raw.shipping_country || null;
+                const shippingState = raw.shipping_state || null;
+                const shippingCity = raw.shipping_city || null;
+
+                const countryVal = typeof shippingCountry === 'object' && shippingCountry !== null ?
+                    (shippingCountry.id ?? shippingCountry.name ?? '') :
+                    (shippingCountry ?? '');
+                const stateId = typeof shippingState === 'object' && shippingState !== null ?
+                    (shippingState.id ?? '') :
+                    (shippingState ?? '');
+                const cityId = typeof shippingCity === 'object' && shippingCity !== null ?
+                    (shippingCity.id ?? '') :
+                    (shippingCity ?? '');
+
+                const rawType = (raw.type || raw.address_type || '').toString().toLowerCase();
+
+                if (editAddressIdInput) editAddressIdInput.value = address.id || '';
+                if (editFirstNameInput) editFirstNameInput.value = raw.shipping_first_name || raw.billing_first_name ||
+                    '';
+                if (editLastNameInput) editLastNameInput.value = raw.shipping_last_name || raw.billing_last_name || '';
+                if (editEmailInput) editEmailInput.value = raw.shipping_email || raw.billing_email || '';
+                if (editPhoneInput) editPhoneInput.value = raw.shipping_phone_number || raw.billing_phone_number || '';
+                if (editPincodeInput) editPincodeInput.value = raw.shipping_zip_code || raw.billing_zip_code || '';
+                if (editAddressInput) editAddressInput.value = raw.shipping_address || raw.billing_address || '';
+                if (editLandmarkInput) editLandmarkInput.value = raw.landmark || raw.shipping_landmark || raw.billing_landmark || '';
+                if (editCountryInput) editCountryInput.value = countryVal || '';
+                if (editTypeRadios && editTypeRadios.length) {
+                    editTypeRadios.forEach(function(radio) {
+                        const val = (radio.value || '').toLowerCase();
+                        radio.checked = rawType ? (val === rawType) : (val === 'home');
+                    });
+                }
+
+                if (editErrorEl) {
+                    editErrorEl.style.display = 'none';
+                    editErrorEl.textContent = '';
+                }
+
+                editModal.style.display = 'block';
+
+                ensureStatesLoaded()
+                    .then(function() {
+                        if (editStateInput) {
+                            populateStateSelect(editStateInput, stateId || null);
+                        }
+
+                        if (stateId && editCityInput) {
+                            return loadCitiesForState(stateId).then(function() {
+                                populateCitySelect(editCityInput, stateId, cityId || null);
+                            });
+                        }
+
+                        if (editCityInput) {
+                            populateCitySelect(editCityInput, null, null);
+                        }
+                    })
+                    .catch(function() {
+                        // Swallow errors here; main address list will still function.
+                    });
+            }
+
+            function renderAddresses(addresses) {
+                addressListContainer.innerHTML = '';
+                Object.keys(addressMap).forEach(function(key) {
+                    delete addressMap[key];
+                });
+
+                if (!Array.isArray(addresses) || addresses.length === 0) {
+                    addressListContainer.style.display = 'none';
+                    if (emptyStateEl) emptyStateEl.style.display = 'block';
+                    return;
+                }
+
+                if (emptyStateEl) emptyStateEl.style.display = 'none';
+                addressListContainer.style.display = 'block';
+
+                let defaultAddressId = null;
+
+                addresses.forEach(function(address) {
+                    const id = address.id;
+                    const fullName = address.full_name || 'Customer';
+
+                    let tag = 'Home';
+                    if (address.type) {
+                        const t = String(address.type).toLowerCase();
+                        if (t === 'home') {
+                            tag = 'Home';
+                        } else if (t === 'office') {
+                            tag = 'Office';
+                        } else if (t === 'others' || t === 'other') {
+                            tag = 'Other';
+                        } else {
+                            tag = address.type;
+                        }
+                    }
+                    const isDefault = !!address.is_default;
+                    const phone = address.phone || '';
+
+                    const addressLine = address.address_line || '';
+                    const city = address.city || '';
+                    const state = address.state || '';
+                    const country = address.country || '';
+                    const postalCode = address.postal_code || '';
+                    const raw = address.raw || {};
+                    const landmark = raw.landmark || raw.shipping_landmark || raw.billing_landmark || '';
+
+                    const cityStatePincode = [city, state, postalCode].filter(Boolean).join(', ');
+
+                    addressMap[id] = address;
+
+                    const item = document.createElement('div');
+                    item.className = 'address-item' + (isDefault ? ' address-item-selected' : '');
+
+                    item.innerHTML = `
+                        <div class="address-header">
+                            <label class="address-radio">
+                                <input type="radio" name="delivery_address" value="${String(id)}">
+                                <span class="radio-custom"></span>
+                                <span class="address-name">${fullName}</span>
+                                <span class="address-tag">${tag}</span>
+                                ${isDefault ? '<span class="address-default">Default</span>' : ''}
+                            </label>
+                        </div>
+                        <div class="address-body">
+                            <p class="address-text">${addressLine || ''}</p>
+                            ${landmark ? `<p class="address-text">Landmark: ${landmark}</p>` : ''}
+                            ${cityStatePincode ? `<p class="address-text">${cityStatePincode}</p>` : ''}
+                            ${country ? `<p class="address-text">${country}</p>` : ''}
+                            <p class="address-phone">${phone ? ('Mobile: +91-' + phone) : ''}</p>
+                        </div>
+                        <div class="address-actions">
+                            <button type="button" class="btn-deliver">DELIVER HERE</button>
+                            <button type="button" class="btn-link btn-edit-address">EDIT</button>
+                            <button type="button" class="btn-link btn-remove-address">REMOVE</button>
+                        </div>
+                    `;
+
+                    const radio = item.querySelector('input[type="radio"][name="delivery_address"]');
+                    if (radio) {
+                        radio.addEventListener('change', function() {
+                            setSelectedAddress(id);
+                        });
+                    }
+
+                    const deliverBtn = item.querySelector('.btn-deliver');
+                    if (deliverBtn) {
+                        deliverBtn.addEventListener('click', function() {
+                            setSelectedAddress(id);
+                            setDefaultAddress(id, deliverBtn);
+                        });
+                    }
+
+                    const editBtn = item.querySelector('.btn-edit-address');
+                    if (editBtn) {
+                        editBtn.addEventListener('click', function() {
+                            openEditModalById(id);
+                        });
+                    }
+
+                    const removeBtn = item.querySelector('.btn-remove-address');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', function() {
+                            showRemoveAddressPopup(id, removeBtn);
+                        });
+                    }
+
+                    // TODO: Wire up EDIT and REMOVE with modals / API calls.
+
+                    if (isDefault && defaultAddressId === null) {
+                        defaultAddressId = id;
+                    }
+
+                    addressListContainer.appendChild(item);
+                });
+
+                if (defaultAddressId === null && addresses.length > 0) {
+                    defaultAddressId = addresses[0].id;
+                }
+
+                if (defaultAddressId !== null) {
+                    setSelectedAddress(defaultAddressId);
+                }
+
+                // Smooth fade-in
+                requestAnimationFrame(function() {
+                    addressListContainer.classList.add('address-list-container--visible');
+                });
+            }
+
+            function fetchAddresses() {
+                showSkeleton();
+
+                return fetch("{{ route('checkout.user-addresses') }}", {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            showError(result.data.message || 'Unable to load addresses.');
+                            return;
+                        }
+
+                        renderAddresses(result.data.addresses || []);
+                    })
+                    .catch(function() {
+                        showError('Unable to reach address service. Please try again.');
+                    })
+                    .finally(function() {
+                        hideSkeleton();
+                    });
+            }
+
+            // Expose a reload hook for future add/edit/remove flows
+            window.reloadCheckoutAddresses = fetchAddresses;
+
+            function setRemoveLoading(button, isLoading) {
+                if (!button) return;
+                button.disabled = isLoading;
+                if (isLoading) {
+                    button.dataset.originalText = button.innerText;
+                    button.innerText = 'Removing...';
+                } else if (button.dataset.originalText) {
+                    button.innerText = button.dataset.originalText;
+                }
+            }
+
+            function showRemoveAddressPopup(id, button) {
+                if (!id) return;
+
+                if (!removePopup) {
+                    // Fallback to direct delete if popup markup is missing
+                    deleteAddressById(id, button);
+                    return;
+                }
+
+                pendingRemoveAddressId = id;
+                pendingRemoveButton = button;
+                removePopup.style.display = 'block';
+            }
+
+            function closeRemoveAddressPopup() {
+                if (!removePopup) return;
+                removePopup.style.display = 'none';
+                pendingRemoveAddressId = null;
+                pendingRemoveButton = null;
+            }
+
+            function confirmRemoveAddress() {
+                if (!pendingRemoveAddressId || !pendingRemoveButton) {
+                    closeRemoveAddressPopup();
+                    return;
+                }
+
+                const id = pendingRemoveAddressId;
+                const button = pendingRemoveButton;
+
+                closeRemoveAddressPopup();
+                deleteAddressById(id, button);
+            }
+
+            function deleteAddressById(id, button) {
+                if (!id) return;
+                const payload = {
+                    address_id: id,
+                };
+
+                setRemoveLoading(button, true);
+
+                fetch("{{ route('checkout.address-delete') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            showError(result.data.message || 'Unable to delete address.');
+                            return;
+                        }
+
+                        window.reloadCheckoutAddresses();
+                    })
+                    .catch(function() {
+                        showError('Unable to reach address service. Please try again.');
+                    })
+                    .finally(function() {
+                        setRemoveLoading(button, false);
+                    });
+            }
+
+            function setEditLoading(isLoading) {
+                if (!editSaveBtn) return;
+                editSaveBtn.disabled = isLoading;
+                if (isLoading) {
+                    editSaveBtn.dataset.originalText = editSaveBtn.innerText;
+                    editSaveBtn.innerText = 'Saving...';
+                } else if (editSaveBtn.dataset.originalText) {
+                    editSaveBtn.innerText = editSaveBtn.dataset.originalText;
+                }
+            }
+
+            function setDefaultLoading(button, isLoading) {
+                if (!button) return;
+                button.disabled = isLoading;
+                if (isLoading) {
+                    button.dataset.originalText = button.innerText;
+                    button.innerText = 'SETTING...';
+                } else if (button.dataset.originalText) {
+                    button.innerText = button.dataset.originalText;
+                }
+            }
+
+            function setAddLoading(isLoading) {
+                if (!addSaveBtn) return;
+                addSaveBtn.disabled = isLoading;
+                if (isLoading) {
+                    addSaveBtn.dataset.originalText = addSaveBtn.innerText;
+                    addSaveBtn.innerText = 'Saving...';
+                } else if (addSaveBtn.dataset.originalText) {
+                    addSaveBtn.innerText = addSaveBtn.dataset.originalText;
+                }
+            }
+
+            function setDefaultAddress(id, button) {
+                if (!id) return;
+
+                const payload = {
+                    address_id: id,
+                };
+
+                setDefaultLoading(button, true);
+
+                fetch("{{ route('checkout.address-default') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            showError(result.data.message || 'Unable to update default address.');
+                            return;
+                        }
+
+                        window.reloadCheckoutAddresses();
+                    })
+                    .catch(function() {
+                        showError('Unable to reach address service. Please try again.');
+                    })
+                    .finally(function() {
+                        setDefaultLoading(button, false);
+                    });
+            }
+
+            function submitAddForm() {
+                if (!addForm) return;
+
+                if (addErrorEl) {
+                    addErrorEl.style.display = 'none';
+                    addErrorEl.textContent = '';
+                }
+
+                const firstName = addFirstNameInput ? addFirstNameInput.value.trim() : '';
+                const lastName = addLastNameInput ? addLastNameInput.value.trim() : '';
+                const phone = addPhoneInput ? addPhoneInput.value.trim() : '';
+                const pincode = addPincodeInput ? addPincodeInput.value.trim() : '';
+                const address = addAddressInput ? addAddressInput.value.trim() : '';
+                const landmark = addLandmarkInput ? addLandmarkInput.value.trim() : '';
+                const city = addCityInput ? addCityInput.value.trim() : '';
+                const state = addStateInput ? addStateInput.value.trim() : '';
+
+                let type = 'home';
+                if (addTypeRadios && addTypeRadios.length) {
+                    addTypeRadios.forEach(function(radio) {
+                        if (radio.checked && radio.value) {
+                            type = radio.value;
+                        }
+                    });
+                }
+
+                if (!firstName || !lastName || !phone || !pincode || !address || !city || !state) {
+                    showAddError('Please fill in all required fields.');
+                    return;
+                }
+
+                const payload = {
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: loggedInEmail || '',
+                    phone: phone,
+                    country: '1',
+                    state: state,
+                    city: city,
+                    pincode: pincode,
+                    address: address,
+                    landmark: landmark,
+                    type: type,
+                };
+
+                setAddLoading(true);
+
+                fetch("{{ route('checkout.address-save') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            showAddError(result.data.message || 'Unable to add address.');
+                            return;
+                        }
+
+                        hideAddAddressForm();
+
+                        if (addPhoneInput) addPhoneInput.value = '';
+                        if (addPincodeInput) addPincodeInput.value = '';
+                        if (addAddressInput) addAddressInput.value = '';
+                        if (addLandmarkInput) addLandmarkInput.value = '';
+                        if (addFirstNameInput) addFirstNameInput.value = '';
+                        if (addLastNameInput) addLastNameInput.value = '';
+                        if (addCityInput) addCityInput.value = '';
+                        if (addStateInput) addStateInput.value = '';
+
+                        if (addTypeRadios && addTypeRadios.length) {
+                            addTypeRadios.forEach(function(radio) {
+                                radio.checked = (radio.value === 'home');
+                            });
+                        }
+
+                        window.reloadCheckoutAddresses();
+                    })
+                    .catch(function() {
+                        showAddError('Unable to reach address service. Please try again.');
+                    })
+                    .finally(function() {
+                        setAddLoading(false);
+                    });
+            }
+
+            function submitEditForm() {
+                if (!editForm) return;
+
+                if (!editAddressIdInput || !editAddressIdInput.value) {
+                    showEditError('Missing address identifier.');
+                    return;
+                }
+
+                const payload = {
+                    address_id: editAddressIdInput.value,
+                    first_name: editFirstNameInput ? editFirstNameInput.value.trim() : '',
+                    last_name: editLastNameInput ? editLastNameInput.value.trim() : '',
+                    email: editEmailInput ? editEmailInput.value.trim() : '',
+                    phone: editPhoneInput ? editPhoneInput.value.trim() : '',
+                    country: editCountryInput ? editCountryInput.value.trim() : '',
+                    state: editStateInput ? editStateInput.value.trim() : '',
+                    city: editCityInput ? editCityInput.value.trim() : '',
+                    pincode: editPincodeInput ? editPincodeInput.value.trim() : '',
+                    address: editAddressInput ? editAddressInput.value.trim() : '',
+                    landmark: editLandmarkInput ? editLandmarkInput.value.trim() : '',
+                };
+
+                if (editTypeRadios && editTypeRadios.length) {
+                    let type = '';
+                    editTypeRadios.forEach(function(radio) {
+                        if (radio.checked && radio.value) {
+                            type = radio.value;
+                        }
+                    });
+                    if (type) {
+                        payload.type = type;
+                    }
+                }
+
+                // Basic client-side validation
+                if (!payload.first_name || !payload.last_name || !payload.email || !payload.phone || !payload.country || !payload.state || !
+                    payload.city || !payload.pincode || !payload.address) {
+                    showEditError('Please fill in all required fields.');
+                    return;
+                }
+
+                setEditLoading(true);
+
+                fetch("{{ route('checkout.address-update') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected server response.'
+                                }
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        const ok = result.response.ok && result.data && result.data.status;
+
+                        if (!ok) {
+                            showEditError(result.data.message || 'Unable to update address.');
+                            return;
+                        }
+
+                        closeEditModal();
+                        window.reloadCheckoutAddresses();
+                    })
+                    .catch(function() {
+                        showEditError('Unable to reach address service. Please try again.');
+                    })
+                    .finally(function() {
+                        setEditLoading(false);
+                    });
+            }
+
+            if (editCloseBtn) {
+                editCloseBtn.addEventListener('click', function() {
+                    closeEditModal();
+                });
+            }
+
+            if (editCancelBtn) {
+                editCancelBtn.addEventListener('click', function() {
+                    closeEditModal();
+                });
+            }
+
+            if (editSaveBtn) {
+                editSaveBtn.addEventListener('click', function() {
+                    submitEditForm();
+                });
+            }
+
+            if (removeConfirmBtn) {
+                removeConfirmBtn.addEventListener('click', function() {
+                    confirmRemoveAddress();
+                });
+            }
+
+            if (removeCancelBtn) {
+                removeCancelBtn.addEventListener('click', function() {
+                    closeRemoveAddressPopup();
+                });
+            }
+
+            if (removeCloseBtn) {
+                removeCloseBtn.addEventListener('click', function() {
+                    closeRemoveAddressPopup();
+                });
+            }
+
+            if (addSaveBtn) {
+                addSaveBtn.addEventListener('click', function() {
+                    submitAddForm();
+                });
+            }
+
+            // Preload state list for add/edit dropdowns and wire state change handlers
+            ensureStatesLoaded().catch(function() {
+                // Ignore preload errors; user-facing errors will show on demand.
+            });
+
+            if (addStateInput && addCityInput) {
+                addStateInput.addEventListener('change', function() {
+                    const stateId = this.value;
+                    // Clear current city options
+                    populateCitySelect(addCityInput, null, null);
+                    if (!stateId) {
+                        return;
+                    }
+
+                    loadCitiesForState(stateId)
+                        .then(function() {
+                            populateCitySelect(addCityInput, stateId, null);
+                        })
+                        .catch(function() {
+                            // Swallow error; city dropdown will remain disabled.
+                        });
+                });
+            }
+
+            if (editStateInput && editCityInput) {
+                editStateInput.addEventListener('change', function() {
+                    const stateId = this.value;
+                    populateCitySelect(editCityInput, null, null);
+                    if (!stateId) {
+                        return;
+                    }
+
+                    loadCitiesForState(stateId)
+                        .then(function() {
+                            populateCitySelect(editCityInput, stateId, null);
+                        })
+                        .catch(function() {
+                            // Swallow error; city dropdown will remain disabled.
+                        });
+                });
+            }
+
+            // Initial load
+            fetchAddresses();
+        })();
+
         function showAddAddressForm() {
             var form = document.getElementById('address-add-form');
             if (form) {
@@ -752,6 +2140,12 @@
                         return;
                     }
 
+                    // Keep step 1 (LOGIN / CUSTOMER DETAILS) always expanded
+                    var stepNumberEl = header.querySelector('.step-number');
+                    if (stepNumberEl && stepNumberEl.textContent.trim() === '1') {
+                        return;
+                    }
+
                     var body = header.nextElementSibling;
                     if (!body || !body.classList.contains('checkout-step-body')) return;
 
@@ -761,7 +2155,7 @@
         });
 
         // --- OTP Checkout AJAX Flow ---
-        (function () {
+        (function() {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const mobileInput = document.getElementById('checkout-mobile-input');
@@ -812,7 +2206,7 @@
                 resendTimer.textContent = '(Resend available in ' + remaining + 's)';
 
                 if (resendCountdown) clearInterval(resendCountdown);
-                resendCountdown = setInterval(function () {
+                resendCountdown = setInterval(function() {
                     remaining -= 1;
                     if (remaining <= 0) {
                         clearInterval(resendCountdown);
@@ -828,17 +2222,20 @@
             function postJson(url, payload, onSuccess) {
                 clearAlert();
                 fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(payload),
-                })
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    })
                     .then(async (response) => {
-                        const data = await response.json().catch(() => ({ success: false, message: 'Unexpected server response.' }));
+                        const data = await response.json().catch(() => ({
+                            success: false,
+                            message: 'Unexpected server response.'
+                        }));
 
                         if (!response.ok || data.success === false) {
                             const message = data.message || 'Something went wrong. Please try again.';
@@ -854,7 +2251,7 @@
             }
 
             if (sendOtpBtn) {
-                sendOtpBtn.addEventListener('click', function () {
+                sendOtpBtn.addEventListener('click', function() {
                     const mobile = (mobileInput?.value || '').trim();
                     if (!mobile) {
                         showAlert('Please enter your mobile number.', true);
@@ -867,7 +2264,7 @@
                         mobile_no: mobile,
                         country_code: '91',
                         context: 'checkout',
-                    }, function (data) {
+                    }, function(data) {
                         showAlert(data.message || 'OTP sent successfully.', false);
                         if (loginMobile) loginMobile.value = mobile;
                         if (stepMobile && stepLogin) {
@@ -877,14 +2274,14 @@
                         startResendCountdown(30);
                     });
 
-                    setTimeout(function () {
+                    setTimeout(function() {
                         setLoading(sendOtpBtn, false);
                     }, 600);
                 });
             }
 
             if (verifyOtpBtn) {
-                verifyOtpBtn.addEventListener('click', function () {
+                verifyOtpBtn.addEventListener('click', function() {
                     const mobile = (loginMobile?.value || '').trim();
                     const otp = (loginOtp?.value || '').trim();
 
@@ -900,7 +2297,7 @@
                         country_code: '+91',
                         otp: otp,
                         context: 'checkout',
-                    }, function (data) {
+                    }, function(data) {
                         showAlert(data.message || 'Logged in successfully.', false);
                         if (data.redirect_url) {
                             window.location.href = data.redirect_url;
@@ -909,14 +2306,14 @@
                         }
                     });
 
-                    setTimeout(function () {
+                    setTimeout(function() {
                         setLoading(verifyOtpBtn, false);
                     }, 600);
                 });
             }
 
             if (changeMobileBtn) {
-                changeMobileBtn.addEventListener('click', function () {
+                changeMobileBtn.addEventListener('click', function() {
                     if (stepMobile && stepLogin) {
                         stepLogin.style.display = 'none';
                         stepMobile.style.display = 'block';
@@ -927,7 +2324,7 @@
             }
 
             if (resendOtpBtn) {
-                resendOtpBtn.addEventListener('click', function () {
+                resendOtpBtn.addEventListener('click', function() {
                     const mobile = (loginMobile?.value || '').trim();
                     if (!mobile) {
                         showAlert('Mobile number is missing. Please go back and enter it again.', true);
@@ -940,12 +2337,12 @@
                         mobile_no: mobile,
                         country_code: '+91',
                         context: 'checkout',
-                    }, function (data) {
+                    }, function(data) {
                         showAlert(data.message || 'OTP resent.', false);
                         startResendCountdown(30);
                     });
 
-                    setTimeout(function () {
+                    setTimeout(function() {
                         setLoading(resendOtpBtn, false);
                     }, 600);
                 });
