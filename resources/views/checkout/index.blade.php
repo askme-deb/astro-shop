@@ -378,6 +378,8 @@
                     <button onclick="applyCoupon()">Apply</button>
                 </div>
 
+                <div id="checkout-coupon-message" class="coupon-message" style="margin-top:4px;font-size:0.85rem;"></div>
+
                 <!-- TOTALS -->
                 <div class="price-row">
                     <span>Subtotal</span><span>₹<span id="subtotal">2599</span></span>
@@ -389,6 +391,10 @@
 
                 <div class="price-row">
                     <span>Tax</span><span>₹<span id="tax">78</span></span>
+                </div>
+
+                <div class="price-row" id="coupon-summary-row" style="display:none;">
+                    <span>Discount</span><span>-₹<span id="checkout-coupon-discount">0.00</span></span>
                 </div>
 
                 <div class="price-row total">
@@ -2702,6 +2708,37 @@
                         // Silently ignore coupon errors; checkout can proceed without them.
                     });
             }
+            function showToast(message, isError = false) {
+                if (!message) return;
+
+                let toast = document.getElementById('checkout-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'checkout-toast';
+                    toast.style.position = 'fixed';
+                    toast.style.left = '50%';
+                    toast.style.bottom = '24px';
+                    toast.style.transform = 'translateX(-50%)';
+                    toast.style.zIndex = '9999';
+                    toast.style.padding = '10px 16px';
+                    toast.style.borderRadius = '4px';
+                    toast.style.fontSize = '0.9rem';
+                    toast.style.color = '#fff';
+                    toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
+                    toast.style.maxWidth = '90%';
+                    toast.style.textAlign = 'center';
+                    document.body.appendChild(toast);
+                }
+
+                toast.textContent = message;
+                toast.style.backgroundColor = isError ? '#d32f2f' : '#2e7d32';
+                toast.style.display = 'block';
+
+                clearTimeout(toast._hideTimer);
+                toast._hideTimer = setTimeout(function() {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
 
             function bindOfferCopyButtons() {
                 const offers = document.querySelectorAll('.summary-box .offer');
@@ -2713,7 +2750,7 @@
 
                     copyBtn.addEventListener('click', function() {
                         if (!navigator.clipboard || !navigator.clipboard.writeText) {
-                            window.alert('Unable to copy code. Please copy it manually: ' + code);
+                            showToast('Unable to copy code. Please copy it manually: ' + code, true);
                             return;
                         }
                         navigator.clipboard.writeText(code).then(function() {
@@ -2730,17 +2767,100 @@
                 });
             }
 
-            window.applyCoupon = function() {
-                const input = document.getElementById('coupon');
-                const code = (input && input.value || '').trim();
-                if (!code) {
-                    window.alert('Please enter a discount code.');
+            window.applyCoupon = async function() {
+                const codeInput = document.getElementById('coupon');
+                const btn = document.querySelector('.coupon-row button');
+                const messageEl = document.getElementById('checkout-coupon-message');
+
+                if (!codeInput || !btn) return;
+
+                const rawCode = (codeInput.value || '').trim();
+                if (!rawCode) {
+                    if (messageEl) {
+                        messageEl.textContent = 'Please enter a coupon code.';
+                        messageEl.classList.remove('text-success');
+                        messageEl.classList.add('text-danger');
+                    }
                     return;
                 }
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(code).catch(function() {});
+
+                const csrfTokenEl = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : '';
+
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                btn.textContent = 'Applying...';
+                if (messageEl) {
+                    messageEl.textContent = '';
+                    messageEl.classList.remove('text-success', 'text-danger');
                 }
-                window.alert('Coupon "' + code + '" will be applied at payment.');
+
+                try {
+                    const response = await fetch("{{ route('apply.coupon') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            coupon_code: rawCode,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    const ok = (data && (data.success || data.status)) && response.ok;
+
+                    if (!ok) {
+                        const errorMessage = data && (data.message || data.error) ?
+                            (data.message || data.error) :
+                            'Unable to apply coupon.';
+
+                        if (messageEl) {
+                            messageEl.textContent = errorMessage;
+                            messageEl.classList.remove('text-success');
+                            messageEl.classList.add('text-danger');
+                        }
+                        return;
+                    }
+
+                    const payload = (data && data.data && typeof data.data === 'object') ? data.data : data;
+
+                    const discountRaw = payload.discount_amount ?? payload.discount ?? 0;
+                    const grandTotalRaw = payload.grand_total ?? payload.total ?? payload.payable_amount ?? null;
+
+                    const discountRowEl = document.getElementById('coupon-summary-row');
+                    const discountValueEl = document.getElementById('checkout-coupon-discount');
+                    const totalEl = document.getElementById('total');
+
+                    if (discountRowEl && discountValueEl && typeof discountRaw === 'number') {
+                        discountRowEl.style.display = discountRaw > 0 ? 'flex' : 'none';
+                        discountValueEl.textContent = formatCurrency(discountRaw);
+                    }
+
+                    if (totalEl && grandTotalRaw !== null && !isNaN(grandTotalRaw)) {
+                        const grand = Number(grandTotalRaw);
+                        totalEl.textContent = formatCurrency(grand);
+                    }
+
+                    if (messageEl) {
+                        messageEl.textContent = data.message || 'Coupon applied successfully.';
+                        messageEl.classList.remove('text-danger');
+                        messageEl.classList.add('text-success');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    if (messageEl) {
+                        messageEl.textContent = 'Network error while applying coupon. Please try again.';
+                        messageEl.classList.remove('text-success');
+                        messageEl.classList.add('text-danger');
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
             };
 
             document.addEventListener('DOMContentLoaded', function() {

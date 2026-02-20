@@ -292,7 +292,7 @@ let cart = 0;
     function checkDelivery() {
         const pin = document.getElementById('pincode').value;
         const msg = document.getElementById('delivery-msg');
-        
+
         if (pin.length === 6) {
             // Mock logic: Date = today + 3 days
             const date = new Date();
@@ -312,7 +312,7 @@ let cart = 0;
     function toggleOffer() {
         const content = document.getElementById('offer-content');
         const arrow = document.getElementById('offer-arrow');
-        
+
         if (content.style.display === "block") {
             content.style.display = "none";
             arrow.innerHTML = "▼";
@@ -472,18 +472,18 @@ function removeItem(){
 </script>
 
 <script>
-function toggleCoupons(){
-  document.getElementById("coupons").classList.toggle("hidden");
-}
-function toggleGift(){
-  document.getElementById("gift").classList.toggle("hidden");
-}
-function fillCode(code){
-  document.getElementById("discountCode").value = code;
-}
-function applyDiscount(){
-  alert("Discount Applied: " + document.getElementById("discountCode").value);
-}
+// function toggleCoupons(){
+//   document.getElementById("coupons").classList.toggle("hidden");
+// }
+// function toggleGift(){
+//   document.getElementById("gift").classList.toggle("hidden");
+// }
+// function fillCode(code){
+//   document.getElementById("discountCode").value = code;
+// }
+// function applyDiscount(){
+//   alert("Discount Applied: " + document.getElementById("discountCode").value);
+// }
 </script>
 
 <script>
@@ -510,21 +510,21 @@ function applyDiscount(){
 </script>
 
 <script>
-let subtotal = 2599;
-let taxRate = 0.03;
-let discount = 0;
+// let subtotal = 2599;
+// let taxRate = 0.03;
+// let discount = 0;
 
-function applyCoupon(){
-  const code = document.getElementById("coupon").value;
-  if(code === "SAVE20"){
-    discount = 0.2;
-    alert("Coupon Applied!");
-  } else {
-    discount = 0;
-    alert("Invalid Coupon");
-  }
-  updateTotals();
-}
+// function applyCoupon(){
+//   const code = document.getElementById("coupon").value;
+//   if(code === "SAVE20"){
+//     discount = 0.2;
+//     alert("Coupon Applied!");
+//   } else {
+//     discount = 0;
+//     alert("Invalid Coupon");
+//   }
+//   updateTotals();
+// }
 
 // function updateTotals(){
 //   let discounted = subtotal - (subtotal * discount);
@@ -538,7 +538,7 @@ function applyCoupon(){
 
 // updateTotals();
 
- </script> 
+ </script>
 
 <script>
   // function qtyPlus() {
@@ -608,30 +608,30 @@ function applyCoupon(){
 </script>
 
 <script>
-function showLogin(){
-  document.getElementById("loginForm").style.display = "block";
-  document.getElementById("registerForm").style.display = "none";
-}
+// function showLogin(){
+//   document.getElementById("loginForm").style.display = "block";
+//   document.getElementById("registerForm").style.display = "none";
+// }
 
-function showRegister(){
-  document.getElementById("loginForm").style.display = "none";
-  document.getElementById("registerForm").style.display = "block";
-}
+// function showRegister(){
+//   document.getElementById("loginForm").style.display = "none";
+//   document.getElementById("registerForm").style.display = "block";
+// }
 
-function showOTP(){
-  document.getElementById("passwordLogin").style.display = "none";
-  document.getElementById("otpLogin").style.display = "block";
-}
+// function showOTP(){
+//   document.getElementById("passwordLogin").style.display = "none";
+//   document.getElementById("otpLogin").style.display = "block";
+// }
 
-function showPasswordLogin(){
-  document.getElementById("passwordLogin").style.display = "block";
-  document.getElementById("otpLogin").style.display = "none";
-}
+// function showPasswordLogin(){
+//   document.getElementById("passwordLogin").style.display = "block";
+//   document.getElementById("otpLogin").style.display = "none";
+// }
 
-function sendOTP(){
-  document.getElementById("otpBox").style.display = "block";
-  alert("Demo OTP Sent: 1234");
-}
+// function sendOTP(){
+//   document.getElementById("otpBox").style.display = "block";
+//   alert("Demo OTP Sent: 1234");
+// }
 </script>
 
 
@@ -730,7 +730,7 @@ function removeActive(items) {
 
 /* Close when clicking outside */
 document.addEventListener("click", function(e) {
-  if (!searchInput.contains(e.target) && 
+  if (!searchInput.contains(e.target) &&
       !suggestionsBox.contains(e.target)) {
     suggestionsBox.classList.add("d-none");
   }

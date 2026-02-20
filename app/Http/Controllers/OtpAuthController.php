@@ -116,6 +116,10 @@ class OtpAuthController extends Controller
 
         Session::put('auth.user', $userData);
 
+        if (isset($userData['id'])) {
+            Session::put('api_user_id', $userData['id']);
+        }
+
         $redirectUrl = $context === 'checkout'
             ? route('checkout.index')
             : (url()->previous() ?: route('products.index'));

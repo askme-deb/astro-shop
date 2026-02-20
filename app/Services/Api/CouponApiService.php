@@ -90,4 +90,43 @@ class CouponApiService extends BaseApiClient
             'message' => $message,
         ];
     }
+
+    /**
+     * Apply a coupon code for the given user/guest.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public function applyCoupon(array $data): array
+    {
+        try {
+            // The BaseApiClient base URL already includes the API version
+            // (e.g. /api/v1), so we only append the relative path here.
+            $response = $this->request('POST', 'apply-coupon', [
+                'json' => $data,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('Apply coupon API call failed', [
+                'service' => static::class,
+                'endpoint' => 'apply-coupon',
+                'message' => $exception->getMessage(),
+            ]);
+
+            return [
+                'status' => false,
+                'message' => 'Coupon service temporarily unavailable.',
+                'data' => null,
+            ];
+        }
+
+        if (! is_array($response)) {
+            return [
+                'status' => false,
+                'message' => 'Unexpected coupon response.',
+                'data' => null,
+            ];
+        }
+
+        return $response;
+    }
 }

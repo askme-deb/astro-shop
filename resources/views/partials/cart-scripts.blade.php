@@ -57,7 +57,7 @@ function addToCart(payload, btn) {
       }
       const toastTitle = productName ? `${productName} added to cart!` : (data.message || 'Product added to cart successfully');
       toast(toastTitle, '', 'success');
-      
+
       // Update cart count in header if possible
        const cartCountElem = document.getElementById('cartCountValue');
        if (cartCountElem) {
@@ -112,4 +112,38 @@ $(document).on('click', '.pagination a', function(e) {
     window.location.href = href;
   }
 });
+
+
+
+//    function showToast(message, isError = false) {
+//                 if (!message) return;
+
+//                 let toast = document.getElementById('checkout-toast');
+//                 if (!toast) {
+//                     toast = document.createElement('div');
+//                     toast.id = 'checkout-toast';
+//                     toast.style.position = 'fixed';
+//                     toast.style.left = '50%';
+//                     toast.style.bottom = '24px';
+//                     toast.style.transform = 'translateX(-50%)';
+//                     toast.style.zIndex = '9999';
+//                     toast.style.padding = '10px 16px';
+//                     toast.style.borderRadius = '4px';
+//                     toast.style.fontSize = '0.9rem';
+//                     toast.style.color = '#fff';
+//                     toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
+//                     toast.style.maxWidth = '90%';
+//                     toast.style.textAlign = 'center';
+//                     document.body.appendChild(toast);
+//                 }
+
+//                 toast.textContent = message;
+//                 toast.style.backgroundColor = isError ? '#d32f2f' : '#2e7d32';
+//                 toast.style.display = 'block';
+
+//                 clearTimeout(toast._hideTimer);
+//                 toast._hideTimer = setTimeout(function() {
+//                     toast.style.display = 'none';
+//                 }, 3000);
+//             }
 </script>

@@ -15,6 +15,10 @@ Route::get('/products/{slug}', [ProductController::class, 'show'])->name('produc
 
 Route::get('/cart', [CartController::class, 'index'])->middleware('cart.user.resolved')->name('cart.index');
 
+Route::post('/apply-coupon', [CartController::class, 'applyCoupon'])
+    ->middleware('cart.user.resolved')
+    ->name('apply.coupon');
+
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/checkout/user-addresses', [CheckoutController::class, 'userAddresses'])

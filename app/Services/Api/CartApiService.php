@@ -237,6 +237,8 @@ class CartApiService extends BaseApiClient
             $result = $this->request('GET', $endpoint, [
                 'query' => $query,
             ]);
+
+            //dd($result);
             if ((isset($result['status']) && $result['status']) && isset($result['data'])) {
                 return [
                     'status' => 'success',

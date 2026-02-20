@@ -63,6 +63,13 @@
                     </div>
                 </div>
 
+                <div id="coupon-summary" style="display:none; margin-top:8px; font-size:0.9rem;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Coupon discount:</span>
+                        <span id="coupon-discount-amount">-₹0.00</span>
+                    </div>
+                </div>
+
                 <p style="margin-top:15px;font-weight:bold">
                     Copy the coupon code below and apply it at checkout!
                 </p>
@@ -101,6 +108,16 @@
                 </div>
                 <div id="hide-more" class="show-hide-offers" style="cursor:pointer;display:none"
                     onclick="toggleOffers(false)">Close</div>
+
+                <!-- Coupon input -->
+                <div class="coupon-section mt-3">
+                    <label for="coupon_code" class="coupon-label">Have a coupon?</label>
+                    <div class="coupon-input-group">
+                        <input type="text" id="coupon_code" class="form-control" placeholder="Enter coupon code">
+                        <button type="button" id="apply-coupon-btn" class="btn btn-primary">Apply</button>
+                    </div>
+                    <div id="coupon-message" class="coupon-message mt-1"></div>
+                </div>
 
                 <!-- Gift Wrap -->
                 <div class="all_gift_wrap">
@@ -214,6 +231,24 @@
                 background-color: #f0f0f0;
             }
         }
+
+        .coupon-section {
+            margin-top: 20px;
+        }
+
+        .coupon-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .coupon-input-group input[type="text"] {
+            flex: 1;
+        }
+
+        .coupon-message {
+            font-size: 0.85rem;
+        }
     </style>
 @endpush
 
@@ -261,6 +296,11 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchAndRenderCart();
+
+            const applyBtn = document.getElementById('apply-coupon-btn');
+            if (applyBtn) {
+                applyBtn.addEventListener('click', applyCoupon);
+            }
         });
 
         async function fetchAndRenderCart() {
@@ -490,6 +530,110 @@
                 rest.style.display = 'none';
                 showBtn.style.display = 'block';
                 hideBtn.style.display = 'none';
+            }
+        }
+
+        async function applyCoupon() {
+            const codeInput = document.getElementById('coupon_code');
+            const btn = document.getElementById('apply-coupon-btn');
+            const messageEl = document.getElementById('coupon-message');
+
+            if (!codeInput || !btn) return;
+
+            const rawCode = codeInput.value.trim();
+            if (!rawCode) {
+                if (messageEl) {
+                    messageEl.textContent = 'Please enter a coupon code.';
+                    messageEl.classList.remove('text-success');
+                    messageEl.classList.add('text-danger');
+                }
+                return;
+            }
+
+            const csrfTokenEl = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : '';
+
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.textContent = 'Applying...';
+            if (messageEl) {
+                messageEl.textContent = '';
+                messageEl.classList.remove('text-success', 'text-danger');
+            }
+
+            // Dim the cart while processing
+            setLoadingState(true);
+
+            try {
+                const response = await fetch("{{ route('apply.coupon') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        coupon_code: rawCode,
+                    }),
+                });
+
+                const data = await response.json();
+
+                const ok = (data && (data.success || data.status)) && response.ok;
+
+                if (!ok) {
+                    const errorMessage = data && (data.message || data.error) ?
+                        (data.message || data.error) :
+                        'Unable to apply coupon.';
+
+                    if (messageEl) {
+                        messageEl.textContent = errorMessage;
+                        messageEl.classList.remove('text-success');
+                        messageEl.classList.add('text-danger');
+                    }
+                    return;
+                }
+
+                const payload = (data && data.data && typeof data.data === 'object') ? data.data : data;
+
+                const discountRaw = payload.discount_amount ?? payload.discount ?? 0;
+                const grandTotalRaw = payload.grand_total ?? payload.total ?? payload.payable_amount ?? null;
+
+                const couponSummaryEl = document.getElementById('coupon-summary');
+                const discountEl = document.getElementById('coupon-discount-amount');
+                const totalEl = document.getElementById('estimated-total');
+
+                if (couponSummaryEl && discountEl && typeof discountRaw === 'number') {
+                    couponSummaryEl.style.display = discountRaw > 0 ? 'block' : 'none';
+                    discountEl.textContent = '-₹' + discountRaw.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                    });
+                }
+
+                if (totalEl && grandTotalRaw !== null && !isNaN(grandTotalRaw)) {
+                    const grand = Number(grandTotalRaw);
+                    totalEl.textContent = '₹' + grand.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                    });
+                }
+
+                if (messageEl) {
+                    messageEl.textContent = data.message || 'Coupon applied successfully.';
+                    messageEl.classList.remove('text-danger');
+                    messageEl.classList.add('text-success');
+                }
+            } catch (error) {
+                console.error(error);
+                if (messageEl) {
+                    messageEl.textContent = 'Network error while applying coupon. Please try again.';
+                    messageEl.classList.remove('text-success');
+                    messageEl.classList.add('text-danger');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                setLoadingState(false);
             }
         }
     </script>
