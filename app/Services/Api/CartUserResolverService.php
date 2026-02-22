@@ -17,8 +17,11 @@ class CartUserResolverService
     /**
      * Resolve the cart user identifier (user_id or guest_user_id)
      *
+     * On the external API, guest_user_id is expected to be an integer,
+     * so we generate and persist a numeric ID for guests.
+     *
      * @param Request $request
-     * @return array ['type' => 'user'|'guest', 'id' => string|int, 'set_cookie' => bool]
+     * @return array ['type' => 'user'|'guest', 'id' => int, 'set_cookie' => bool]
      */
     public function resolve(Request $request): array
     {
@@ -37,36 +40,36 @@ class CartUserResolverService
 
         // Laravel automatically decrypts encrypted cookies when reading
         $guestId = $request->cookie($this->cookieName);
-        
-
 
         $valid = false;
 
-        if (is_string($guestId) && preg_match('/^guest_[a-f0-9\-]{36}$/', $guestId)) {
+        // External API expects an integer guest_user_id, so accept only digits.
+        if (is_numeric($guestId) && (int) $guestId > 0) {
             $valid = true;
         }
 
-        if (!$valid) {
-
+        if (! $valid) {
             $guestId = $this->generateGuestId();
         }
 
         $this->resolved = [
             'type' => 'guest',
-            'id' => $guestId,
-            'set_cookie' => !$valid,
+            'id' => (int) $guestId,
+            'set_cookie' => ! $valid,
         ];
 
         return $this->resolved;
     }
 
     /**
-     * Generate a unique guest user ID
+     * Generate a unique numeric guest user ID.
+     *
+     * The external API expects guest_user_id to be an integer, so we
+     * generate a random positive integer and store it as the cookie value.
      */
-    public function generateGuestId(): string
+    public function generateGuestId(): int
     {
-        // Format: guest_<uuid>
-        return 'guest_' . Str::uuid();
+        return random_int(100000000, 999999999);
     }
 
     /**

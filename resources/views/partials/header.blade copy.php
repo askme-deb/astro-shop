@@ -5,81 +5,66 @@
 </div>
 
 <!-- Main Header -->
-
-  <div class="container">
+<div class="container">
     <div class="row align-items-center">
-      <!-- Logo -->
-      <div class="col-6 col-md-1 logo_warp">
-        <a href="./"> <img src="{{ asset('assets/images/Logo.png') }}"></a>
-      </div>
-
-      <!-- Search (Full width on mobile) -->
-      <div class="col-12 col-md-7 order-3 order-md-2 mt-3 mt-md-0">
-        <div class="d-flex gap-2">
-
-
-          <!-- Header Trigger -->
-          <div class="header_pincode_box_subhead" id="openPincodePopup">
-            <span id="update-del-text">Update Delivery Pincode</span>
-
-            <svg aria-hidden="true" focusable="false" class="icon icon-caret" viewBox="0 0 10 6">
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M9.354.646a.5.5 0 00-.708 0L5 4.293 1.354.646a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l4-4a.5.5 0 000-.708z"
-                fill="currentColor">
-              </path>
-            </svg>
-          </div>
-
-          <!-- Popup Modal -->
-          <div class="pincode-modal" id="pincodeModal">
-            <div class="pincode-modal-content">
-              <button class="pincode-close">&times;</button>
-
-              <h3>Enter Delivery Pincode</h3>
-              <p>Check product availability and delivery options</p>
-
-              <input type="text" id="pincodeInput" placeholder="Enter Pincode" maxlength="6">
-
-              <button class="pincode-submit">Check</button>
-            </div>
-          </div>
-
-
-
-          <div class="search-box flex-grow-1">
-            <input type="text"
-              id="searchInput"
-              class="form-control"
-              placeholder='Search "Rings"'
-              autocomplete="off">
-
-            <div id="searchSuggestions" class="search-suggestions d-none"></div>
-          </div>
-
-
+        <!-- Logo -->
+        <div class="col-6 col-md-1 logo_warp">
+            <a href="#"> <img src="{{ asset('assets/images/Logo.png') }}" alt="Logo"></a>
         </div>
 
+        <!-- Search (Full width on mobile) -->
+        <div class="col-12 col-md-7 order-3 order-md-2 mt-3 mt-md-0">
+            <div class="d-flex gap-2">
+                <!-- Header Trigger -->
+                <div class="header_pincode_box_subhead" id="openPincodePopup">
+                    <span id="update-del-text">Update Delivery Pincode</span>
 
+                    <svg aria-hidden="true" focusable="false" class="icon icon-caret" viewBox="0 0 10 6">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M9.354.646a.5.5 0 00-.708 0L5 4.293 1.354.646a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l4-4a.5.5 0 000-.708z"
+                            fill="currentColor">
+                        </path>
+                    </svg>
+                </div>
 
+                <!-- Popup Modal -->
+                <div class="pincode-modal" id="pincodeModal">
+                    <div class="pincode-modal-content">
+                        <button class="pincode-close">&times;</button>
 
-      </div>
+                        <h3>Enter Delivery Pincode</h3>
+                        <p>Check product availability and delivery options</p>
 
-      <!-- Desktop Icons -->
-      <div class="col-6 col-md-4 text-end d-none d-md-block order-md-3">
-        <div class="d-inline-flex gap-4 text-center">
+                        <input type="text" id="pincodeInput" placeholder="Enter Pincode" maxlength="6">
 
+                        <button class="pincode-submit">Check</button>
+                    </div>
+                </div>
 
-          <!-- Cart Icon -->
-          <div class="icon_warp position-relative" id="cartWrapper">
-            <a href="javascript:void(0)" onclick="toggleCart(event)">
-              <i class="fa fa-bag-shopping fs-5"></i>
-              <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                 <span id="cartCountValue">0</span>
-              </span>
-              <div class="icon-text">CART</div>
-            </a>
+                <div class="search-box flex-grow-1">
+                    <input type="text" id="searchInput" class="form-control" placeholder='Search "Rings"'
+                        autocomplete="off">
 
-              <!-- Mini Cart -->
+                    <div id="searchSuggestions" class="search-suggestions d-none"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Icons -->
+        <div class="col-6 col-md-4 text-end d-none d-md-block order-md-3">
+            <div class="d-inline-flex gap-4 text-center">
+                <!-- Cart Icon -->
+                <div class="icon_warp position-relative" id="cartWrapper">
+                    <a href="javascript:void(0)" onclick="toggleCart(event)">
+                        <i class="fa fa-bag-shopping fs-5"></i>
+                        <span id="cartCount"
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <span id="cartCountValue">0</span>
+                        </span>
+                        <div class="icon-text">CART</div>
+                    </a>
+
+                    <!-- Mini Cart -->
                     <div class="mini-cart shadow" id="miniCart" style="display: none; position: absolute; right: 0; top: 100%; width: 330px; background: #fff; z-index: 9999; padding: 15px; border-radius: 8px;">
                         <h6 class="fw-bold mb-3">Shopping Cart</h6>
                         <div id="miniCartItems" style="max-height: 240px; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">
@@ -112,7 +97,9 @@
                         <a href="/cart" class="btn btn-dark w-100 mt-3">View Cart</a>
                         <a href="{{ route('checkout.index') }}" class="btn btn-outline-dark w-100 mt-2">Checkout</a>
                     </div>
-                    <style>
+                </div>
+
+                <style>
                     .skeleton-img {
                         width: 50px;
                         height: 50px;
@@ -174,9 +161,6 @@
 
                     document.addEventListener('DOMContentLoaded', function() {
                         updateCartCount();
-                        if (typeof updateWishlistCount === 'function') {
-                            updateWishlistCount();
-                        }
                     });
 
                     window.toggleCart = function(e) {
@@ -212,27 +196,6 @@
                             })
                             .catch(() => {
                                 document.getElementById('cartCountValue').textContent = 0;
-                            });
-                    }
-
-                    function updateWishlistCount() {
-                        fetch('/api/wishlist/count', {
-                                credentials: 'include'
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status && typeof data.count !== 'undefined') {
-                                    const el = document.getElementById('wishlistCountValue');
-                                    if (el) {
-                                        el.textContent = data.count;
-                                    }
-                                }
-                            })
-                            .catch(() => {
-                                const el = document.getElementById('wishlistCountValue');
-                                if (el) {
-                                    el.textContent = 0;
-                                }
                             });
                     }
 
@@ -326,31 +289,17 @@
                         const cartId = miniCartItemIdToRemove;
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-                        // Determine if user is logged in
-                        let payload = { cart_id: cartId };
-                        let isLoggedIn = !!document.querySelector('form#header-logout-form');
-                        if (isLoggedIn) {
-                            // Logged-in user: do not send guest_user_id or user_id
-                            // Token is sent via cookie automatically
-                        } else {
-                            // Guest: send guest_user_id, do not send user_id
-                            let guestUserId = localStorage.getItem('guest_user_id') || '';
-                            if (!guestUserId) {
-                                // Try to get from cookie
-                                const match = document.cookie.match(/guest_user_id=([^;]+)/);
-                                if (match) guestUserId = match[1];
-                            }
-                            if (guestUserId) payload.guest_user_id = guestUserId;
-                        }
                         fetch('/api/cart/delete-item', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            credentials: 'include',
-                            body: JSON.stringify(payload)
-                        })
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken
+                                },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    cart_id: cartId
+                                })
+                            })
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success || data.status) {
@@ -386,15 +335,8 @@
                         </div>
                     </div>
                 </div>
-          </div>
 
-
-
-
-
-
-
-             <div class="icon_warp">
+                <div class="icon_warp">
                     @if(session()->has('auth.api_token'))
                     <form id="header-logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
                         @csrf
@@ -412,52 +354,46 @@
                 </div>
 
 
-                    <div class="icon_warp position-relative" id="wishlistWrapper">
-                        <a href="#">
-                            <i class="fa fa-heart fs-5"></i>
-                            <span id="wishlistCountValue" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                0
-                            </span>
-                            <div class="icon-text">WISHLIST</div>
-                        </a>
-                    </div>
+                <div class="icon_warp">
+                    <a href="#"><i class="fa fa-heart fs-5"></i>
+                        <div class="icon-text">WISHLIST</div>
+                    </a>
+                </div>
 
+            </div>
         </div>
-      </div>
 
     </div>
-  </div>
+</div>
 
-  <!-- Mobile Bottom Navigation -->
-  <div class="mobile-footer d-md-none">
+<!-- Mobile Bottom Navigation -->
+<div class="mobile-footer d-md-none">
     <a href="#"><i class="fa fa-house"></i></a>
     <a href="#"><i class="fa fa-heart"></i></a>
     <a href="#" class="cart-icon position-relative">
-      <i class="fa fa-bag-shopping"></i>
-      <span class="badge bg-danger">0</span>
+        <i class="fa fa-bag-shopping"></i>
+        <span class="badge bg-danger">0</span>
     </a>
     <a href="#"><i class="fa fa-user"></i></a>
-  </div>
+</div>
 
-  <!-- Navigation -->
-  <div class="border-bottom py-2">
+<!-- Navigation -->
+<div class="border-top border-bottom py-2">
 
     <div class="container">
 
-      <!-- Mobile Toggle Button -->
-      <div class="d-flex justify-content-between align-items-center d-md-none">
-        <strong>Menu</strong>
-        <button class="btn btn-outline-dark btn-sm"
-          data-bs-toggle="collapse"
-          data-bs-target="#mobileNav">
-          <i class="fa fa-bars"></i>
-        </button>
-      </div>
+        <!-- Mobile Toggle Button -->
+        <div class="d-flex justify-content-between align-items-center d-md-none">
+            <strong>Menu</strong>
+            <button class="btn btn-outline-dark btn-sm" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
 
-      <!-- Nav Links -->
-      <div class="collapse d-md-block mt-3 mt-md-0" id="mobileNav">
-        <div class="nav-links text-center text-md-start">
-          <!-- <a href="#">Shop by Category</a>
+        <!-- Nav Links -->
+        <div class="collapse d-md-block mt-3 mt-md-0" id="mobileNav">
+            <div class="nav-links text-center text-md-start">
+                <!-- <a href="#">Shop by Category</a>
         <a href="#">Valentine's Sale is Live</a>
         <a href="#">Gifts for Him</a>
         <a href="#">Gifts for Her</a>
@@ -465,19 +401,19 @@
         <a href="#">Gift Store</a>
         <a href="#">Exclusive Collections</a>
         <a href="#">More at GIVA</a> -->
-          <a href="#">Home</a>
-          <a href="products.php">Shop</a>
-          <a href="#">Rudraksha</a>
-          <a href="#">Gemstones</a>
-          <a href="#">About</a>
-          <a href="#">Contact</a>
+                <a href="#">Home</a>
+                <a href="#">Shop</a>
+                <a href="#">Rudraksha</a>
+                <a href="#">Gemstones</a>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
 
+            </div>
         </div>
-      </div>
 
     </div>
 
-  </div>
+</div>
 
 <!-- Auth Modal -->
 <div class="modal fade" id="authModal" tabindex="-1">
@@ -533,82 +469,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // Delivery Pincode popup logic
-        const pincodeTrigger = document.getElementById('openPincodePopup');
-        const pincodeModal = document.getElementById('pincodeModal');
-        const pincodeInput = document.getElementById('pincodeInput');
-        const pincodeCloseBtn = pincodeModal ? pincodeModal.querySelector('.pincode-close') : null;
-        const pincodeSubmitBtn = pincodeModal ? pincodeModal.querySelector('.pincode-submit') : null;
-        const updateDelText = document.getElementById('update-del-text');
-
-        function openPincodeModal() {
-            if (!pincodeModal) return;
-            pincodeModal.style.display = 'flex';
-        }
-
-        function closePincodeModal() {
-            if (!pincodeModal) return;
-            pincodeModal.style.display = 'none';
-        }
-
-        // Load saved pincode from localStorage on page load
-        try {
-            const savedPincode = window.localStorage.getItem('delivery_pincode');
-            if (savedPincode && updateDelText) {
-                updateDelText.textContent = 'Deliver to ' + savedPincode;
-            }
-            if (savedPincode && pincodeInput) {
-                pincodeInput.value = savedPincode;
-            }
-        } catch (e) {
-            // localStorage may be unavailable; fail silently
-        }
-
-        if (pincodeTrigger && pincodeModal) {
-            pincodeTrigger.addEventListener('click', function () {
-                openPincodeModal();
-            });
-        }
-
-        if (pincodeCloseBtn) {
-            pincodeCloseBtn.addEventListener('click', function () {
-                closePincodeModal();
-            });
-        }
-
-        // Close when clicking outside the modal content
-        if (pincodeModal) {
-            pincodeModal.addEventListener('click', function (event) {
-                if (event.target === pincodeModal) {
-                    closePincodeModal();
-                }
-            });
-        }
-
-        if (pincodeSubmitBtn && pincodeInput) {
-            pincodeSubmitBtn.addEventListener('click', function () {
-                const raw = (pincodeInput.value || '').trim();
-
-                // Basic validation: 6-digit numeric pincode
-                if (!/^\d{6}$/.test(raw)) {
-                    alert('Please enter a valid 6-digit pincode.');
-                    return;
-                }
-
-                try {
-                    window.localStorage.setItem('delivery_pincode', raw);
-                } catch (e) {
-                    // Ignore storage errors
-                }
-
-                if (updateDelText) {
-                    updateDelText.textContent = 'Deliver to ' + raw;
-                }
-
-                closePincodeModal();
-            });
-        }
 
         const logoutTrigger = document.getElementById('header-logout-trigger');
         if (logoutTrigger) {

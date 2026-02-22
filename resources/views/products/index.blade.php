@@ -118,7 +118,7 @@
     @forelse($products ?? [] as $product)
       <div class="col-md-3 col-sm-6">
         <div class="product-card">
-          <i class="bi bi-heart wishlist"></i>
+          <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
           <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
           <div class="rating">
             ⭐ {{ $product['rating'] ?? '4.5' }}

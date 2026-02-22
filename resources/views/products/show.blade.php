@@ -301,7 +301,7 @@
 
     <div class="item">
       <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
+        <i class="bi bi-heart wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
         <img src="images/product-1.jpg">
         <div class="rating">⭐ 4.8 | 316</div>
         <h6>Rose Gold Princess Earrings</h6>
@@ -317,7 +317,7 @@
 
     <div class="item">
       <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
+        <i class="bi bi-heart wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
         <img src="images/product-1.jpg">
         <div class="rating">⭐ 4.8 | 217</div>
         <h6>Anushka Sharma Rose Gold Bracelet</h6>

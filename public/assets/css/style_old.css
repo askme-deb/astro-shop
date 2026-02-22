@@ -145,8 +145,6 @@ body {
     .search-box input {
       border-radius: 6px;
       padding-left: 20px;
-      height: 45px;
-      border: 1px solid #0000003b;
     }
     .icon-text {
       font-size: 12px;
@@ -341,7 +339,7 @@ body {
 .sale-banner {
     background: url(../images/banner_gems.jpg);
     border-radius: 16px;
-    padding: 30px;
+    padding: 50px;
     position: relative;
     overflow: hidden;
     background-size: cover;
@@ -816,7 +814,7 @@ body {
 }
 
 .logo_warp a img {
-    width: 22% !important;
+    width: 30% !important;
 }
 
 
@@ -1735,13 +1733,10 @@ footer {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
   color: #111;
   font-family: "Lato", sans-serif;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 8px;
 }
 
 .header_pincode_box_subhead svg {
@@ -2068,7 +2063,7 @@ footer {
             text-transform: uppercase;
             margin-bottom: 1rem;
         }
-        
+
         /* Price Section */
         .price-container {
             display: flex;
@@ -2738,7 +2733,7 @@ footer {
 }
 
 .checkout-card h3{
-  margin-bottom:15px;
+  margin-bottom:5px;
   font-size:16px;
 }
 
@@ -3141,48 +3136,4 @@ input:disabled, textarea:disabled {
     border: 1px solid #ccc;
     padding: 5px 15px;
     border-radius: 4px;
-}
-
-div#mobileNav {
-    border-top: 1px solid #ccc;
-    padding-top: 8px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 768px) {
-
-.header_pincode_box_subhead {font-size: 12px;}
-.catagory_warp .row.g-4.d-md-flex {width: 100%;margin: 0;}
-.catagory_warp .col-lg-3.col-md-6 {width: 50%;}
-.product_warp .col-md-3.col-sm-6 {width: 50%;margin-top: 0;}
-.sale-banner {padding: 15px;text-align: left !important;}
-.sale-banner .banner-content.text-center.text-md-start {text-align: left !important;}
-.sale-banner h2 {font-size: 24px;}
-.sale-banner p.mb-4 {font-size: 13px;}
-.sale-banner-wrapper {padding-bottom: 20px;}
-.gem-recommendation-inner img {height: auto;}
-div#productSlider {float: left;}
-.book-session-content { padding: 30px 30px;}
-.book-session-content h2 {font-size: 28px;}
-.footer-col.newsletter {padding: 7px;}
-.inner_warp {height: auto;}
-.filter-right {margin-top: 17px;}
-.product_warp2 .col-md-3.col-sm-6 {width: 50%;}
 }

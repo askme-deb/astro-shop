@@ -5,8 +5,6 @@ namespace App\Services\Api;
 use App\Services\Api\Clients\BaseApiClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Validator;
 use App\Services\Api\CartUserResolverService;
 use Illuminate\Http\Request;
 
@@ -25,240 +23,227 @@ class CartApiService extends BaseApiClient
         parent::__construct();
         $this->userResolver = $userResolver;
     }
+
     /**
      * Invalidate cart cache for a given method and key.
-     *
-     * @param string $method
-     * @param string $key
-     * @return void
      */
     private function invalidateCache(string $method, string $key): void
     {
-        // You may need to adjust the cache key logic to match your cache implementation
         $cacheKey = strtolower($method) . ':' . $key;
         Cache::forget($cacheKey);
-        // Optionally, log cache invalidation
-        Log::info('Cart cache invalidated', ['cache_key' => $cacheKey]);
+        // Log::info('Cart cache invalidated', ['cache_key' => $cacheKey]);
     }
-// ...existing code...
+
     /**
-     * Add product to cart.
-     *
-     * @param array $payload
-     * @return array
+     * Resolve the user token from session (primary) or cookie (fallback).
+     * Session is always reliable since verifyOtp stores token via Session::put().
+     * Cookie may be unavailable on API routes depending on middleware stack.
      */
+private function resolveUserToken(Request $request): string
+{
+    // auth_api_token cookie is excluded from EncryptCookies middleware
+    // so it's always readable as plain raw Sanctum token
+    $token = (string) $request->cookie('auth_api_token', '');
+
+    // Log::info('resolveUserToken', [
+    //     'cookie_token' => $token ? substr($token, 0, 20).'...' : 'NULL',
+    // ]);
+
+    return $token;
+}
+
     /**
-     * Add product to cart via Astro API.
-     * Validates payload, calls API, and invalidates cart cache.
-     *
-     * @param array $payload
-     * @return array
+     * Set Bearer token and clean payload for logged-in user,
+     * or resolve guest_user_id for guest.
+     * Returns modified payload.
      */
-    // public function addToCart(array $payload): array
-    // {
-    //     $validator = Validator::make($payload, [
-    //         'product_id' => 'required|integer',
-    //         'quantity' => 'required|integer|min:1',
-    //         // Add more validation rules as needed
-    //     ]);
+private function applyAuthToRequest(array $payload, Request $request): array
+{
+    $userToken = $this->resolveUserToken($request);
 
-    //     if ($validator->fails()) {
-    //         return [
-    //             'success' => false,
-    //             'error' => 'Validation failed',
-    //             'errors' => $validator->errors()->toArray(),
-    //             'status' => 422,
-    //         ];
-    //     }
+    if ($userToken !== '') {
+        $this->token = $userToken;
+        unset($payload['guest_user_id'], $payload['user_id']);
+    } else {
+        $resolved = $this->userResolver->resolve($request);
+        if (! empty($resolved['id'])) {
+            $payload['guest_user_id'] = $resolved['id'];
+        }
+        unset($payload['user_id']);
+        $this->token = null;
+    }
 
-    //     $endpoint = 'cart/add-to-cart';
-    //     $result = $this->request('POST', $endpoint, ['json' => $payload]);
-    //     //dd($result);
-    //     // Invalidate cart cache on update
-    //     if (isset($result['success']) && $result['success']) {
-    //         $this->invalidateCache('GET', 'cart');
-    //     }
-
-    //     return $this->normalizeResponse($result);
-    // }
-
+    return $payload;
+}
     /**
      * Add product to cart. Resolves user/guest ID automatically.
-     * @param array $payload
-     * @param Request|null $request
-     * @return array
      */
     public function addToCart(array $payload, Request $request = null): array
     {
-        if ($request) {
-            $resolved = $this->userResolver->resolve($request);
-            // Debug: Check what is returned by resolver
-           // \Log::debug('CartUserResolverService::resolve() output', ['resolved' => $resolved]);
-            if ($resolved['type'] === 'user') {
-                $payload['user_id'] = $resolved['id'];
-                unset($payload['guest_user_id']);
-            } else {
-                $payload['guest_user_id'] = $resolved['id'];
-                unset($payload['user_id']);
-            }
-        }
         $endpoint = 'cart/add-to-cart';
+        $originalToken = $this->token;
+        $options = [];
 
-        $result = $this->request('POST', $endpoint, ['json' => $payload]);
-        if (isset($result['success']) && $result['success']) {
+        if ($request) {
+            $userToken = $this->resolveUserToken($request);
+            if ($userToken !== '') {
+                // Logged-in user: send token as shared_api_token cookie
+                $this->token = null; // Do not use Bearer
+                $options['json'] = $payload;
+                $options['headers'] = [
+                    'Cookie' => 'shared_api_token=' . $userToken,
+                ];
+                unset($options['json']['guest_user_id'], $options['json']['user_id']);
+            } else {
+                // Guest: send guest_user_id, no token
+                $resolved = $this->userResolver->resolve($request);
+                if (!empty($resolved['id'])) {
+                    $payload['guest_user_id'] = $resolved['id'];
+                }
+                unset($payload['user_id']);
+                $this->token = null;
+                $options['json'] = $payload;
+            }
+        } else {
+            $options['json'] = $payload;
+        }
+
+        $result = $this->request('POST', $endpoint, $options);
+
+        $this->token = $originalToken;
+
+        if ((isset($result['success']) && $result['success']) || (isset($result['status']) && $result['status'])) {
             $this->invalidateCache('GET', 'cart');
         }
-        if (isset($result['status']) && $result['status']) {
-            $this->invalidateCache('GET', 'cart');
-        }
+
         return $this->normalizeResponse($result);
     }
 
-
-    /**
-     * Buy now (direct purchase).
-     *
-     * @param array $payload
-     * @return array
-     */
-    /**
-     * Buy now (direct purchase) via Astro API.
-     * Validates payload, calls API, and invalidates cart cache.
-     *
-     * @param array $payload
-     * @return array
-     */
     /**
      * Buy now (direct purchase). Resolves user/guest ID automatically.
-     * @param array $payload
-     * @param Request|null $request
-     * @return array
      */
     public function buyNow(array $payload, Request $request = null): array
     {
-        if ($request) {
-            $resolved = $this->userResolver->resolve($request);
-            if ($resolved['type'] === 'user') {
-                $payload['user_id'] = $resolved['id'];
-                unset($payload['guest_user_id']);
-            } else {
-                $payload['guest_user_id'] = $resolved['id'];
-                unset($payload['user_id']);
-            }
-        }
         $endpoint = '/api/v1/cart/buy-now';
-        $result = $this->request('POST', $endpoint, ['json' => $payload]);
-        if (isset($result['success']) && $result['success']) {
-            $this->invalidateCache('GET', '/api/v1/cart');
+        $originalToken = $this->token;
+
+        if ($request) {
+            $payload = $this->applyAuthToRequest($payload, $request);
         }
+
+        $result = $this->request('POST', $endpoint, ['json' => $payload]);
+
+        $this->token = $originalToken;
+
+        if ((isset($result['success']) && $result['success']) || (isset($result['status']) && $result['status'])) {
+            $this->invalidateCache('GET', 'cart');
+        }
+
         return $this->normalizeResponse($result);
     }
 
     /**
-     * Normalize API response for frontend consumption.
-     *
-     * @param array $response
-     * @return array
-     */
-    protected function normalizeResponse(array $result): array
-    {
-        // If API uses 'status' instead of 'success', map it
-        $success = $result['success'] ?? $result['status'] ?? false;
-
-        return [
-            'success' => $success,
-            'data' => $result['data'] ?? null,
-            'error' => $result['error'] ?? null,
-            'errors' => $result['errors'] ?? null,
-            'status' => $success,
-            'message' => $result['message'] ?? null, // Don't lose the message!
-        ];
-    }
-
-        /**
-     * Get the cart item count for a guest user.
-     *
-     * @param string $guestUserId
-     * @return int
-     */
-    /**
      * Get the cart item count for a user or guest.
-     * @param Request $request
-     * @return int
      */
     public function getCartCount(Request $request): int
     {
-        $resolved = $this->userResolver->resolve($request);
-        $query = [];
-        if ($resolved['type'] === 'user') {
-            $query['user_id'] = $resolved['id'];
-        } else {
-            $query['guest_user_id'] = $resolved['id'];
-        }
-
         try {
             $endpoint = 'cart/count';
-            $result = $this->request('GET', $endpoint, [
-                'query' => $query,
-            ]);
-           // dd($result);
+            $originalToken = $this->token;
+            $options = [];
+
+            $userToken = $this->resolveUserToken($request);
+            if ($userToken !== '') {
+                // Logged-in user: send token as shared_api_token cookie
+                $this->token = null;
+                $options['headers'] = [
+                    'Cookie' => 'shared_api_token=' . $userToken,
+                ];
+                // Remove guest_user_id and user_id from query if present
+                if (isset($options['query'])) {
+                    unset($options['query']['guest_user_id'], $options['query']['user_id']);
+                }
+            } else {
+                // Guest: send guest_user_id, no token
+                $resolved = $this->userResolver->resolve($request);
+                if (!empty($resolved['id'])) {
+                    $options['query'] = ['guest_user_id' => $resolved['id']];
+                }
+                // Remove user_id if present
+                if (isset($options['query']['user_id'])) {
+                    unset($options['query']['user_id']);
+                }
+                $this->token = null;
+            }
+
+            $result = $this->request('GET', $endpoint, $options);
+
+            $this->token = $originalToken;
+
             if ((isset($result['status']) && $result['status']) && isset($result['count'])) {
                 return (int) $result['count'];
             }
-            //Log::warning('Cart count API returned false status or missing count', ['result' => $result]);
         } catch (\Throwable $e) {
-           // Log::error('Failed to fetch cart count', ['error' => $e->getMessage()]);
+            Log::error('Failed to fetch cart count', ['error' => $e->getMessage()]);
         }
+
         return 0;
     }
 
-        /**
-     * Fetch cart data from external API.
-     *
-     * @param string $guestUserId
-     * @return array{status: string, data: mixed, message: string}
-     */
     /**
      * Fetch cart data for user or guest.
-     * @param Request $request
+     *
      * @return array{status: string, data: mixed, message: string}
      */
     public function getCart(Request $request): array
     {
-        $resolved = $this->userResolver->resolve($request);
-        $query = [];
-        if ($resolved['type'] === 'user') {
-            $query['user_id'] = $resolved['id'];
-        } else {
-            $query['guest_user_id'] = $resolved['id'];
-        }
         $endpoint = 'cart/products';
-        try {
-            $result = $this->request('GET', $endpoint, [
-                'query' => $query,
-            ]);
 
-            //dd($result);
+        try {
+            $originalToken = $this->token;
+            $options = [];
+
+            $userToken = $this->resolveUserToken($request);
+            if ($userToken !== '') {
+                // Logged-in user: send token as shared_api_token cookie
+                $this->token = null;
+                $options['headers'] = [
+                    'Cookie' => 'shared_api_token=' . $userToken,
+                ];
+            } else {
+                // Guest: send guest_user_id, no token
+                $resolved = $this->userResolver->resolve($request);
+                if (!empty($resolved['id'])) {
+                    $options['query'] = ['guest_user_id' => $resolved['id']];
+                }
+                $this->token = null;
+            }
+
+            $result = $this->request('GET', $endpoint, $options);
+
+            $this->token = $originalToken;
+
             if ((isset($result['status']) && $result['status']) && isset($result['data'])) {
                 return [
-                    'status' => 'success',
-                    'data' => $result['data'],
+                    'status'  => 'success',
+                    'data'    => $result['data'],
                     'message' => 'Cart fetched successfully.',
                 ];
             }
-            Log::error('Cart API error', [
-                'result' => $result,
-            ]);
+
+            Log::error('Cart API error', ['result' => $result]);
+
             return [
-                'status' => 'error',
-                'data' => null,
+                'status'  => 'error',
+                'data'    => null,
                 'message' => 'Failed to fetch cart data.',
             ];
         } catch (\Throwable $e) {
             Log::error('Cart API Exception', ['exception' => $e]);
+
             return [
-                'status' => 'error',
-                'data' => null,
+                'status'  => 'error',
+                'data'    => null,
                 'message' => 'Cart service unavailable.',
             ];
         }
@@ -267,55 +252,84 @@ class CartApiService extends BaseApiClient
     /**
      * Fetch cart data for a specific guest ID.
      * Useful for merging carts after login.
-     *
-     * @param string $guestUserId
-     * @return array
      */
     public function getGuestCart(string $guestUserId): array
     {
-        $query = ['guest_user_id' => $guestUserId];
         $endpoint = 'cart/products';
+
         try {
-            $result = $this->request('GET', $endpoint, [
-                'query' => $query,
-            ]);
+            $options = [
+                'query' => ['guest_user_id' => $guestUserId],
+            ];
+            $result = $this->request('GET', $endpoint, $options);
+
             if ((isset($result['status']) && $result['status']) && isset($result['data'])) {
                 return [
-                    'status' => 'success',
-                    'data' => $result['data'],
+                    'status'  => 'success',
+                    'data'    => $result['data'],
                     'message' => 'Cart fetched successfully.',
                 ];
             }
+
             return [
-                'status' => 'error',
-                'data' => null,
+                'status'  => 'error',
+                'data'    => null,
                 'message' => 'Failed to fetch cart data.',
             ];
         } catch (\Throwable $e) {
             Log::error('Cart API Exception', ['exception' => $e]);
+
             return [
-                'status' => 'error',
-                'data' => null,
+                'status'  => 'error',
+                'data'    => null,
                 'message' => 'Cart service unavailable.',
             ];
         }
     }
+
     /**
      * Update cart item quantity.
-     *
-     * @param array $payload
-     * @return array
      */
-    public function updateCartQuantity(array $payload): array
+    public function updateCartQuantity(array $payload, Request $request = null): array
     {
         $endpoint = 'update/cart/quantity';
-        // Ensure payload has necessary keys if not present, though controller should validate
-        $result = $this->request('POST', $endpoint, ['json' => $payload]);
+        $originalToken = $this->token;
+        $options = [];
 
-        if (isset($result['success']) && $result['success']) {
+        if ($request) {
+            $userToken = $this->resolveUserToken($request);
+            //   Log::info('updateCartQuantity token check', [
+            //     'userToken' => $userToken,
+            //     'payload' => $payload,
+            // ]);
+            if ($userToken !== '') {
+                // Logged-in user: send token as shared_api_token cookie
+                $this->token = null;
+                $options['json'] = $payload;
+                $options['headers'] = [
+                    'Cookie' => 'shared_api_token=' . $userToken,
+                ];
+                unset($options['json']['guest_user_id'], $options['json']['user_id']);
+            } else {
+                // Guest: send guest_user_id, no token
+                $resolved = $this->userResolver->resolve($request);
+                if (!empty($resolved['id'])) {
+                    $payload['guest_user_id'] = $resolved['id'];
+                }
+                unset($payload['user_id']);
+                $this->token = null;
+                $options['json'] = $payload;
+            }
+        } else {
+            $options['json'] = $payload;
+        }
+
+        $result = $this->request('POST', $endpoint, $options);
+
+        $this->token = $originalToken;
+
+        if ((isset($result['success']) && $result['success']) || (isset($result['status']) && $result['status'])) {
             $this->invalidateCache('GET', 'cart');
-        } else if (isset($result['status']) && $result['status']) { // Handle 'status' => true as success
-             $this->invalidateCache('GET', 'cart');
         }
 
         return $this->normalizeResponse($result);
@@ -323,21 +337,70 @@ class CartApiService extends BaseApiClient
 
     /**
      * Delete item from cart.
-     *
-     * @param array $payload
-     * @return array
      */
-    public function deleteCartItem(array $payload): array
+    public function deleteCartItem(array $payload, Request $request = null): array
     {
         $endpoint = 'delete/cart/item';
+        $originalToken = $this->token;
+        $options = [];
+ 
+     
+        if ($request) {
+           // dd('deleteCartItem payload');
+            $userToken = $this->resolveUserToken($request);
+            // Log::info('deleteCartItem token check', [
+            //     'userToken' => $userToken,
+            //     'payload' => $payload,
+            // ]);
+            if ($userToken !== '') {
+                // Logged-in user: send token as shared_api_token cookie
+                $this->token = null; // Do not use Bearer
+                $options['json'] = $payload;
+                $options['headers'] = [
+                    'Cookie' => 'shared_api_token=' . $userToken,
+                ];
+                unset($options['json']['guest_user_id'], $options['json']['user_id']);
+            } else {
+                // Guest: send guest_user_id, no token
+                $resolved = $this->userResolver->resolve($request);
+                if (!empty($resolved['id'])) {
+                    $payload['guest_user_id'] = $resolved['id'];
+                }
+                unset($payload['user_id']);
+                $this->token = null;
+                $options['json'] = $payload;
+            }
+        } else {
+            $options['json'] = $payload;
+        }
 
-        $result = $this->request('POST', $endpoint, ['json' => $payload]);
-        if (isset($result['success']) && $result['success']) {
+
+
+        $result = $this->request('POST', $endpoint, $options);
+
+        $this->token = $originalToken;
+
+        if ((isset($result['success']) && $result['success']) || (isset($result['status']) && $result['status'])) {
             $this->invalidateCache('GET', 'cart');
-        } else if (isset($result['status']) && $result['status']) {
-             $this->invalidateCache('GET', 'cart');
         }
 
         return $this->normalizeResponse($result);
+    }
+
+    /**
+     * Normalize API response for frontend consumption.
+     */
+    protected function normalizeResponse(array $result): array
+    {
+        $success = $result['success'] ?? $result['status'] ?? false;
+
+        return [
+            'success' => $success,
+            'data'    => $result['data'] ?? null,
+            'error'   => $result['error'] ?? null,
+            'errors'  => $result['errors'] ?? null,
+            'status'  => $success,
+            'message' => $result['message'] ?? null,
+        ];
     }
 }

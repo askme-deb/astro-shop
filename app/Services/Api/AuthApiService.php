@@ -3,10 +3,12 @@
 namespace App\Services\Api;
 
 use App\Services\Api\Clients\BaseApiClient;
+use App\Services\Api\CartUserResolverService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Request;
 
 class AuthApiService extends BaseApiClient implements Contracts\AuthApiServiceInterface
 {
@@ -14,9 +16,13 @@ class AuthApiService extends BaseApiClient implements Contracts\AuthApiServiceIn
     protected string $resendOtpEndpoint;
     protected string $verifyOtpEndpoint;
 
-    public function __construct()
+    protected CartUserResolverService $userResolver;
+
+    public function __construct(CartUserResolverService $userResolver)
     {
         parent::__construct();
+
+        $this->userResolver = $userResolver;
 
         $config = config('auth_api');
         $this->baseUrl = (string) ($config['base_url'] ?? $this->baseUrl);
@@ -65,6 +71,15 @@ class AuthApiService extends BaseApiClient implements Contracts\AuthApiServiceIn
             'country_code' => $countryCode,
             'otp' => $otp,
         ];
+
+        // Attach guest_user_id so the backend can merge guest data
+        $request = request();
+        if ($request instanceof \Illuminate\Http\Request) {
+            $resolved = $this->userResolver->resolve($request);
+            if ($resolved['type'] === 'guest') {
+                $payload['guest_user_id'] = $resolved['id'];
+            }
+        }
 
         $responseData = $this->callApi('POST', $this->verifyOtpEndpoint, $payload, $correlationId);
 

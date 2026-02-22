@@ -74,8 +74,8 @@ class CartController extends Controller
                 'status' => 422,
             ], 422);
         }
-        $result = $this->cartApiService->buyNow($payload, $request);
         $resolved = $this->cartUserResolverService->resolve($request);
+        $result = $this->cartApiService->buyNow($payload, $request);
         $response = response()->json($result);
 
         return $response;
@@ -87,8 +87,8 @@ class CartController extends Controller
      */
     public function cartCount(Request $request): JsonResponse
     {
-        $count = $this->cartApiService->getCartCount($request);
         $resolved = $this->cartUserResolverService->resolve($request);
+        $count = $this->cartApiService->getCartCount($request);
         $response = response()->json([
             'status' => true,
             'message' => 'Data fetch Successfully',
@@ -107,22 +107,6 @@ class CartController extends Controller
     {
         $payload = $request->all();
         $validator = Validator::make($payload, [
-           // 'product_id' => 'required|integer', // The API seems to use product_id based on existing addToCart, but user asked for cart_item_id. I will support both or check what index.blade sends.
-            // Wait, the user requirement said "Validate inputs properly (cart_item_id required, quantity numeric/min 1)."
-            // But the blade template uses product_id.
-            // Let's look at the user request again: "Validate inputs properly (cart_item_id required...)"
-            // However, the existing blade template uses `product_id`.
-            // The external API documentation says "POST /api/v1/update/cart/quantity".
-            // I'll stick to what the blade needs, which is likely `product_id` for now, OR I will update blade to use `cart_item_id` if available.
-            // Looking at `index.blade.php`, it currently uses `product_id`.
-            // The `cart` array has `product_id`.
-            // Let's assume the external API expects `cart_item_id` based on the user prompt, OR maybe `product_id`.
-            // The user said: "Validate inputs properly (cart_item_id required...)"
-            // I should check if `cart` items have `id` (which would be `cart_item_id`).
-            // In the JSON dump: `id`: 382, `product_id`: 4.
-            // So `id` is the cart item id.
-            // I need to update Blade to pass `cart_item_id` (which is `id` from the API response) instead of `product_id` for updates if the API requires `cart_item_id`.
-            // But for now, I will add the controller method to accept `cart_item_id`.
             'cart_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
         ]);
@@ -136,7 +120,8 @@ class CartController extends Controller
             ], 422);
         }
 
-        $result = $this->cartApiService->updateCartQuantity($payload);
+        $resolved = $this->cartUserResolverService->resolve($request);
+        $result = $this->cartApiService->updateCartQuantity($payload, $request);
         return response()->json($result);
     }
 
@@ -150,7 +135,7 @@ class CartController extends Controller
     {
         $payload = $request->all();
         $validator = Validator::make($payload, [
-             'cart_id' => 'required|integer',
+            'cart_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -162,7 +147,8 @@ class CartController extends Controller
             ], 422);
         }
 
-        $result = $this->cartApiService->deleteCartItem($payload);
+        $resolved = $this->cartUserResolverService->resolve($request);
+        $result = $this->cartApiService->deleteCartItem($payload, $request);
         return response()->json($result);
     }
 
@@ -174,6 +160,7 @@ class CartController extends Controller
      */
     public function getCart(Request $request): JsonResponse
     {
+        $resolved = $this->cartUserResolverService->resolve($request);
         $result = $this->cartApiService->getCart($request);
         return response()->json($result);
     }

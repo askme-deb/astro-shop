@@ -374,14 +374,8 @@
 
                 <!-- COUPON -->
                 <div class="coupon-row">
-                    <div class="coupon-input-wrapper" style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;margin-bottom:12px;">
-                        <input type="text" id="coupon" placeholder="Discount code" style="flex:1;min-width:0;">
-                        <button id="apply-coupon-btn" onclick="applyCoupon()">Apply</button>
-                    </div>
-                    <span id="applied-coupon-chip" style="display:none;align-items:center;background:#f1f3f6;border-radius:16px;padding:2px 10px 2px 8px;font-size:0.95em;color:#333;margin-top:4px;margin-bottom:8px;">
-                        <span id="applied-coupon-code" style="font-weight:500;"></span>
-                        <button id="remove-coupon-chip-btn" onclick="removeCoupon()" style="background:none;border:none;color:#888;font-size:1.1em;cursor:pointer;margin-left: 0px;line-height:1;padding: 5px;">&#10005;</button>
-                    </span>
+                    <input type="text" id="coupon" placeholder="Discount code">
+                    <button onclick="applyCoupon()">Apply</button>
                 </div>
 
                 <div id="checkout-coupon-message" class="coupon-message" style="margin-top:4px;font-size:0.85rem;"></div>
@@ -2772,13 +2766,18 @@
 
             window.applyCoupon = async function() {
                 const codeInput = document.getElementById('coupon');
-                const btn = document.getElementById('apply-coupon-btn');
+                const btn = document.querySelector('.coupon-row button');
                 const messageEl = document.getElementById('checkout-coupon-message');
+
                 if (!codeInput || !btn) return;
 
                 const rawCode = (codeInput.value || '').trim();
                 if (!rawCode) {
-                    toast('Please enter a coupon code.', true);
+                    if (messageEl) {
+                        messageEl.textContent = 'Please enter a coupon code.';
+                        messageEl.classList.remove('text-success');
+                        messageEl.classList.add('text-danger');
+                    }
                     return;
                 }
 
@@ -2788,7 +2787,10 @@
                 btn.disabled = true;
                 const originalText = btn.textContent;
                 btn.textContent = 'Applying...';
-                // No need to clear messageEl, toast will be used
+                if (messageEl) {
+                    messageEl.textContent = '';
+                    messageEl.classList.remove('text-success', 'text-danger');
+                }
 
                 try {
                     const response = await fetch("{{ route('apply.coupon') }}", {
@@ -2812,7 +2814,12 @@
                         const errorMessage = data && (data.message || data.error) ?
                             (data.message || data.error) :
                             'Unable to apply coupon.';
-                        toast(errorMessage, true);
+
+                        if (messageEl) {
+                            messageEl.textContent = errorMessage;
+                            messageEl.classList.remove('text-success');
+                            messageEl.classList.add('text-danger');
+                        }
                         return;
                     }
 
@@ -2835,100 +2842,28 @@
                         totalEl.textContent = formatCurrency(grand);
                     }
 
-                    toast(data.message || 'Coupon applied successfully.', false);
+                    if (messageEl) {
+                        messageEl.textContent = data.message || 'Coupon applied successfully.';
+                        messageEl.classList.remove('text-danger');
+                        messageEl.classList.add('text-success');
+                    }
                 } catch (error) {
                     console.error(error);
-                    toast('Network error while applying coupon. Please try again.', true);
+                    if (messageEl) {
+                        messageEl.textContent = 'Network error while applying coupon. Please try again.';
+                        messageEl.classList.remove('text-success');
+                        messageEl.classList.add('text-danger');
+                    }
                 } finally {
                     btn.disabled = false;
                     btn.textContent = originalText;
-                    if (window._updateCouponUI) window._updateCouponUI();
                 }
             };
 
-            window.removeCoupon = async function() {
-                const codeInput = document.getElementById('coupon');
-                const chip = document.getElementById('applied-coupon-chip');
-                const chipCode = document.getElementById('applied-coupon-code');
-                const messageEl = document.getElementById('checkout-coupon-message');
-                if (!codeInput || !chip) return;
-                const rawCode = (codeInput.value || '').trim();
-                if (!rawCode) {
-                    toast('No coupon to remove.', true);
-                    return;
-                }
-                const csrfTokenEl = document.querySelector('meta[name="csrf-token"]');
-                const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : '';
-                chip.style.opacity = '0.6';
-                // No need to clear messageEl, toast will be used
-                try {
-                    const response = await fetch('remove-coupon', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({ coupon_code: rawCode }),
-                    });
-                    const data = await response.json();
-                    const ok = (data && (data.success || data.status)) && response.ok;
-                    if (!ok) {
-                        const errorMessage = data && (data.message || data.error) ?
-                            (data.message || data.error) :
-                            'Unable to remove coupon.';
-                        toast(errorMessage, true);
-                        chip.style.opacity = '';
-                        return;
-                    }
-                    // Clear coupon UI
-                    codeInput.value = '';
-                    chipCode.textContent = '';
-                    chip.style.display = 'none';
-                    chip.style.opacity = '';
-                    const discountRowEl = document.getElementById('coupon-summary-row');
-                    const discountValueEl = document.getElementById('checkout-coupon-discount');
-                    const totalEl = document.getElementById('total');
-                    if (discountRowEl && discountValueEl) {
-                        discountRowEl.style.display = 'none';
-                        discountValueEl.textContent = '0.00';
-                    }
-                    toast(data.message || 'Coupon removed.', false);
-                    if (window._updateCouponUI) window._updateCouponUI();
-                } catch (error) {
-                    toast('Network error while removing coupon. Please try again.', true);
-                    chip.style.opacity = '';
-                }
-            };
-
-            // Show remove button if coupon is pre-filled
             document.addEventListener('DOMContentLoaded', function() {
                 fetchCheckoutCart();
                 fetchCoupons();
                 bindOfferCopyButtons();
-                const codeInput = document.getElementById('coupon');
-                const chip = document.getElementById('applied-coupon-chip');
-                const chipCode = document.getElementById('applied-coupon-code');
-                const applyBtn = document.getElementById('apply-coupon-btn');
-                // Helper to show/hide chip and input
-                function updateCouponUI() {
-                    if (codeInput.value) {
-                        chipCode.textContent = codeInput.value;
-                        chip.style.display = 'flex';
-                        codeInput.style.display = 'none';
-                        applyBtn.style.display = 'none';
-                    } else {
-                        chip.style.display = 'none';
-                        codeInput.style.display = '';
-                        applyBtn.style.display = '';
-                    }
-                }
-                if (codeInput && chip && chipCode && applyBtn) {
-                    updateCouponUI();
-                }
-                // Also update after coupon is applied/removed
-                window._updateCouponUI = updateCouponUI;
             });
         })();
     </script>

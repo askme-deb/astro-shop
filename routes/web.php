@@ -1,14 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\CouponController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OtpAuthController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('home');
-});
+Route::get('/', [HomeController::class, 'index']);
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
@@ -18,6 +18,8 @@ Route::get('/cart', [CartController::class, 'index'])->middleware('cart.user.res
 Route::post('/apply-coupon', [CartController::class, 'applyCoupon'])
     ->middleware('cart.user.resolved')
     ->name('apply.coupon');
+// Remove coupon endpoint
+Route::post('remove-coupon', [CouponController::class, 'remove'])->middleware('cart.user.resolved');
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');

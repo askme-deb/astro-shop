@@ -1,4 +1,3 @@
-
 <footer class="footer-container">
   <div class="footer-row">
     <ul class="payment-icons">
@@ -70,7 +69,7 @@
       <p>BIS : HM/C - 6290031216</p>
       <p>Indiejewel Fashions Pvt Ltd</p>
       <p>Bangalore – 560062</p>
-      <p>📞 9228837724</p>
+      <p><i class="fa fa-phone"></i> 9228837724</p>
       <p><a href="#">Raise a Ticket</a></p>
     </div>
 
@@ -83,10 +82,18 @@
       </form>
 
       <div class="social-icons">
-        <a href="#"><img src="{{ asset('assets/images/fac-book.png') }}" alt="App Download"></a>
-        <a href="#"><img src="{{ asset('assets/images/instra.png') }}" alt="App Download"></a>
-        <a href="#"><img src="{{ asset('assets/images/youtub.png') }}" alt="App Download"></a>
-        <a href="#"><img src="{{ asset('assets/images/indin.png') }}" alt="App Download"></a>
+        <a href="#">
+          <img src="{{ asset('assets/images/fac-book.png') }}" alt="Facebook">
+        </a>
+        <a href="#">
+          <img src="{{ asset('assets/images/instra.png') }}" alt="Instagram">
+        </a>
+        <a href="#">
+          <img src="{{ asset('assets/images/youtub.png') }}" alt="YouTube">
+        </a>
+        <a href="#">
+          <img src="{{ asset('assets/images/indin.png') }}" alt="LinkedIn">
+        </a>
       </div>
     </div>
   </div>
@@ -95,13 +102,13 @@
     <div>
       <h4>Download Our App</h4>
       <p>(8M+ Downloads | 4.4⭐)</p>
-      <img src="images/payment.png" alt="App Download">
+      <img src="{{ asset('assets/images/payment.png') }}" alt="App Download">
     </div>
 
     <div>
       <h4>Channel Partners</h4>
       <div class="partners">
-        <img src="images/partners.png" alt="App Download">
+        <img src="assets/images/partners.png" alt="App Download">
           </div>
     </div>
   </div> -->
@@ -109,7 +116,7 @@
   <div class="footer-bottom">
      <div class="wr_p">
       <h4>Download Our App</h4>
-      <img src="{{ asset('assets/images/payment.png') }}" alt="App Download">
+      <img src="assets/images/payment.png" alt="App Download">
       </div>
 
     <p>© 2026 Your Brand Name. All Rights Reserved.</p>
@@ -122,6 +129,14 @@
     </div>
   </div>
 </footer>
+
+
+
+
+
+
+
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -131,6 +146,9 @@
 
 <!-- Owl Carousel JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+
+
 
 <script>
 let cart = 0;
@@ -718,3 +736,9 @@ document.addEventListener("click", function(e) {
   }
 });
 </script>
+
+
+
+
+</body>
+</html>

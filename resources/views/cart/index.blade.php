@@ -77,6 +77,17 @@
             <!-- RIGHT -->
             <div class="cart-footer">
                 <h3>Order Summary</h3>
+                <!-- COUPON -->
+                <div class="coupon-row">
+                    <div class="coupon-input-wrapper" style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;margin-bottom:12px;">
+                        <input type="text" id="cart-coupon" placeholder="Discount code" style="flex:1;min-width:0;">
+                        <button id="cart-apply-coupon-btn" type="button">Apply</button>
+                    </div>
+                    <span id="cart-applied-coupon-chip" style="display:none;align-items:center;background:#f1f3f6;border-radius:16px;padding:2px 10px 2px 8px;font-size:0.95em;color:#333;margin-top:4px;margin-bottom:8px;">
+                        <span id="cart-applied-coupon-code" style="font-weight:500;"></span>
+                        <button id="cart-remove-coupon-chip-btn" type="button" style="background:none;border:none;color:#888;font-size:1.1em;cursor:pointer;margin-left:0px;line-height:1;padding:5px;">&#10005;</button>
+                    </span>
+                </div>
                 <div class="totals">
                     <h4>Estimated total:</h4>
                     <div class="totals_wrapper">
@@ -98,3 +109,74 @@
     </div>
 
 @endsection
+
+@push('scripts')
+<script>
+// Coupon UI logic for cart page (matches checkout)
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.getElementById('cart-coupon');
+    const chip = document.getElementById('cart-applied-coupon-chip');
+    const chipCode = document.getElementById('cart-applied-coupon-code');
+    const applyBtn = document.getElementById('cart-apply-coupon-btn');
+    const removeBtn = document.getElementById('cart-remove-coupon-chip-btn');
+
+    function updateCouponUI() {
+        if (codeInput.value) {
+            chipCode.textContent = codeInput.value;
+            chip.style.display = 'flex';
+            codeInput.style.display = 'none';
+            applyBtn.style.display = 'none';
+        } else {
+            chip.style.display = 'none';
+            codeInput.style.display = '';
+            applyBtn.style.display = '';
+        }
+    }
+
+    if (codeInput && chip && chipCode && applyBtn && removeBtn) {
+        updateCouponUI();
+        // Only show chip after apply
+        applyBtn.addEventListener('click', async function() {
+            const rawCode = (codeInput.value || '').trim();
+            if (!rawCode) {
+                toast('Please enter a coupon code.', true);
+                return;
+            }
+            // Simulate API call (replace with real endpoint)
+            applyBtn.disabled = true;
+            try {
+                // Example: let response = await fetch('/api/cart/apply-coupon', ...)
+                // For now, just show success
+                setTimeout(function() {
+                    toast('Coupon applied successfully.', false);
+                    updateCouponUI();
+                    applyBtn.disabled = false;
+                }, 500);
+            } catch (e) {
+                toast('Network error while applying coupon. Please try again.', true);
+                applyBtn.disabled = false;
+            }
+        });
+        removeBtn.addEventListener('click', async function() {
+            chipCode.textContent = '';
+            chip.style.opacity = '0.6';
+            // Simulate API call (replace with real endpoint)
+            try {
+                // Example: let response = await fetch('/api/cart/remove-coupon', ...)
+                // For now, just show success
+                setTimeout(function() {
+                    codeInput.value = '';
+                    chip.style.display = 'none';
+                    chip.style.opacity = '';
+                    toast('Coupon removed.', false);
+                    updateCouponUI();
+                }, 500);
+            } catch (e) {
+                toast('Network error while removing coupon. Please try again.', true);
+                chip.style.opacity = '';
+            }
+        });
+    }
+});
+</script>
+@endpush

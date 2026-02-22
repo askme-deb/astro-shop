@@ -4,37 +4,18 @@ function showMessage(message, type = 'success') {
   toast(type === 'danger' ? 'Network error' : message, type === 'danger' ? message : '', type === 'danger' ? 'error' : type);
 }
 
-// Custom toast notification (replaces SweetAlert2, but keeps the name 'toast')
-function toast(message, isError = false) {
-  if (!message) return;
-
-  let toast = document.getElementById('checkout-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'checkout-toast';
-    toast.style.position = 'fixed';
-    toast.style.left = '50%';
-    toast.style.bottom = '24px';
-    toast.style.transform = 'translateX(-50%)';
-    toast.style.zIndex = '9999';
-    toast.style.padding = '10px 16px';
-    toast.style.borderRadius = '4px';
-    toast.style.fontSize = '0.9rem';
-    toast.style.color = '#fff';
-    toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
-    toast.style.maxWidth = '90%';
-    toast.style.textAlign = 'center';
-    document.body.appendChild(toast);
-  }
-
-  toast.textContent = message;
-  toast.style.backgroundColor = isError ? '#d32f2f' : '#2e7d32';
-  toast.style.display = 'block';
-
-  clearTimeout(toast._hideTimer);
-  toast._hideTimer = setTimeout(function() {
-    toast.style.display = 'none';
-  }, 3000);
+// Use SweetAlert2 for toast notifications
+function toast(title, message = '', icon = 'success') {
+  Swal.fire({
+    icon: icon,
+    title: title,
+    text: message,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true
+  });
 }
 
 function setLoading(btn, loading) {
@@ -264,5 +245,35 @@ document.addEventListener('click', function (event) {
 
 
 
-   
+   function showToast(message, isError = false) {
+                if (!message) return;
+
+                let toast = document.getElementById('checkout-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'checkout-toast';
+                    toast.style.position = 'fixed';
+                    toast.style.left = '50%';
+                    toast.style.bottom = '24px';
+                    toast.style.transform = 'translateX(-50%)';
+                    toast.style.zIndex = '9999';
+                    toast.style.padding = '10px 16px';
+                    toast.style.borderRadius = '4px';
+                    toast.style.fontSize = '0.9rem';
+                    toast.style.color = '#fff';
+                    toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
+                    toast.style.maxWidth = '90%';
+                    toast.style.textAlign = 'center';
+                    document.body.appendChild(toast);
+                }
+
+                toast.textContent = message;
+                toast.style.backgroundColor = isError ? '#d32f2f' : '#2e7d32';
+                toast.style.display = 'block';
+
+                clearTimeout(toast._hideTimer);
+                toast._hideTimer = setTimeout(function() {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
 </script>

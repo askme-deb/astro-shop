@@ -29,6 +29,190 @@ class ProductApiService
     }
 
     /**
+     * Retrieve best-selling products from the external API, with caching.
+     *
+     * @param bool $forceRefresh
+     * @param array<string, mixed> $filters
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getBestSellingProducts(bool $forceRefresh = false, array $filters = []): array
+    {
+        $cacheKey = $this->cacheKeyForBestSelling($filters);
+
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+
+        $items = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($filters) {
+            try {
+                $data = $this->client->getBestSellingProducts($filters);
+            } catch (\Throwable $exception) {
+                Log::error('Failed to fetch best-selling products from external API', [
+                    'service' => static::class,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return [];
+            }
+
+            $items = [];
+
+            // Handle both wrapped and plain list responses similar to getPaginatedProducts.
+            if (isset($data['data']) && is_array($data['data'])) {
+                $inner = $data['data'];
+
+                if (isset($inner['data']) && is_array($inner['data'])) {
+                    $items = array_values($inner['data']);
+                } elseif (array_is_list($inner)) {
+                    $items = array_values($inner);
+                }
+            } elseif (array_is_list($data)) {
+                /** @var array<int, array<string, mixed>> $dataList */
+                $dataList = $data;
+                $items = $dataList;
+            }
+
+            return $items;
+        });
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        /** @var array<int, array<string, mixed>> $items */
+        return $items;
+    }
+
+    /**
+     * Retrieve featured products from the external API, with caching.
+     *
+     * @param bool $forceRefresh
+     * @param array<string, mixed> $filters
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getFeaturedProducts(bool $forceRefresh = false, array $filters = []): array
+    {
+        $cacheKey = $this->cacheKeyForFeatured($filters);
+
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+
+        $items = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($filters) {
+            try {
+                $data = $this->client->getFeaturedProducts($filters);
+            } catch (\Throwable $exception) {
+                Log::error('Failed to fetch featured products from external API', [
+                    'service' => static::class,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return [];
+            }
+
+            $items = [];
+
+            // Assume the same wrapping pattern as other product list endpoints:
+            // { status, message, data: { current_page, data: [ ...products ], ... } }
+            if (isset($data['data']) && is_array($data['data'])) {
+                $inner = $data['data'];
+
+                if (isset($inner['data']) && is_array($inner['data'])) {
+                    $items = array_values($inner['data']);
+                } elseif (array_is_list($inner)) {
+                    $items = array_values($inner);
+                }
+            } elseif (array_is_list($data)) {
+                /** @var array<int, array<string, mixed>> $dataList */
+                $dataList = $data;
+                $items = $dataList;
+            }
+
+            return $items;
+        });
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        /** @var array<int, array<string, mixed>> $items */
+        return $items;
+    }
+
+    /**
+     * Retrieve products for a specific category from the external API,
+     * with caching.
+     *
+     * The category is identified by its slug or key, e.g. "gemstone-1" for
+     * the endpoint /categories-wise-products/gemstone-1.
+     *
+     * @param string $categorySlug
+     * @param bool $forceRefresh
+     * @param array<string, mixed> $filters
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCategoryWiseProducts(string $categorySlug, bool $forceRefresh = false, array $filters = []): array
+    {
+        $cacheKey = $this->cacheKeyForCategoryProducts($categorySlug, $filters);
+
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+
+        $items = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($categorySlug, $filters) {
+            try {
+                $data = $this->client->getCategoryWiseProducts($categorySlug, $filters);
+            } catch (\Throwable $exception) {
+                // Log::error('Failed to fetch category-wise products from external API', [
+                //     'service' => static::class,
+                //     'category' => $categorySlug,
+                //     'message' => $exception->getMessage(),
+                // ]);
+
+                return [];
+            }
+
+            $items = [];
+            // The category-wise endpoint returns:
+            // { status, message, products: { current_page, data: [ ...products ], ... }, category: { ... } }
+            if (isset($data['products']) && is_array($data['products'])) {
+                $inner = $data['products'];
+
+                if (isset($inner['data']) && is_array($inner['data'])) {
+                    $items = array_values($inner['data']);
+                } elseif (array_is_list($inner)) {
+                    $items = array_values($inner);
+                }
+            } elseif (isset($data['data']) && is_array($data['data'])) {
+                // Fallback to the generic pattern if the structure ever changes.
+                $inner = $data['data'];
+
+                if (isset($inner['data']) && is_array($inner['data'])) {
+                    $items = array_values($inner['data']);
+                } elseif (array_is_list($inner)) {
+                    $items = array_values($inner);
+                }
+            } elseif (array_is_list($data)) {
+                /** @var array<int, array<string, mixed>> $dataList */
+                $dataList = $data;
+                $items = $dataList;
+            }
+
+            return $items;
+        });
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        /** @var array<int, array<string, mixed>> $items */
+        return $items;
+    }
+
+    /**
      * Retrieve products, using cache for performance. Set $forceRefresh to true
      * when running background syncs or explicit cache invalidation.
      *
@@ -148,5 +332,54 @@ class ProductApiService
         ksort($filters);
 
         return 'astro.products.' . md5(json_encode($filters));
+    }
+
+    /**
+     * Build a cache key specifically for best-selling products.
+     *
+     * @param array<string, mixed> $filters
+     */
+    protected function cacheKeyForBestSelling(array $filters = []): string
+    {
+        if (empty($filters)) {
+            return 'astro.products.best_selling';
+        }
+
+        ksort($filters);
+
+        return 'astro.products.best_selling.' . md5(json_encode($filters));
+    }
+
+    /**
+     * Build a cache key for featured product listings.
+     *
+     * @param array<string, mixed> $filters
+     */
+    protected function cacheKeyForFeatured(array $filters = []): string
+    {
+        if (empty($filters)) {
+            return 'astro.products.featured';
+        }
+
+        ksort($filters);
+
+        return 'astro.products.featured.' . md5(json_encode($filters));
+    }
+
+    /**
+     * Build a cache key for category-wise product listings.
+     *
+     * @param string $categorySlug
+     * @param array<string, mixed> $filters
+     */
+    protected function cacheKeyForCategoryProducts(string $categorySlug, array $filters = []): string
+    {
+        if (empty($filters)) {
+            return 'astro.products.category.' . $categorySlug;
+        }
+
+        ksort($filters);
+
+        return 'astro.products.category.' . $categorySlug . '.' . md5(json_encode($filters));
     }
 }

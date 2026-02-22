@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 // Remove the 'api' prefix - Laravel adds it automatically in api.php
@@ -14,5 +15,12 @@ Route::prefix('cart')->middleware('cart.user.resolved')->group(function () {
     Route::get('/', [CartController::class, 'getCart']);
 });
 
+Route::prefix('wishlist')->middleware('cart.user.resolved')->group(function () {
+    Route::post('toggle', [WishlistController::class, 'toggle']);
+    Route::get('count', [WishlistController::class, 'count']);
+    Route::post('check', [WishlistController::class, 'check']);
+});
+
 Route::get('coupons', [CouponController::class, 'index'])
     ->middleware('cart.user.resolved');
+

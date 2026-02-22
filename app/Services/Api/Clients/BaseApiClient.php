@@ -73,6 +73,10 @@ abstract class BaseApiClient
                 $requestOptions['json'] = $options['json'];
             }
 
+            if (! empty($options['headers'])) {
+                $requestOptions['headers'] = $options['headers'];
+            }
+
             /** @var Response $response */
             $response = $request->send($method, $uri, $requestOptions);
         } catch (ConnectionException $exception) {
