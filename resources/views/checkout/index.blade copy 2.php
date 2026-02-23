@@ -386,12 +386,6 @@
 
                 <div id="checkout-coupon-message" class="coupon-message" style="margin-top:4px;font-size:0.85rem;"></div>
 
-                <!-- ORDER NOTES -->
-                <div class="order-notes-row" style="margin-top:12px;margin-bottom:12px;">
-                    <label for="orderNotes" style="font-size:13px;color:#878787;margin-bottom:4px;display:block;">Order Notes (optional)</label>
-                    <textarea id="orderNotes" placeholder="Add any instructions or notes for your order..." style="width:100%;min-height:48px;padding:8px 10px;border-radius:2px;border:1px solid #e0e0e0;font-size:14px;"></textarea>
-                </div>
-
                 <!-- TOTALS -->
                 <div class="price-row">
                     <span>Subtotal</span><span>₹<span id="subtotal">2599</span></span>
@@ -413,130 +407,7 @@
                     <span>Total</span><span>₹<span id="total">2677</span></span>
                 </div>
 
-                <button class="cart__checkout-button" id="place-order-btn">Place Order</button>
-@push('scripts')
-    <!-- Razorpay JS SDK -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const placeOrderBtn = document.getElementById('place-order-btn');
-            placeOrderBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
-                // Example: Collect order details from form/JS
-                const paymentMethod = document.querySelector('input[name="payment"]:checked').nextElementSibling ? 'online' : 'cod';
-                if (paymentMethod === 'cod') {
-                    alert('COD order placed!');
-                    return;
-                }
-
-                // Collect values with fallback defaults
-                // Try to get user_id from session or JS variable
-                let userId = window.checkoutUserId;
-                if (typeof userId === 'undefined' || userId === null || userId === '') {
-                    userId = '{{ session('auth.user.id', '') }}';
-                }
-                let guestUserId = window.guestUserId;
-                if (typeof guestUserId === 'undefined' || guestUserId === null || guestUserId === '') {
-                    guestUserId = '{{ session('guest_user_id', '') }}';
-                }
-                const addressId = document.getElementById('selectedAddressId') && document.getElementById('selectedAddressId').value ? document.getElementById('selectedAddressId').value : '';
-                const couponCode = document.getElementById('coupon') && document.getElementById('coupon').value ? document.getElementById('coupon').value : '';
-                const orderNotes = document.getElementById('orderNotes') && document.getElementById('orderNotes').value ? document.getElementById('orderNotes').value : '';
-                let cartItems = [];
-                if (Array.isArray(window.cartItems) && window.cartItems.length > 0) {
-                    cartItems = window.cartItems;
-                } else if (document.getElementById('checkout-summary-items') && document.getElementById('checkout-summary-items').dataset.items) {
-                    try {
-                        cartItems = JSON.parse(document.getElementById('checkout-summary-items').dataset.items);
-                    } catch (e) {
-                        cartItems = [];
-                    }
-                } else if (localStorage.getItem('cartItems')) {
-                    try {
-                        cartItems = JSON.parse(localStorage.getItem('cartItems'));
-                    } catch (e) {
-                        cartItems = [];
-                    }
-                }
-
-                let orderData;
-                try {
-                    const payload = {
-                        user_id: userId,
-                        guest_user_id: guestUserId,
-                        address_id: addressId,
-                        payment_method: 'razorpay',
-                        coupon_code: couponCode,
-                        order_notes: orderNotes,
-                        cart_items: cartItems
-                    };
-                    console.log('Checkout payload:', payload);
-                    const res = await fetch('/api/checkout/place-order', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    orderData = await res.json();
-                } catch (err) {
-                    alert('Failed to create order.');
-                    return;
-                }
-                if (!orderData || !orderData.razorpay_order_id || !orderData.amount || !orderData.key_id) {
-                    alert('Invalid order data.');
-                    return;
-                }
-
-                // 2. Open Razorpay popup
-                const options = {
-                    key: orderData.key_id,
-                    amount: orderData.amount,
-                    currency: orderData.currency || 'INR',
-                    name: 'Astro Shop',
-                    order_id: orderData.razorpay_order_id,
-                    handler: function (response) {
-                        // 3. On payment success, verify payment via backend
-                        fetch('/api/checkout/verify-razorpay', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            },
-                            body: JSON.stringify({
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_signature: response.razorpay_signature,
-                                order_id: orderData.order_id,
-                            })
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.status) {
-                                alert('Payment successful! Order placed.');
-                                window.location.href = '/thank-you';
-                            } else {
-                                alert('Payment verification failed.');
-                            }
-                        })
-                        .catch(() => alert('Payment verification error.'));
-                    },
-                    prefill: {
-                        name: orderData.customer_name || '',
-                        email: orderData.customer_email || '',
-                        contact: orderData.customer_phone || ''
-                    },
-                    theme: {
-                        color: '#F98700'
-                    }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
-            });
-        });
-    </script>
-@endpush
+                <button class="cart__checkout-button">Place Order</button>
 
                 <p class="secure-note">🔒 100% Secure Payments</p>
 
@@ -2738,16 +2609,12 @@
                     .then(function(result) {
                         if (!result.response.ok || !result.data || result.data.status !== 'success') {
                             renderEmpty();
-                            window.cartItems = [];
                             return;
                         }
-                        const items = result.data.data || [];
-                        window.cartItems = items;
-                        renderSummary(items);
+                        renderSummary(result.data.data || []);
                     })
                     .catch(function() {
                         renderEmpty();
-                        window.cartItems = [];
                     });
             }
 

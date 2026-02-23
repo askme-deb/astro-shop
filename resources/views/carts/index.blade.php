@@ -53,7 +53,7 @@
                 <div class="totals">
                     <h4>Estimated total:</h4>
                     <div class="totals_wrapper">
-                        <!-- <p class="total__total-compare-value">₹5,799.00</p> -->
+                        {{-- <p class="total__total-compare-value">₹5,799.00</p> --}}
                         <p class="totals__total-value" id="estimated-total">₹0.00</p>
                         <div class="tooltip">ⓘ
                             <span class="tooltiptext">
@@ -69,49 +69,20 @@
                         <span id="coupon-discount-amount">-₹0.00</span>
                     </div>
                 </div>
-
-                <!-- <p style="margin-top:15px;font-weight:bold">
-                    Copy the coupon code below and apply it at checkout
-                </p> -->
+                <p style="margin-top:15px;font-weight:normal; color:#E9718B; font-size:1.08em; display:flex; align-items:center; gap:7px;">
+                    {{-- <span style="font-size:1.3em;">🎁</span> --}}
+                    <span>Have a coupon? Copy the code below and apply it at checkout for instant savings!</span>
+                </p>
 
                 <!-- OFFERS -->
-                 <div id="cart-dynamic-coupons"></div>
-                <!-- <div class="accordion">
-                    <div class="accordion__intro">EXTRA 16% OFF above ₹1999</div>
-                    <div class="accordion__content offer" data-code="SWEET16">
-                        <div id="offer-code">SWEET16</div>
-                        <div class="copy-code" onclick="copyCode('SWEET16', this)">Copy Code</div>
-                        <div class="copied">Copied</div>
-                    </div>
-                </div>
+                <div id="cart-dynamic-coupons"></div>
 
-                <div class="accordion">
-                    <div class="accordion__intro">FLAT 20% OFF above ₹4499</div>
-                    <div class="accordion__content offer" data-code="LOVE20">
-                        <div id="offer-code">LOVE20</div>
-                        <div class="copy-code" onclick="copyCode('LOVE20', this)">Copy Code</div>
-                        <div class="copied">Copied</div>
-                    </div>
-                </div>
-
-                <div id="rest-offers" style="display:none">
-                    <div class="accordion">
-                        <div class="accordion__intro">FLAT 10% OFF above ₹2499</div>
-                        <div class="accordion__content offer" data-code="LOVE10">
-                            <div id="offer-code">LOVE10</div>
-                            <div class="copy-code" onclick="copyCode('LOVE10', this)">Copy Code</div>
-                            <div class="copied">Copied</div>
-                        </div>
-                    </div>
-                </div> -->
-
-                <!-- <div id="show-more" class="show-hide-offers" style="cursor:pointer" onclick="toggleOffers(true)">View more
-                </div> -->
+                {{-- <div id="show-more" class="show-hide-offers" style="cursor:pointer" onclick="toggleOffers(true)">View more
+                </div> --}}
                 <div id="hide-more" class="show-hide-offers" style="cursor:pointer;display:none"
                     onclick="toggleOffers(false)">Close</div>
-
                 <!-- Coupon input -->
-                <div class="coupon-section mt-3">
+                {{-- <div class="coupon-section mt-3">
                     <div class="coupon-row">
                         <div class="coupon-input-wrapper" style="display:flex;align-items:center;gap:8px;width:100%;flex-wrap:wrap;margin-bottom:12px;">
                             <input type="text" id="coupon_code" placeholder="Discount code" style="flex:1;min-width:0;">
@@ -123,20 +94,29 @@
                         </span>
                     </div>
                     <div id="checkout-coupon-message" class="coupon-message" style="margin-top:4px;font-size:0.85rem;"></div>
-                </div>
+                </div> --}}
 
                 <!-- Gift Wrap -->
-                <div class="all_gift_wrap">
-                    <input type="checkbox" id="gift-all">
-                    <label for="gift-all">
+                {{-- <div class="all_gift_wrap">
+                    <input type="checkbox" id="gift">
+                    <label for="gift">
                         <strong style="color:#E9718B">Gift wrap</strong> all items (+₹50 per item)
                     </label>
-                </div>
+                </div> --}}
 
-                <a href="{{ route('checkout.index') }}" class="cart__checkout-button" style="display:inline-block;text-align:center;">Checkout Securely</a>
+                <button class="cart__checkout-button" onclick="checkoutWithLoading()">
+                    Checkout Securely
+                </button>
+    <script>
+        function checkoutWithLoading() {
+            setLoadingState(true);
+            setTimeout(function() {
+                window.location.href = '{{ route('checkout.index') }}';
+            }, 200);
+        }
+    </script>
 
             </div>
-
             <!-- POPUP -->
             <div class="popup" id="popup">
                 <div class="popup-content">
@@ -239,6 +219,7 @@
         .coupon-row {
             margin-top: 20px;
         }
+
         .coupon-input-wrapper {
             display: flex;
             align-items: center;
@@ -247,10 +228,12 @@
             flex-wrap: wrap;
             margin-bottom: 12px;
         }
+
         .coupon-input-wrapper input[type="text"] {
             flex: 1;
             min-width: 0;
         }
+
         #applied-coupon-chip {
             display: none;
             align-items: center;
@@ -262,9 +245,11 @@
             margin-top: 4px;
             margin-bottom: 8px;
         }
+
         #applied-coupon-code {
             font-weight: 500;
         }
+
         #remove-coupon-chip-btn {
             background: none;
             border: none;
@@ -275,6 +260,7 @@
             line-height: 1;
             padding: 5px;
         }
+
         .coupon-message {
             font-size: 0.85rem;
         }
@@ -451,7 +437,11 @@
             const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : '';
 
             // Determine if user is logged in
-            let payload = { cart_id: cartItemId, product_id: productId, quantity: newQty };
+            let payload = {
+                cart_id: cartItemId,
+                product_id: productId,
+                quantity: newQty
+            };
             let isLoggedIn = !!document.querySelector('form#header-logout-form');
             if (!isLoggedIn) {
                 // Guest: add guest_user_id from localStorage or cookie
@@ -465,14 +455,14 @@
             }
 
             fetch('/api/cart/update-quantity', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success || data.status) {
@@ -510,7 +500,9 @@
             const csrfToken = csrfTokenEl ? csrfTokenEl.getAttribute('content') : '';
 
             // Determine if user is logged in
-            let payload = { cart_id: targetId };
+            let payload = {
+                cart_id: targetId
+            };
             let isLoggedIn = !!document.querySelector('form#header-logout-form');
             if (!isLoggedIn) {
                 // Guest: add guest_user_id from localStorage or cookie
@@ -523,14 +515,14 @@
                 if (guestUserId) payload.guest_user_id = guestUserId;
             }
             fetch('/api/cart/delete-item', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success || data.status) {
@@ -627,7 +619,9 @@
                                 'Accept': 'application/json',
                             },
                             credentials: 'include',
-                            body: JSON.stringify({ coupon_code: rawCode }),
+                            body: JSON.stringify({
+                                coupon_code: rawCode
+                            }),
                         });
                         const data = await response.json();
                         const ok = (data && (data.success || data.status)) && response.ok;
@@ -638,19 +632,25 @@
                             toast(errorMessage, true);
                             return;
                         }
-                        const payload = (data && data.data && typeof data.data === 'object') ? data.data : data;
+                        const payload = (data && data.data && typeof data.data === 'object') ? data
+                            .data : data;
                         const discountRaw = payload.discount_amount ?? payload.discount ?? 0;
-                        const grandTotalRaw = payload.grand_total ?? payload.total ?? payload.payable_amount ?? null;
+                        const grandTotalRaw = payload.grand_total ?? payload.total ?? payload
+                            .payable_amount ?? null;
                         const couponSummaryEl = document.getElementById('coupon-summary');
                         const discountEl = document.getElementById('coupon-discount-amount');
                         const totalEl = document.getElementById('estimated-total');
                         if (couponSummaryEl && discountEl && typeof discountRaw === 'number') {
                             couponSummaryEl.style.display = discountRaw > 0 ? 'block' : 'none';
-                            discountEl.textContent = '-₹' + discountRaw.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                            discountEl.textContent = '-₹' + discountRaw.toLocaleString('en-IN', {
+                                minimumFractionDigits: 2
+                            });
                         }
                         if (totalEl && grandTotalRaw !== null && !isNaN(grandTotalRaw)) {
                             const grand = Number(grandTotalRaw);
-                            totalEl.textContent = '₹' + grand.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                            totalEl.textContent = '₹' + grand.toLocaleString('en-IN', {
+                                minimumFractionDigits: 2
+                            });
                         }
                         toast(data.message || 'Coupon applied successfully.', false);
                         updateCouponUI();
@@ -676,7 +676,9 @@
                                 'Accept': 'application/json',
                             },
                             credentials: 'include',
-                            body: JSON.stringify({ coupon_code: codeInput.value.trim() }),
+                            body: JSON.stringify({
+                                coupon_code: codeInput.value.trim()
+                            }),
                         });
                         const data = await response.json();
                         const ok = (data && (data.success || data.status)) && response.ok;
@@ -713,75 +715,77 @@
         });
 
         // --- Dynamic coupon rendering (improved logic) ---
-document.addEventListener('DOMContentLoaded', function() {
-    const dynamicCouponsContainer = document.getElementById('cart-dynamic-coupons');
+        document.addEventListener('DOMContentLoaded', function() {
+            const dynamicCouponsContainer = document.getElementById('cart-dynamic-coupons');
 
-    function formatCurrency(amount) {
-        return Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 0 });
-    }
-
-    function bindOfferCopyButtons() {
-        if (!dynamicCouponsContainer) return;
-        const copyBtns = dynamicCouponsContainer.querySelectorAll('.copy-code');
-        copyBtns.forEach(function(btn) {
-            btn.onclick = function() {
-                const code = btn.parentElement.querySelector('.offer-code').textContent.trim();
-                navigator.clipboard.writeText(code).then(() => {
-                    btn.style.display = 'none';
-                    const copiedEl = btn.parentElement.querySelector('.copied');
-                    if (copiedEl) {
-                        copiedEl.style.display = 'block';
-                        setTimeout(() => {
-                            copiedEl.style.display = '';
-                            btn.style.display = '';
-                        }, 1500);
-                    }
+            function formatCurrency(amount) {
+                return Number(amount).toLocaleString('en-IN', {
+                    minimumFractionDigits: 0
                 });
-            };
-        });
-    }
-
-    function renderCoupons(coupons) {
-        if (!dynamicCouponsContainer) {
-            return;
-        }
-
-        if (!Array.isArray(coupons) || coupons.length === 0) {
-            dynamicCouponsContainer.innerHTML = '';
-            return;
-        }
-
-        let html = '';
-
-        coupons.forEach(function(coupon) {
-            if (!coupon || typeof coupon !== 'object') {
-                return;
             }
 
-            const rawCode = coupon.code || coupon.coupon_code || '';
-            const code = String(rawCode).trim();
-            if (!code) {
-                return;
+            function bindOfferCopyButtons() {
+                if (!dynamicCouponsContainer) return;
+                const copyBtns = dynamicCouponsContainer.querySelectorAll('.copy-code');
+                copyBtns.forEach(function(btn) {
+                    btn.onclick = function() {
+                        const code = btn.parentElement.querySelector('.offer-code').textContent.trim();
+                        navigator.clipboard.writeText(code).then(() => {
+                            btn.style.display = 'none';
+                            const copiedEl = btn.parentElement.querySelector('.copied');
+                            if (copiedEl) {
+                                copiedEl.style.display = 'block';
+                                setTimeout(() => {
+                                    copiedEl.style.display = '';
+                                    btn.style.display = '';
+                                }, 1500);
+                            }
+                        });
+                    };
+                });
             }
 
-            const title = coupon.title || coupon.name || code;
-            const minOrder = coupon.min_order_value || coupon.min_order || null;
-            const usageLimit = coupon.usage_limit || coupon.max_uses || null;
+            function renderCoupons(coupons) {
+                if (!dynamicCouponsContainer) {
+                    return;
+                }
 
-            let intro = title;
-            if (minOrder) {
-                intro += ' (Min ₹' + formatCurrency(minOrder) + ')';
-            }
+                if (!Array.isArray(coupons) || coupons.length === 0) {
+                    dynamicCouponsContainer.innerHTML = '';
+                    return;
+                }
 
-            let subtitleParts = [];
-            if (coupon.description) {
-                subtitleParts.push(String(coupon.description));
-            }
-            if (usageLimit) {
-                subtitleParts.push('Usage limit: ' + usageLimit);
-            }
+                let html = '';
 
-            html += `
+                coupons.forEach(function(coupon) {
+                    if (!coupon || typeof coupon !== 'object') {
+                        return;
+                    }
+
+                    const rawCode = coupon.code || coupon.coupon_code || '';
+                    const code = String(rawCode).trim();
+                    if (!code) {
+                        return;
+                    }
+
+                    const title = coupon.title || coupon.name || code;
+                    const minOrder = coupon.min_order_value || coupon.min_order || null;
+                    const usageLimit = coupon.usage_limit || coupon.max_uses || null;
+
+                    let intro = title;
+                    if (minOrder) {
+                        intro += ' (Min ₹' + formatCurrency(minOrder) + ')';
+                    }
+
+                    let subtitleParts = [];
+                    if (coupon.description) {
+                        subtitleParts.push(String(coupon.description));
+                    }
+                    if (usageLimit) {
+                        subtitleParts.push('Usage limit: ' + usageLimit);
+                    }
+
+                    html += `
                 <div class="accordion">
                     <div class="accordion__intro">${intro}</div>
                     <div class="accordion__content offer" data-code="${code}">
@@ -790,54 +794,53 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="copied">Copied</div>
                     </div>
                 </div>`;
-        });
-
-        dynamicCouponsContainer.innerHTML = html;
-
-        // Re-bind copy handlers for all offers, including the new ones.
-        bindOfferCopyButtons();
-    }
-
-    function fetchCoupons() {
-        if (!dynamicCouponsContainer) {
-            return;
-        }
-
-        fetch('/api/coupons', {
-            credentials: 'include',
-        })
-            .then(function(response) {
-                return response.json().then(function(data) {
-                    return {
-                        response: response,
-                        data: data,
-                    };
-                }).catch(function() {
-                    return {
-                        response: response,
-                        data: {
-                            status: false,
-                            message: 'Unexpected coupon server response.',
-                            coupons: [],
-                        },
-                    };
                 });
-            })
-            .then(function(result) {
-                if (!result.response.ok || !result.data || !result.data.status) {
+
+                dynamicCouponsContainer.innerHTML = html;
+
+                // Re-bind copy handlers for all offers, including the new ones.
+                bindOfferCopyButtons();
+            }
+
+            function fetchCoupons() {
+                if (!dynamicCouponsContainer) {
                     return;
                 }
 
-                renderCoupons(result.data.coupons || []);
-            })
-            .catch(function() {
-                // Silently ignore coupon errors; checkout can proceed without them.
-            });
-    }
+                fetch('/api/coupons', {
+                        credentials: 'include',
+                    })
+                    .then(function(response) {
+                        return response.json().then(function(data) {
+                            return {
+                                response: response,
+                                data: data,
+                            };
+                        }).catch(function() {
+                            return {
+                                response: response,
+                                data: {
+                                    status: false,
+                                    message: 'Unexpected coupon server response.',
+                                    coupons: [],
+                                },
+                            };
+                        });
+                    })
+                    .then(function(result) {
+                        if (!result.response.ok || !result.data || !result.data.status) {
+                            return;
+                        }
 
-    fetchCoupons();
-});
-// --- End dynamic coupon rendering ---
+                        renderCoupons(result.data.coupons || []);
+                    })
+                    .catch(function() {
+                        // Silently ignore coupon errors; checkout can proceed without them.
+                    });
+            }
 
+            fetchCoupons();
+        });
+        // --- End dynamic coupon rendering ---
     </script>
 @endpush

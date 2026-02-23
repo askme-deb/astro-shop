@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ApiCheckoutController;
 
 // Remove the 'api' prefix - Laravel adds it automatically in api.php
 Route::prefix('cart')->middleware('cart.user.resolved')->group(function () {
@@ -24,3 +25,9 @@ Route::prefix('wishlist')->middleware('cart.user.resolved')->group(function () {
 Route::get('coupons', [CouponController::class, 'index'])
     ->middleware('cart.user.resolved');
 
+Route::prefix('checkout')->group(function () {
+    Route::post('details', [ApiCheckoutController::class, 'fetchCheckoutDetails']);
+    Route::post('place-order', [ApiCheckoutController::class, 'placeOrder']);
+    Route::post('payment/create-razorpay-order', [ApiCheckoutController::class, 'createRazorpayOrder']);
+    Route::post('payment/verify', [ApiCheckoutController::class, 'verifyRazorpayPayment']);
+});

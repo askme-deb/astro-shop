@@ -27,6 +27,10 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+                // Razorpay webhook (no middleware)
+                Route::middleware([])
+                    ->group(base_path('routes/razorpay.php'));
         });
     }
 }
