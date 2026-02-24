@@ -11,8 +11,14 @@ class PaymentApiService extends BaseApiClient
         return $this->request('POST', 'checkout/payment/create-razorpay-order', ['json' => $payload]);
     }
 
-    public function verifyRazorpayPayment($payload)
+    public function verifyRazorpayPayment($payload, $token = null)
     {
-        return $this->request('POST', 'checkout/payment/verify', ['json' => $payload]);
+        $options = ['json' => $payload];
+        if ($token) {
+            $options['headers'] = [
+                'Authorization' => 'Bearer ' . $token,
+            ];
+        }
+        return $this->request('POST', 'checkout/payment/verify', $options);
     }
 }

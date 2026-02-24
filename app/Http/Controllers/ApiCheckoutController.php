@@ -69,10 +69,16 @@ class ApiCheckoutController extends Controller
     public function verifyRazorpayPayment(Request $request)
     {
         $payload = $request->only([
-            'razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature', 'order_id'
+            'razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature', 'order_id',
+            'coupon_code', 'coupon_discount', 'price_gst', 'discounted_price'
         ]);
         try {
-            $result = $this->paymentApi->verifyRazorpayPayment($payload);
+            // Try to get token from Authorization header or cookie
+          //  $token = $request->bearerToken();
+          //  if (!$token) {
+                $token = $request->cookie('auth_api_token');
+           // }
+            $result = $this->paymentApi->verifyRazorpayPayment($payload, $token);
             return response()->json($result);
         } catch (\Throwable $e) {
             Log::error('Razorpay verify API error', ['error' => $e->getMessage()]);

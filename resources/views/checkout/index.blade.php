@@ -492,7 +492,7 @@
 
                 // 2. Open Razorpay popup
                     const options = {
-                        key: orderData.key,
+                    key: orderData.key,
                     amount: orderData.amount,
                     currency: orderData.currency || 'INR',
                     name: 'Astrologer Raju Maharaj',
@@ -510,6 +510,10 @@
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_signature: response.razorpay_signature,
                                 order_id: orderData.order_id,
+                                coupon_code: document.getElementById('coupon') ? document.getElementById('coupon').value : '',
+                                coupon_discount: typeof orderData.coupon_discount !== 'undefined' ? orderData.coupon_discount : '',
+                                price_gst: typeof orderData.price_gst !== 'undefined' ? orderData.price_gst : '',
+                                discounted_price: typeof orderData.discounted_price !== 'undefined' ? orderData.discounted_price : '',
                             })
                         })
                         .then(res => res.json())
@@ -524,9 +528,9 @@
                         .catch(() => alert('Payment verification error.'));
                     },
                     prefill: {
-                        name: orderData.customer_name || '',
-                        email: orderData.customer_email || '',
-                        contact: orderData.customer_phone || ''
+                        name: (orderData.user.first_name + ' ' + orderData.user.last_name) || '',
+                        email: orderData.user.email || '',
+                        contact: orderData.user.mobile_no || ''
                     },
                     theme: {
                         color: '#F98700'
