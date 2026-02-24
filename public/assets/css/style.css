@@ -2068,7 +2068,7 @@ footer {
             text-transform: uppercase;
             margin-bottom: 1rem;
         }
-        
+
         /* Price Section */
         .price-container {
             display: flex;
@@ -2738,7 +2738,7 @@ footer {
 }
 
 .checkout-card h3{
-  margin-bottom:15px;
+  margin-bottom:5px;
   font-size:16px;
 }
 

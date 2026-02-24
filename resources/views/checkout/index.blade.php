@@ -484,21 +484,22 @@
                     alert('Failed to create order.');
                     return;
                 }
-                if (!orderData || !orderData.razorpay_order_id || !orderData.amount || !orderData.key_id) {
+                console.log('Order data from backend:', orderData.order_id, orderData.amount, orderData.key);
+                if (!orderData || !orderData.order_id || !orderData.amount || !orderData.key) {
                     alert('Invalid order data.');
                     return;
                 }
 
                 // 2. Open Razorpay popup
-                const options = {
-                    key: orderData.key_id,
+                    const options = {
+                        key: orderData.key,
                     amount: orderData.amount,
                     currency: orderData.currency || 'INR',
-                    name: 'Astro Shop',
+                    name: 'Astrologer Raju Maharaj',
                     order_id: orderData.razorpay_order_id,
                     handler: function (response) {
                         // 3. On payment success, verify payment via backend
-                        fetch('/api/checkout/verify-razorpay', {
+                        fetch('/api/checkout/payment/verify', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

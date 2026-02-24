@@ -7,7 +7,7 @@
 
 <!-- Hero Section -->
 <!-- Hero Slider -->
-<div id="heroSlider" class="carousel slide hero-slider" data-bs-ride="carousel">
+<div id="heroSlider" class="carousel slide hero-slider" data-bs-ride="carousel" style="z-index: -1;">
 
   <div class="carousel-inner">
 
@@ -259,7 +259,7 @@
       <h2>Gemstones</h2>
       <!-- <p class="fw-semibold">PRODUCTS OF TRUSTED EXCELLENCE</p> -->
     </div>
-  
+
     @forelse(($gemstoneCategoryProducts ?? []) as $product)
    <div class="col-md-3 col-sm-6">
       <div class="product-card">
