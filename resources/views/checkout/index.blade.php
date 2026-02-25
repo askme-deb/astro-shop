@@ -484,7 +484,7 @@
                     alert('Failed to create order.');
                     return;
                 }
-                console.log('Order data from backend:', orderData.order_id, orderData.amount, orderData.key);
+                //console.log('Order data from backend:', orderData.order_id, orderData.amount, orderData.key);
                 if (!orderData || !orderData.order_id || !orderData.amount || !orderData.key) {
                     alert('Invalid order data.');
                     return;
