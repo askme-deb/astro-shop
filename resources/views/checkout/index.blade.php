@@ -394,7 +394,7 @@
 
                 <!-- TOTALS -->
                 <div class="price-row">
-                    <span>Subtotal</span><span>₹<span id="subtotal">2599</span></span>
+                    <span>Subtotal</span><span>₹<span id="subtotal">0.00</span></span>
                 </div>
 
                 <div class="price-row">
@@ -402,7 +402,7 @@
                 </div>
 
                 <div class="price-row">
-                    <span>Tax</span><span>₹<span id="tax">78</span></span>
+                    <span>Tax</span><span>₹<span id="tax">0.00</span></span>
                 </div>
 
                 <div class="price-row" id="coupon-summary-row" style="display:none;">
@@ -410,7 +410,7 @@
                 </div>
 
                 <div class="price-row total">
-                    <span>Total</span><span>₹<span id="total">2677</span></span>
+                    <span>Total</span><span>₹<span id="total">0.00</span></span>
                 </div>
 
                 <button class="cart__checkout-button" id="place-order-btn">Place Order</button>
@@ -422,9 +422,16 @@
             const placeOrderBtn = document.getElementById('place-order-btn');
             placeOrderBtn.addEventListener('click', async function(e) {
                 e.preventDefault();
+                // Disable checkout page while processing order
+                document.querySelector('.checkout-wrapper').style.pointerEvents = 'none';
+                document.querySelector('.checkout-wrapper').style.opacity = '0.6';
+                toast('Payment is processing, please wait...', false);
                 // Example: Collect order details from form/JS
                 const paymentMethod = document.querySelector('input[name="payment"]:checked').nextElementSibling ? 'online' : 'cod';
                 if (paymentMethod === 'cod') {
+                    // Re-enable if COD (since no async processing)
+                    document.querySelector('.checkout-wrapper').style.pointerEvents = '';
+                    document.querySelector('.checkout-wrapper').style.opacity = '';
                     alert('COD order placed!');
                     return;
                 }
@@ -518,14 +525,26 @@
                         })
                         .then(res => res.json())
                         .then(data => {
+                            // Disable checkout page while processing
+                            document.querySelector('.checkout-wrapper').style.pointerEvents = 'none';
+                            document.querySelector('.checkout-wrapper').style.opacity = '0.6';
                             if (data.status) {
-                                alert('Payment successful! Order placed.');
-                                window.location.href = '/thank-you';
+                                toast('Payment successful! Order has been placed successfully.', false);
+                                setTimeout(function() {
+                                    window.location.href = '/thank-you';
+                                }, 1200);
                             } else {
-                                alert('Payment verification failed.');
+                                toast('Payment verification failed.', true);
+                                // Re-enable checkout page if failed
+                                document.querySelector('.checkout-wrapper').style.pointerEvents = '';
+                                document.querySelector('.checkout-wrapper').style.opacity = '';
                             }
                         })
-                        .catch(() => alert('Payment verification error.'));
+                        .catch(() => {
+                            toast('Payment verification error.', true);
+                            document.querySelector('.checkout-wrapper').style.pointerEvents = '';
+                            document.querySelector('.checkout-wrapper').style.opacity = '';
+                        });
                     },
                     prefill: {
                         name: (orderData.user.first_name + ' ' + orderData.user.last_name) || '',
@@ -2670,10 +2689,10 @@
 
                 let subtotal = 0;
                 let html = '';
-
+                console.log('Rendering summary for items:', items);
                 items.forEach(function(item) {
                     const product = item.product || {};
-                    const unitPrice = parseFloat(product.total_price || item.amount || 0) || 0;
+                    const unitPrice = parseFloat(product.price || item.amount || 0) || 0;
                     const comparePriceRaw = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
                     const quantity = parseInt(item.quantity || 1, 10) || 1;
                     const lineTotal = unitPrice * quantity;
@@ -2968,10 +2987,17 @@
                         discountValueEl.textContent = formatCurrency(discountRaw);
                     }
 
-                    if (totalEl && grandTotalRaw !== null && !isNaN(grandTotalRaw)) {
-                        const grand = Number(grandTotalRaw);
-                        totalEl.textContent = formatCurrency(grand);
+                    // Correct calculation: Total = (Subtotal - Discount) + Tax, Tax = 3% of (Subtotal - Discount)
+                    const subtotalEl = document.getElementById('subtotal');
+                    const taxEl = document.getElementById('tax');
+                    let subtotal = 0;
+                    if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
+                        subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
                     }
+                    const discountedSubtotal = subtotal - discountRaw;
+                    const tax = discountedSubtotal * 0.03;
+                    if (taxEl) taxEl.textContent = formatCurrency(tax);
+                    if (totalEl) totalEl.textContent = formatCurrency(discountedSubtotal + tax);
 
                     toast(data.message || 'Coupon applied successfully.', false);
                 } catch (error) {

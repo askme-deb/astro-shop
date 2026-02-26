@@ -56,3 +56,5 @@ Route::post('/logout', [OtpAuthController::class, 'logout'])
     ->middleware(['web'])
     ->name('logout');
 
+// Thank You page route
+Route::view('/thank-you', 'thank-you')->name('thank-you');
