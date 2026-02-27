@@ -62,23 +62,77 @@ class CartController extends Controller
     public function buyNow(Request $request): JsonResponse
     {
         $payload = $request->all();
-        $validator = Validator::make($payload, [
+        // Step 1: Initial buyNow (product page) - only product_id and quantity required
+        $initialValidator = Validator::make($payload, [
             'product_id' => 'required|integer',
             'quantity' => 'required|integer|min:1',
         ]);
-        if ($validator->fails()) {
+        if ($initialValidator->fails()) {
             return response()->json([
                 'success' => false,
                 'error' => 'Validation failed',
-                'errors' => $validator->errors()->toArray(),
+                'errors' => $initialValidator->errors()->toArray(),
                 'status' => 422,
             ], 422);
         }
-        $resolved = $this->cartUserResolverService->resolve($request);
-        $result = $this->cartApiService->buyNow($payload, $request);
-        $response = response()->json($result);
 
-        return $response;
+        // Step 2: If address_id and payment_method are present, validate full checkout
+        if (isset($payload['address_id']) && isset($payload['payment_method'])) {
+            $checkoutValidator = Validator::make($payload, [
+                'address_id' => 'required|integer',
+                'payment_method' => 'required|string',
+                // Optional fields: variation_id, carat, coupon_code, etc.
+            ]);
+            if ($checkoutValidator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $checkoutValidator->errors()->toArray(),
+                    'status' => 422,
+                ], 422);
+            }
+            // Optionally validate variation_id, carat, coupon_code, etc. if present
+            if (isset($payload['variation_id']) && !is_array($payload['variation_id'])) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'variation_id must be an array',
+                    'status' => 422,
+                ], 422);
+            }
+            if (isset($payload['carat']) && !is_numeric($payload['carat'])) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'carat must be numeric',
+                    'status' => 422,
+                ], 422);
+            }
+            $resolved = $this->cartUserResolverService->resolve($request);
+            $result = $this->cartApiService->buyNow($payload, $request);
+            // Compose detailed response for frontend
+            $response = response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'] ?? ($result['success'] ? 'Buy now successful' : 'Buy now failed'),
+                'data' => $result['data'] ?? null,
+                'error' => $result['error'] ?? null,
+                'errors' => $result['errors'] ?? null,
+                'status' => $result['status'] ?? false,
+                'resolved' => $resolved,
+            ]);
+            return $response;
+        }
+
+        // If address_id/payment_method missing, return product info for checkout page
+        // (Frontend should redirect to checkout and let user fill address/payment)
+        $resolved = $this->cartUserResolverService->resolve($request);
+        // Optionally fetch product details for checkout page
+        $productInfo = $this->cartApiService->getProductForBuyNow($payload['product_id'], $payload['quantity'], $request);
+        return response()->json([
+            'success' => true,
+            'message' => 'Proceed to checkout',
+            'data' => $productInfo,
+            'status' => true,
+            'resolved' => $resolved,
+        ]);
     }
 
      /**

@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiCheckoutController;
-
+use App\Http\Controllers\Api\ProductController;
 // Remove the 'api' prefix - Laravel adds it automatically in api.php
 Route::prefix('cart')->middleware('cart.user.resolved')->group(function () {
     Route::post('add-to-cart', [CartController::class, 'addToCart']);
@@ -31,3 +31,8 @@ Route::prefix('checkout')->group(function () {
     Route::post('payment/create-razorpay-order', [ApiCheckoutController::class, 'createRazorpayOrder']);
     Route::post('payment/verify', [ApiCheckoutController::class, 'verifyRazorpayPayment']);
 });
+
+
+
+// Product details API for buyNow/checkout pre-fill
+Route::get('products/{id}', [ProductController::class, 'show']);

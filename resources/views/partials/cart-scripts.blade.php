@@ -106,14 +106,20 @@ function buyNow(payload, btn) {
       'Accept': 'application/json',
       'X-CSRF-TOKEN': getCsrfToken(),
     },
-    credentials: 'include', // Ensure cookies are sent
+    credentials: 'include',
     body: JSON.stringify(payload)
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      toast('Purchase successful!', '', 'success');
-      // Optionally redirect to checkout or order page
+      // Redirect to checkout with buyNow params
+      const productId = payload.product_id || (payload.product && payload.product.id);
+      const quantity = payload.quantity || 1;
+      if (productId) {
+        window.location.href = `/checkout?buyNow=1&product_id=${encodeURIComponent(productId)}&quantity=${encodeURIComponent(quantity)}`;
+      } else {
+        window.location.href = '/checkout';
+      }
     } else if (data.errors) {
       toast('Validation error', Object.values(data.errors).join(', '), 'error');
     } else {

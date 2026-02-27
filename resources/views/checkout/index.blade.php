@@ -2743,9 +2743,55 @@
                 }
             }
 
-            function fetchCheckoutCart() {
+            async function fetchCheckoutCart() {
                 showSummarySkeleton();
 
+                // Check for buyNow params in URL
+                const searchParams = new URLSearchParams(window.location.search);
+                const isBuyNow = searchParams.get('buyNow') === '1';
+                const productId = searchParams.get('product_id');
+                const quantity = parseInt(searchParams.get('quantity') || '1', 10) || 1;
+
+                if (isBuyNow && productId) {
+                    // Fetch product details for buyNow
+                    try {
+                        const res = await fetch(`/api/products/${productId}`);
+                        const data = await res.json();
+                        if (!res.ok || !data || !data.data) {
+                            console.error('BuyNow: Product fetch failed or missing data', data);
+                            renderEmpty();
+                            window.cartItems = [];
+                            return;
+                        }
+                        const product = data.data;
+                        // Fallbacks for missing fields
+                        const safeProduct = {
+                            id: product.id || productId,
+                            name: product.name || 'Product',
+                            price: product.price || 0,
+                            image_url: product.image_url || '/assets/images/product-1.jpg',
+                            ...product
+                        };
+                        console.log('BuyNow: Product for summary', safeProduct);
+                        // Build a cart-like item for summary/order
+                        const item = {
+                            product: safeProduct,
+                            product_id: safeProduct.id,
+                            quantity: quantity,
+                            amount: safeProduct.price
+                        };
+                        window.cartItems = [item];
+                        renderSummary([item]);
+                        return;
+                    } catch (e) {
+                        console.error('BuyNow: Exception fetching product', e);
+                        renderEmpty();
+                        window.cartItems = [];
+                        return;
+                    }
+                }
+
+                // Default: fetch cart
                 fetch('/api/cart', {
                         credentials: 'include'
                     })

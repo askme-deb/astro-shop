@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
  */
 class ProductApiService
 {
+
     protected ProductApiClient $client;
 
     protected CacheRepository $cache;
@@ -26,6 +27,34 @@ class ProductApiService
         $this->client = $client;
         $this->cache = Cache::store();
         $this->cacheTtlSeconds = (int) config('services.astrorajumaharaj.cache_ttl', 300);
+    }
+
+    /**
+     * Retrieve a single product by ID, with caching.
+     *
+     * @param int|string $id
+     * @param bool $forceRefresh
+     * @return array<string, mixed>|null
+     */
+    public function getProductById($id, bool $forceRefresh = false): ?array
+    {
+        $cacheKey = 'astro.product.' . $id;
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+        return $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($id) {
+            try {
+                $product = $this->client->getProductById($id);
+            } catch (\Throwable $exception) {
+                Log::error('Failed to fetch product by ID from external API', [
+                    'service' => static::class,
+                    'product_id' => $id,
+                    'message' => $exception->getMessage(),
+                ]);
+                return null;
+            }
+            return $product;
+        });
     }
 
     /**

@@ -16,12 +16,51 @@ use Illuminate\Http\Request;
  */
 class CartApiService extends BaseApiClient
 {
-    protected CartUserResolverService $userResolver;
+    protected CartUserResolverService $userResolverService;
+
+    /**
+     * Get product details for buyNow flow (for checkout pre-fill).
+     * Returns product info and quantity for the checkout page.
+     */
+    public function getProductForBuyNow(int $productId, int $quantity = 1, Request $request = null): array
+    {
+        // You may have a product API endpoint, e.g. /api/v1/products/{id}
+        $endpoint = "product/details/{$productId}";
+        $options = [];
+        $originalToken = $this->token;
+        if ($request) {
+            $userToken = $this->resolveUserToken($request);
+            if ($userToken !== '') {
+                $this->token = null;
+                $options['headers'] = [
+                    'Cookie' => 'shared_api_token=' . $userToken,
+                ];
+            } else {
+                $resolved = $this->userResolverService->resolve($request);
+                if (!empty($resolved['id'])) {
+                    $options['query'] = ['guest_user_id' => $resolved['id']];
+                }
+                $this->token = null;
+            }
+        }
+        $result = $this->request('GET', $endpoint, $options);
+        $this->token = $originalToken;
+        if ((isset($result['status']) && $result['status']) && isset($result['product'])) {
+            // Attach quantity for buyNow
+            $result['product']['quantity'] = $quantity;
+            return $result['product'];
+        }
+        return [
+            'product_id' => $productId,
+            'quantity' => $quantity,
+            'error' => $result['error'] ?? 'Product not found',
+        ];
+    }
 
     public function __construct(CartUserResolverService $userResolver)
     {
         parent::__construct();
-        $this->userResolver = $userResolver;
+        $this->userResolverService = $userResolver;
     }
 
     /**
@@ -65,7 +104,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
         $this->token = $userToken;
         unset($payload['guest_user_id'], $payload['user_id']);
     } else {
-        $resolved = $this->userResolver->resolve($request);
+        $resolved = $this->userResolverService->resolve($request);
         if (! empty($resolved['id'])) {
             $payload['guest_user_id'] = $resolved['id'];
         }
@@ -96,7 +135,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
                 unset($options['json']['guest_user_id'], $options['json']['user_id']);
             } else {
                 // Guest: send guest_user_id, no token
-                $resolved = $this->userResolver->resolve($request);
+                $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $payload['guest_user_id'] = $resolved['id'];
                 }
@@ -165,7 +204,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
                 }
             } else {
                 // Guest: send guest_user_id, no token
-                $resolved = $this->userResolver->resolve($request);
+                $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $options['query'] = ['guest_user_id' => $resolved['id']];
                 }
@@ -212,7 +251,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
                 ];
             } else {
                 // Guest: send guest_user_id, no token
-                $resolved = $this->userResolver->resolve($request);
+                $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $options['query'] = ['guest_user_id' => $resolved['id']];
                 }
@@ -312,7 +351,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
                 unset($options['json']['guest_user_id'], $options['json']['user_id']);
             } else {
                 // Guest: send guest_user_id, no token
-                $resolved = $this->userResolver->resolve($request);
+                $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $payload['guest_user_id'] = $resolved['id'];
                 }
@@ -362,7 +401,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
                 unset($options['json']['guest_user_id'], $options['json']['user_id']);
             } else {
                 // Guest: send guest_user_id, no token
-                $resolved = $this->userResolver->resolve($request);
+                $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $payload['guest_user_id'] = $resolved['id'];
                 }

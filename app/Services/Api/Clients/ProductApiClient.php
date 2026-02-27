@@ -11,6 +11,26 @@ use Illuminate\Support\Facades\Log;
 class ProductApiClient extends BaseApiClient
 {
     /**
+     * Fetch a single product by ID from the external API.
+     *
+     * @param int|string $id
+     * @return array<string, mixed>|null
+     */
+    public function getProductById($id): ?array
+    {
+        $endpoint = sprintf('product/details/%s', $id);
+        $response = $this->request('GET', $endpoint);
+        // The external API returns product data under 'product' key
+        if (isset($response['product']) && is_array($response['product'])) {
+            return $response['product'];
+        }
+        // Fallback: If the response is the product itself
+        if (isset($response['id'])) {
+            return $response;
+        }
+        return null;
+    }
+    /**
      * Fetch a list of products from the external API.
      *
      * @param array<string, mixed> $filters

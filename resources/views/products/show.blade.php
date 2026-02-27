@@ -145,9 +145,15 @@
           <i class="fa fa-bag-shopping me-2"></i>Add to Cart
         </button>
 
-        <button class="btn btn-outline-dark btn-lg" onclick="buyNow('Rose Gold Princess Earrings')">
+        <button class="btn btn-outline-dark btn-lg" onclick="redirectBuyNow({{ $product['id'] ?? 0 }}, document.getElementById('qty').value)">
           Buy Now
         </button>
+      @push('scripts')
+      <script type="module">
+      import { redirectBuyNow } from '/resources/js/cart-scripts.js';
+      window.redirectBuyNow = redirectBuyNow;
+      </script>
+      @endpush
       </div>
 
 
