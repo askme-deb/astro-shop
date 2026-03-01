@@ -32,7 +32,8 @@ Route::prefix('checkout')->group(function () {
     Route::post('payment/verify', [ApiCheckoutController::class, 'verifyRazorpayPayment']);
 });
 
-
-
 // Product details API for buyNow/checkout pre-fill
 Route::get('products/{id}', [ProductController::class, 'show']);
+
+// Product search autocomplete
+Route::get('product/search', [ProductController::class, 'search']);

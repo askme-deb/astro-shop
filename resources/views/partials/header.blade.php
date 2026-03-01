@@ -53,7 +53,7 @@
               placeholder='Search "Rings"'
               autocomplete="off">
 
-            <div id="searchSuggestions" class="search-suggestions d-none"></div>
+            <div id="searchSuggestions" class="search-suggestions "></div>
           </div>
 
 
@@ -396,18 +396,22 @@
 
              <div class="icon_warp">
                     @if(session()->has('auth.api_token'))
-                    <form id="header-logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
-                        @csrf
-                    </form>
-                    <a href="javascript:void(0)" id="header-logout-trigger">
-                        <i class="fa fa-user fs-5"></i>
-                        <div class="icon-text">LOGOUT</div>
-                    </a>
+                        <form id="header-logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+                            @csrf
+                        </form>
+                        <a href="{{ route('dashboard') }}">
+                            <i class="fa fa-user fs-5"></i>
+                            <div class="icon-text">DASHBOARD</div>
+                        </a>
+                        <!-- <a href="javascript:void(0)" id="header-logout-trigger">
+                            <i class="fa fa-sign-out-alt fs-5"></i>
+                            <div class="icon-text">LOGOUT</div>
+                        </a> -->
                     @else
-                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">
-                        <i class="fa fa-user fs-5"></i>
-                        <div class="icon-text">LOGIN</div>
-                    </a>
+                        <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">
+                            <i class="fa fa-user fs-5"></i>
+                            <div class="icon-text">LOGIN</div>
+                        </a>
                     @endif
                 </div>
 
@@ -465,13 +469,22 @@
         <a href="#">Gift Store</a>
         <a href="#">Exclusive Collections</a>
         <a href="#">More at GIVA</a> -->
-          <a href="#">Home</a>
-          <a href="products.php">Shop</a>
-          <a href="#">Rudraksha</a>
-          <a href="#">Gemstones</a>
-          <a href="#">About</a>
-          <a href="#">Contact</a>
-
+                    @php
+                        $menuItems = [
+                            ['label' => 'Home', 'url' => url('/')],
+                            ['label' => 'About', 'url' => url('/about')],
+                            ['label' => 'Contact', 'url' => url('/contact')],
+                        ];
+                    @endphp
+                    @foreach($menuItems as $item)
+                        <a href="{{ $item['url'] }}">{{ $item['label'] }}</a>
+                    @endforeach
+     @php
+         $categoryMenu = app(\App\Services\Api\CategoryApiService::class)->getCategories(['is_menu' => true]);
+     @endphp
+     @foreach($categoryMenu as $cat)
+         <a href="/{{ $cat['slug'] ?? $cat['id'] }}">{{ $cat['name'] ?? 'Category' }}</a>
+     @endforeach
         </div>
       </div>
 
@@ -529,8 +542,22 @@
         </div>
     </div>
 </div>
+@push('scripts')
+    <script>
+        // Clear OTP inputs when modal is closed
+        var authModalEl = document.getElementById('authModal');
+        if (authModalEl) {
+            authModalEl.addEventListener('hidden.bs.modal', function () {
+                var otpInputs = document.querySelectorAll('.header-otp-digit');
+                otpInputs.forEach(function(input) {
+                    input.value = '';
+                });
+                document.getElementById('header-otp-step-mobile').style.display = 'block';
+                document.getElementById('header-otp-step-verify').style.display = 'none';
+                document.getElementById('header-otp-alert').classList.add('d-none');
+            });
+        }
 
-<script>
     document.addEventListener('DOMContentLoaded', function() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -856,4 +883,73 @@
             });
         }
     });
+
+    
+(function() {
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+    let debounceTimeout = null;
+
+    function showSuggestions(items) {
+        if (!items.length) {
+            suggestionsBox.classList.remove('show');
+            suggestionsBox.innerHTML = '';
+            return;
+        }
+        suggestionsBox.innerHTML = items.map(item => {
+            const imageUrl = item.image_url || '/assets/images/product-1.jpg';
+            const price = item.total_price || item.price || '';
+            return `<div class="suggestion-item" data-id="${item.id}">
+                <img src="${imageUrl}" style="width: 50px; height: 50px; object-fit: cover;" alt="${item.name || 'Product'}">
+                <span>${item.name || 'Product'}</span>
+                ${price ? `<span class="suggestion-price">₹${price}</span>` : ''}
+            </div>`;
+        }).join('');
+        suggestionsBox.classList.add('show');
+    }
+
+    function fetchSuggestions(query) {
+        fetch(`/api/product/search?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status && Array.isArray(data.data)) {
+                    showSuggestions(data.data.slice(0, 8));
+                } else {
+                    showSuggestions([]);
+                }
+            })
+            .catch(() => showSuggestions([]));
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = searchInput.value.trim();
+            clearTimeout(debounceTimeout);
+            if (query.length < 2) {
+                showSuggestions([]);
+                return;
+            }
+            debounceTimeout = setTimeout(() => fetchSuggestions(query), 250);
+        });
+    }
+
+    if (suggestionsBox) {
+        suggestionsBox.addEventListener('mousedown', function(e) {
+            const item = e.target.closest('.suggestion-item');
+            if (item) {
+                searchInput.value = item.querySelector('span').textContent;
+                suggestionsBox.classList.remove('show');
+                // Optionally redirect to product page:
+                // window.location.href = `/products/${item.dataset.id}`;
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (suggestionsBox && !suggestionsBox.contains(e.target) && e.target !== searchInput) {
+            suggestionsBox.classList.remove('show');
+        }
+    });
+})();
 </script>
+@endpush

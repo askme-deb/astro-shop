@@ -101,4 +101,41 @@ class ProductApiClient extends BaseApiClient
 
         return $response;
     }
+
+    /**
+     * Fetch related products for a given product ID from the external API.
+     *
+     * @param int|string $productId
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRelatedProducts($productId): array
+    {
+        $endpoint = sprintf('products/%s/related', $productId);
+        $response = $this->request('GET', $endpoint);
+        if (isset($response['data']) && is_array($response['data'])) {
+            return array_values($response['data']);
+        } elseif (array_is_list($response)) {
+            return $response;
+        }
+        return [];
+    }
+
+    /**
+     * Search products from external API for autocomplete.
+     *
+     * @param string $query
+     * @return array<int, array<string, mixed>>
+     */
+    public function searchProducts(string $query): array
+    {
+        $response = $this->request('GET', 'product/search', [
+            'query' => ['q' => $query],
+        ]);
+        if (isset($response['data']) && is_array($response['data'])) {
+            return array_values($response['data']);
+        } elseif (array_is_list($response)) {
+            return $response;
+        }
+        return [];
+    }
 }

@@ -33,4 +33,24 @@ class ProductController extends Controller
             'data' => $product,
         ]);
     }
+
+    /**
+     * Product search for autocomplete.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->input('q', '');
+        if (strlen($query) < 2) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'error' => 'Query too short',
+            ], 400);
+        }
+        $results = $this->productApiService->searchProducts($query);
+        return response()->json([
+            'status' => true,
+            'data' => $results,
+        ]);
+    }
 }

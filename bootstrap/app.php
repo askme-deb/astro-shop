@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'cart.user.resolved' => \App\Http\Middleware\EnsureCartUserResolved::class,
+            'api.user.auth' => \App\Http\Middleware\ApiUserAuthenticated::class,
         ]);
         $middleware->prepend(\App\Http\Middleware\EncryptCookies::class);
         $middleware->encryptCookies(except: [

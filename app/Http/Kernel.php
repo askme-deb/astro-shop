@@ -12,7 +12,7 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        // ...existing middleware aliases...
         'cart.user.resolved' => \App\Http\Middleware\EnsureCartUserResolved::class,
+        'api.user.auth' => \App\Http\Middleware\ApiUserAuthenticated::class,
     ];
 }

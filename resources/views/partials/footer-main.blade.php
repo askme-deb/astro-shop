@@ -618,103 +618,103 @@ function removeItem(){
 
 
 <script>
-const searchInput = document.getElementById("searchInput");
-const suggestionsBox = document.getElementById("searchSuggestions");
+// const searchInput = document.getElementById("searchInput");
+// const suggestionsBox = document.getElementById("searchSuggestions");
 
-const products = [
-  "Silver Ring",
-  "Gold Necklace",
-  "Diamond Ring",
-  "Rudraksha Mala",
-  "Blue Sapphire Gemstone",
-  "Emerald Stone",
-  "Gold Bracelet",
-  "Silver Earrings",
-  "Ruby Gemstone",
-  "Pearl Necklace",
-  "Astrology Consultation",
-  "Online Astrology Classes"
-];
+// const products = [
+//   "Silver Ring",
+//   "Gold Necklace",
+//   "Diamond Ring",
+//   "Rudraksha Mala",
+//   "Blue Sapphire Gemstone",
+//   "Emerald Stone",
+//   "Gold Bracelet",
+//   "Silver Earrings",
+//   "Ruby Gemstone",
+//   "Pearl Necklace",
+//   "Astrology Consultation",
+//   "Online Astrology Classes"
+// ];
 
-let currentFocus = -1;
+// let currentFocus = -1;
 
-searchInput.addEventListener("input", function() {
-  const value = this.value.toLowerCase();
-  suggestionsBox.innerHTML = "";
-  currentFocus = -1;
+// searchInput.addEventListener("input", function() {
+//   const value = this.value.toLowerCase();
+//   suggestionsBox.innerHTML = "";
+//   currentFocus = -1;
 
-  if (!value) {
-    suggestionsBox.classList.add("d-none");
-    return;
-  }
+//   if (!value) {
+//     suggestionsBox.classList.add("d-none");
+//     return;
+//   }
 
-  const filtered = products.filter(item =>
-    item.toLowerCase().includes(value)
-  );
+//   const filtered = products.filter(item =>
+//     item.toLowerCase().includes(value)
+//   );
 
-  if (filtered.length === 0) {
-    suggestionsBox.classList.add("d-none");
-    return;
-  }
+//   if (filtered.length === 0) {
+//     suggestionsBox.classList.add("d-none");
+//     return;
+//   }
 
-  filtered.forEach(item => {
-    const highlighted = item.replace(
-      new RegExp(value, "gi"),
-      match => `<span class="search-highlight">${match}</span>`
-    );
+//   filtered.forEach(item => {
+//     const highlighted = item.replace(
+//       new RegExp(value, "gi"),
+//       match => `<span class="search-highlight">${match}</span>`
+//     );
 
-    const div = document.createElement("div");
-    div.classList.add("search-item");
-    div.innerHTML = highlighted;
+//     const div = document.createElement("div");
+//     div.classList.add("search-item");
+//     div.innerHTML = highlighted;
 
-    div.addEventListener("click", function() {
-      searchInput.value = item;
-      suggestionsBox.classList.add("d-none");
-    });
+//     div.addEventListener("click", function() {
+//       searchInput.value = item;
+//       suggestionsBox.classList.add("d-none");
+//     });
 
-    suggestionsBox.appendChild(div);
-  });
+//     suggestionsBox.appendChild(div);
+//   });
 
-  suggestionsBox.classList.remove("d-none");
-});
+//   suggestionsBox.classList.remove("d-none");
+// });
 
-/* Keyboard Navigation */
-searchInput.addEventListener("keydown", function(e) {
-  const items = document.querySelectorAll(".search-item");
+// /* Keyboard Navigation */
+// searchInput.addEventListener("keydown", function(e) {
+//   const items = document.querySelectorAll(".search-item");
 
-  if (e.key === "ArrowDown") {
-    currentFocus++;
-    addActive(items);
-  } else if (e.key === "ArrowUp") {
-    currentFocus--;
-    addActive(items);
-  } else if (e.key === "Enter") {
-    e.preventDefault();
-    if (currentFocus > -1 && items[currentFocus]) {
-      items[currentFocus].click();
-    }
-  }
-});
+//   if (e.key === "ArrowDown") {
+//     currentFocus++;
+//     addActive(items);
+//   } else if (e.key === "ArrowUp") {
+//     currentFocus--;
+//     addActive(items);
+//   } else if (e.key === "Enter") {
+//     e.preventDefault();
+//     if (currentFocus > -1 && items[currentFocus]) {
+//       items[currentFocus].click();
+//     }
+//   }
+// });
 
-function addActive(items) {
-  if (!items.length) return;
-  removeActive(items);
+// function addActive(items) {
+//   if (!items.length) return;
+//   removeActive(items);
 
-  if (currentFocus >= items.length) currentFocus = 0;
-  if (currentFocus < 0) currentFocus = items.length - 1;
+//   if (currentFocus >= items.length) currentFocus = 0;
+//   if (currentFocus < 0) currentFocus = items.length - 1;
 
-  items[currentFocus].classList.add("active");
-}
+//   items[currentFocus].classList.add("active");
+// }
 
-function removeActive(items) {
-  items.forEach(item => item.classList.remove("active"));
-}
+// function removeActive(items) {
+//   items.forEach(item => item.classList.remove("active"));
+// }
 
-/* Close when clicking outside */
-document.addEventListener("click", function(e) {
-  if (!searchInput.contains(e.target) &&
-      !suggestionsBox.contains(e.target)) {
-    suggestionsBox.classList.add("d-none");
-  }
-});
+// /* Close when clicking outside */
+// document.addEventListener("click", function(e) {
+//   if (!searchInput.contains(e.target) &&
+//       !suggestionsBox.contains(e.target)) {
+//     suggestionsBox.classList.add("d-none");
+//   }
+// });
 </script>

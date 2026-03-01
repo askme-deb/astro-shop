@@ -411,4 +411,56 @@ class ProductApiService
 
         return 'astro.products.category.' . $categorySlug . '.' . md5(json_encode($filters));
     }
+
+    /**
+     * Retrieve related products for a given product ID.
+     *
+     * @param int|string $productId
+     * @param bool $forceRefresh
+     * @return array<int, array<string, mixed>>
+     */
+    public function getRelatedProducts($productId, bool $forceRefresh = false): array
+    {
+        $cacheKey = 'astro.product.related.' . $productId;
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+        return $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($productId) {
+            try {
+                return $this->client->getRelatedProducts($productId);
+            } catch (\Throwable $exception) {
+                \Log::error('Failed to fetch related products from external API', [
+                    'service' => static::class,
+                    'product_id' => $productId,
+                    'message' => $exception->getMessage(),
+                ]);
+                return [];
+            }
+        });
+    }
+
+    /**
+     * Search products by query string for autocomplete.
+     *
+     * @param string $query
+     * @return array<int, array<string, mixed>>
+     */
+    public function searchProducts(string $query): array
+    {
+        try {
+            $response = $this->client->searchProducts($query);
+            if (isset($response['data']) && is_array($response['data'])) {
+                return array_values($response['data']);
+            } elseif (array_is_list($response)) {
+                return $response;
+            }
+        } catch (\Throwable $exception) {
+            \Log::error('Product search failed', [
+                'service' => static::class,
+                'query' => $query,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+        return [];
+    }
 }

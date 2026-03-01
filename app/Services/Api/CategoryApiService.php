@@ -51,4 +51,33 @@ class CategoryApiService extends BaseApiClient
 
         return $items;
     }
+
+        /**
+     * Fetch categories with optional filters (e.g., is_menu).
+     *
+     * @param array $filters
+     * @return array<int, array<string, mixed>>
+     */
+    public function getCategories(array $filters = []): array
+    {
+        try {
+            $response = $this->request('GET', $this->categoriesEndpoint, [
+                'query' => $filters,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('Failed to fetch categories from external API', [
+                'service' => static::class,
+                'message' => $exception->getMessage(),
+            ]);
+            return [];
+        }
+
+        $items = [];
+        if (isset($response['data']) && is_array($response['data'])) {
+            $items = array_values($response['data']);
+        } elseif (is_array($response) && array_is_list($response)) {
+            $items = $response;
+        }
+        return $items;
+    }
 }
