@@ -13,7 +13,7 @@
     <div class="col-md-9 col-lg-10 p-4">
       <!-- Wishlist -->
       <div id="wishlist" class="section">
-        <div class="card p-4">
+        <div class="card shadow-sm p-4 border-0 mb-4 flipkart-card flipkart-hover">
           <h5 class="fw-bold mb-3">Wishlist</h5>
           <div class="wishlist-list">
             <!-- Wishlist Item -->

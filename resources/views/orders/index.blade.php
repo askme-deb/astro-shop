@@ -13,10 +13,10 @@
     <div class="col-md-9 col-lg-10 p-4">
       <!-- Orders -->
       <div id="orders" class="section">
-        <div class="card p-4">
+        <div class="card shadow-sm p-4 border-0 mb-4 flipkart-card flipkart-hover">
           <h5 class="fw-bold mb-3">Order History</h5>
           <div class="order-list">
-            <!-- Order Item -->
+            <!-- Order Item (multiple products per order) -->
             <div class="order-item mb-4 p-3 border rounded shadow-sm position-relative bg-white">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -26,24 +26,38 @@
                 <span class="badge bg-success">Delivered</span>
               </div>
               <hr class="my-2">
-              <div class="d-flex align-items-center">
-                <img src="/assets/images/product-1.jpg" alt="Product" style="width: 70px; height: 70px; object-fit: cover;" class="rounded me-3 border">
-                <div class="flex-grow-1">
-                  <div class="fw-semibold">Diamond Ring</div>
-                  <div class="text-muted small">Qty: 1</div>
-                  <div class="fw-bold mt-1">₹4,999</div>
-                  <div class="mt-2">
-                    <span class="text-success"><i class="bi bi-truck"></i> Delivered on 07 Feb 2026</span>
+              <!-- Multiple items in order -->
+              <div class="order-products">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="/assets/images/product-1.jpg" alt="Product" style="width: 70px; height: 70px; object-fit: cover;" class="rounded me-3 border">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">Diamond Ring</div>
+                    <div class="text-muted small">Qty: 1</div>
+                    <div class="fw-bold mt-1">₹4,999</div>
+                    <div class="mt-2">
+                      <span class="text-success"><i class="bi bi-truck"></i> Delivered on 07 Feb 2026</span>
+                    </div>
                   </div>
                 </div>
-                <a href="#" class="btn btn-outline-primary btn-sm ms-3 px-4">View Details</a>
+                <div class="d-flex align-items-center mb-3">
+                  <img src="/assets/images/product-3.jpg" alt="Product" style="width: 70px; height: 70px; object-fit: cover;" class="rounded me-3 border">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">Silver Bracelet</div>
+                    <div class="text-muted small">Qty: 2</div>
+                    <div class="fw-bold mt-1">₹1,299</div>
+                    <div class="mt-2">
+                      <span class="text-success"><i class="bi bi-truck"></i> Delivered on 07 Feb 2026</span>
+                    </div>
+                  </div>
+                </div>
               </div>
+              <a href="{{ route('orders.details', ['order' => 'ORD1023']) }}" class="btn btn-outline-primary btn-sm ms-3 px-4">View Details</a>
               <div class="order-actions position-absolute end-0 bottom-0 p-2">
                 <a href="#" class="btn btn-link btn-sm text-primary"><i class="bi bi-repeat"></i> Buy Again</a>
                 <a href="#" class="btn btn-link btn-sm text-danger"><i class="bi bi-chat-dots"></i> Need Help?</a>
               </div>
             </div>
-            <!-- Order Item -->
+            <!-- Order Item (multiple products per order) -->
             <div class="order-item mb-4 p-3 border rounded shadow-sm position-relative bg-white">
               <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -53,18 +67,32 @@
                 <span class="badge bg-warning text-dark">Processing</span>
               </div>
               <hr class="my-2">
-              <div class="d-flex align-items-center">
-                <img src="/assets/images/product-2.jpg" alt="Product" style="width: 70px; height: 70px; object-fit: cover;" class="rounded me-3 border">
-                <div class="flex-grow-1">
-                  <div class="fw-semibold">Gold Necklace</div>
-                  <div class="text-muted small">Qty: 1</div>
-                  <div class="fw-bold mt-1">₹2,499</div>
-                  <div class="mt-2">
-                    <span class="text-warning"><i class="bi bi-clock-history"></i> Expected by 15 Feb 2026</span>
+              <!-- Multiple items in order -->
+              <div class="order-products">
+                <div class="d-flex align-items-center mb-3">
+                  <img src="/assets/images/product-2.jpg" alt="Product" style="width: 70px; height: 70px; object-fit: cover;" class="rounded me-3 border">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">Gold Necklace</div>
+                    <div class="text-muted small">Qty: 1</div>
+                    <div class="fw-bold mt-1">₹2,499</div>
+                    <div class="mt-2">
+                      <span class="text-warning"><i class="bi bi-clock-history"></i> Expected by 15 Feb 2026</span>
+                    </div>
                   </div>
                 </div>
-                <a href="#" class="btn btn-outline-primary btn-sm ms-3 px-4">View Details</a>
+                <div class="d-flex align-items-center mb-3">
+                  <img src="/assets/images/product-4.jpg" alt="Product" style="width: 70px; height: 70px; object-fit: cover;" class="rounded me-3 border">
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">Pearl Earrings</div>
+                    <div class="text-muted small">Qty: 3</div>
+                    <div class="fw-bold mt-1">₹999</div>
+                    <div class="mt-2">
+                      <span class="text-warning"><i class="bi bi-clock-history"></i> Expected by 15 Feb 2026</span>
+                    </div>
+                  </div>
+                </div>
               </div>
+              <a href="{{ route('orders.details', ['order' => 'ORD1024']) }}" class="btn btn-outline-primary btn-sm ms-3 px-4">View Details</a>
               <div class="order-actions position-absolute end-0 bottom-0 p-2">
                 <a href="#" class="btn btn-link btn-sm text-primary"><i class="bi bi-repeat"></i> Buy Again</a>
                 <a href="#" class="btn btn-link btn-sm text-danger"><i class="bi bi-chat-dots"></i> Need Help?</a>

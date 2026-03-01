@@ -69,6 +69,10 @@ Route::middleware(['api.user.auth'])->group(function () {
         // Placeholder orders page
         return view('orders.index');
     })->name('orders.index');
+        Route::get('/orders/{order}', function($order) {
+            // For demo, just show static details page
+            return view('orders.details');
+        })->name('orders.details');
     Route::get('/account/address', function () {
         // Placeholder address page
         return view('account.address');

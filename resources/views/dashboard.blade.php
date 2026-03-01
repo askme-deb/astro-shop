@@ -11,16 +11,22 @@
 
       <!-- Profile -->
       <div id="profile" class="section">
-        <div class="card p-4">
+        <div class="card shadow-sm border-0 mb-4 p-4 flipkart-card flipkart-hover">
           <div class="d-flex align-items-center mb-4">
-            <img src="/assets/images/profile-avatar.png" alt="Profile" style="width: 80px; height: 80px; object-fit: cover;" class="rounded-circle border me-4">
+            <div class="position-relative me-4">
+              <img id="profileAvatar" src="/assets/images/profile-avatar.png" alt="Profile" style="width: 80px; height: 80px; object-fit: cover;" class="rounded-circle border">
+              <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-theme rounded-circle p-1" style="cursor:pointer;">
+                <i class="bi bi-pencil-square text-white"></i>
+                <input type="file" id="avatarUpload" accept="image/*" style="display:none;">
+              </label>
+            </div>
             <div>
               <h5 class="fw-bold mb-1">John Doe</h5>
               <span class="text-muted">+91 9876543210</span>
             </div>
             <a href="#" class="btn btn-outline-dark btn-sm ms-auto px-4">Edit Profile</a>
           </div>
-          <hr>
+         
           <form class="profile-form">
             <div class="row g-3">
               <div class="col-md-6">
@@ -189,3 +195,16 @@
   </div>
 </div>
 @endsection
+
+<script>
+  document.getElementById('avatarUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById('profileAvatar').src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+</script>
