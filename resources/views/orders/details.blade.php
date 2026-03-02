@@ -9,7 +9,12 @@
     @include('partials.account-sidebar')
     <!-- Main Content -->
     <div class="col-md-9 col-lg-10 p-4">
-      <!-- Order Progress Bar -->
+      @if(!empty($error))
+        <div class="alert alert-danger">{{ $error }}</div>
+      @elseif(empty($orderDetails))
+        <div class="alert alert-info">Order details not found.</div>
+      @else
+      <!-- Order Progress Bar (static for now) -->
       <div class="mb-4">
         <div class="order-progress-bar bg-light p-3 rounded shadow-sm mb-2">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -28,84 +33,53 @@
         <div class="card-body p-4">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h4 class="fw-bold mb-1 text-secondary">Order #ORD1023</h4>
-              <span class="text-muted"><i class="bi bi-calendar-event"></i> 05 Feb 2026</span>
+              <h4 class="fw-bold mb-1 text-secondary">Order #{{ $orderDetails['order_number'] ?? $orderDetails['id'] ?? '-' }}</h4>
+              <span class="text-muted"><i class="bi bi-calendar-event"></i> {{ isset($orderDetails['created_at']) ? \Carbon\Carbon::parse($orderDetails['created_at'])->format('d M Y') : '-' }}</span>
             </div>
-            <span class="badge bg-success px-3 py-2 fs-6"><i class="bi bi-check-circle me-1"></i>Delivered</span>
+            @php
+              $status = strtolower($orderDetails['order_status'] ?? $orderDetails['status'] ?? '');
+              $badgeClass = 'bg-secondary';
+              if($status === 'completed' || $status === 'delivered' || $status === 'success') $badgeClass = 'bg-success';
+              elseif($status === 'pending' || $status === 'processing') $badgeClass = 'bg-warning text-dark';
+              elseif($status === 'cancelled' || $status === 'canceled') $badgeClass = 'bg-danger';
+            @endphp
+            <span class="badge {{ $badgeClass }} px-3 py-2 fs-6"><i class="bi bi-check-circle me-1"></i>{{ ucfirst($status) }}</span>
           </div>
           <div class="row g-4 align-items-center">
-            <!-- Multiple products in order -->
+            @foreach($orderDetails['items'] ?? [] as $item)
             <div class="col-md-3 col-6">
               <div class="flipkart-product-card">
-                <img src="/assets/images/product-1.jpg" alt="Product" class="img-fluid rounded border shadow-sm flipkart-product-img">
+                <img src="{{ $item['product']['image_url'] ?? '/assets/images/product-default.jpg' }}" alt="Product" class="img-fluid rounded border shadow-sm flipkart-product-img">
               </div>
             </div>
             <div class="col-md-9 col-12">
-              <div class="fw-semibold fs-5 mb-1"><i class="bi bi-gem me-1 text-warning"></i>Diamond Ring</div>
-              <div class="text-muted mb-2">Qty: <span class="fw-bold">1</span></div>
-              <div class="fw-bold fs-4 mb-2 text-success">₹4,999</div>
+              <div class="fw-semibold fs-5 mb-1">{{ $item['product_name'] ?? ($item['product']['name'] ?? '-') }}</div>
+              <div class="text-muted mb-2">Qty: <span class="fw-bold">{{ $item['quantity'] ?? 1 }}</span></div>
+              <div class="fw-bold fs-4 mb-2 text-success">₹{{ number_format($item['price'] ?? $item['product']['price'] ?? 0, 2) }}</div>
               <div class="mb-2">
-                <span class="text-success"><i class="bi bi-truck me-1"></i> Delivered on <b>07 Feb 2026</b></span>
+                <span class="text-muted"><i class="bi bi-shop-window me-1"></i>Sold by: <b>{{ $orderDetails['seller_name'] ?? 'Astro Jewels Pvt Ltd' }}</b></span>
               </div>
               <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-shop-window me-1"></i>Sold by: <b>Astro Jewels Pvt Ltd</b></span>
+                <span class="text-muted"><i class="bi bi-calendar-check me-1"></i>Order placed: <b>{{ isset($orderDetails['created_at']) ? \Carbon\Carbon::parse($orderDetails['created_at'])->format('d M Y') : '-' }}</b></span>
               </div>
               <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-calendar-check me-1"></i>Order placed: <b>05 Feb 2026</b></span>
-              </div>
-              <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-credit-card me-1"></i>Payment: <b>Prepaid (Credit Card)</b></span>
+                <span class="text-muted"><i class="bi bi-credit-card me-1"></i>Payment: <b>{{ ucfirst($orderDetails['payment_method'] ?? '-') }}</b></span>
               </div>
               <!-- Expand/Collapse Delivery Address -->
               <div class="mb-2">
                 <span class="text-muted"><i class="bi bi-geo-alt me-1"></i>Delivery Address:</span>
-                <button class="btn btn-link btn-sm p-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#addressCollapse" aria-expanded="false" aria-controls="addressCollapse">Show/Hide</button>
-                <div class="collapse mt-2" id="addressCollapse">
+                <button class="btn btn-link btn-sm p-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#addressCollapse{{ $item['id'] }}" aria-expanded="false" aria-controls="addressCollapse{{ $item['id'] }}">Show/Hide</button>
+                <div class="collapse mt-2" id="addressCollapse{{ $item['id'] }}">
                   <div class="border rounded p-2 bg-light flipkart-address">
-                    <b>John Doe</b><br>
-                    123 Main Street,<br>
-                    Mumbai, Maharashtra - 400001<br>
-                    <span class="text-muted">Phone: +91-9876543210</span>
+                    <b>{{ $orderDetails['address_book']['shipping_first_name'] ?? 'N/A' }} {{ $orderDetails['address_book']['shipping_last_name'] ?? '' }}</b><br>
+                    {{ $orderDetails['address_book']['shipping_address'] ?? 'N/A' }}<br>
+                    {{ $orderDetails['address_book']['shipping_city']['name'] ?? ($orderDetails['address_book']['shipping_city'] ?? '') }}, {{ $orderDetails['address_book']['shipping_state']['name'] ?? ($orderDetails['address_book']['shipping_state'] ?? '') }} - {{ $orderDetails['address_book']['shipping_zip_code'] ?? '' }}<br>
+                    <span class="text-muted">Phone: {{ $orderDetails['address_book']['shipping_phone_number'] ?? 'N/A' }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            <!-- Second product in order -->
-            <div class="col-md-3 col-6">
-              <div class="flipkart-product-card">
-                <img src="/assets/images/product-3.jpg" alt="Product" class="img-fluid rounded border shadow-sm flipkart-product-img">
-              </div>
-            </div>
-            <div class="col-md-9 col-12">
-              <div class="fw-semibold fs-5 mb-1"><i class="bi bi-gem me-1 text-info"></i>Silver Bracelet</div>
-              <div class="text-muted mb-2">Qty: <span class="fw-bold">2</span></div>
-              <div class="fw-bold fs-4 mb-2 text-success">₹1,299</div>
-              <div class="mb-2">
-                <span class="text-success"><i class="bi bi-truck me-1"></i> Delivered on <b>07 Feb 2026</b></span>
-              </div>
-              <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-shop-window me-1"></i>Sold by: <b>Astro Jewels Pvt Ltd</b></span>
-              </div>
-              <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-calendar-check me-1"></i>Order placed: <b>05 Feb 2026</b></span>
-              </div>
-              <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-credit-card me-1"></i>Payment: <b>Prepaid (Credit Card)</b></span>
-              </div>
-              <!-- Expand/Collapse Delivery Address (reuse same address) -->
-              <div class="mb-2">
-                <span class="text-muted"><i class="bi bi-geo-alt me-1"></i>Delivery Address:</span>
-                <button class="btn btn-link btn-sm p-0 ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#addressCollapse2" aria-expanded="false" aria-controls="addressCollapse2">Show/Hide</button>
-                <div class="collapse mt-2" id="addressCollapse2">
-                  <div class="border rounded p-2 bg-light flipkart-address">
-                    <b>John Doe</b><br>
-                    123 Main Street,<br>
-                    Mumbai, Maharashtra - 400001<br>
-                    <span class="text-muted">Phone: +91-9876543210</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            @endforeach
           </div>
           <hr class="my-4">
           <div class="d-flex justify-content-end gap-2 mt-3">
@@ -137,6 +111,7 @@
           </div>
         </div>
       </div>
+      @endif
       <!-- Timeline Card with Collapse and Tooltips -->
       <div class="card shadow-sm border-0 flipkart-card">
         <div class="card-body p-4">
@@ -146,34 +121,63 @@
           </div>
           <div class="collapse show" id="timelineCollapse">
             <ul class="timeline">
-              <li class="timeline-item completed" data-bs-toggle="tooltip" data-bs-placement="right" title="Order was placed successfully">
-                <span class="timeline-status bg-secondary"></span>
-                <div class="timeline-content">
-                  <span class="fw-bold text-dark"><i class="bi bi-bag-check me-1 text-dark"></i>Order Placed</span>
-                  <span class="text-muted ms-2">05 Feb 2026, 10:30 AM</span>
-                </div>
-              </li>
-              <li class="timeline-item completed" data-bs-toggle="tooltip" data-bs-placement="right" title="Order shipped by seller">
-                <span class="timeline-status bg-secondary"></span>
-                <div class="timeline-content">
-                  <span class="fw-bold text-dark"><i class="bi bi-box-seam me-1"></i>Shipped</span>
-                  <span class="text-muted ms-2">06 Feb 2026, 2:00 PM</span>
-                </div>
-              </li>
-              <li class="timeline-item completed" data-bs-toggle="tooltip" data-bs-placement="right" title="Order is out for delivery">
-                <span class="timeline-status bg-secondary"></span>
-                <div class="timeline-content">
-                  <span class="fw-bold text-dark"><i class="bi bi-truck me-1"></i>Out for Delivery</span>
-                  <span class="text-muted ms-2">07 Feb 2026, 9:00 AM</span>
-                </div>
-              </li>
-              <li class="timeline-item completed" data-bs-toggle="tooltip" data-bs-placement="right" title="Order delivered to customer">
-                <span class="timeline-status bg-secondary"></span>
-                <div class="timeline-content">
-                  <span class="fw-bold text-dark"><i class="bi bi-check-circle me-1"></i>Delivered</span>
-                  <span class="text-muted ms-2">07 Feb 2026, 2:30 PM</span>
-                </div>
-              </li>
+              @php
+                $statusMap = [
+                  'pending' => ['icon' => 'bi-bag-check', 'label' => 'Order Placed'],
+                  'processing' => ['icon' => 'bi-box-seam', 'label' => 'Processing'],
+                  'shipped' => ['icon' => 'bi-truck', 'label' => 'Shipped'],
+                  'delivered' => ['icon' => 'bi-check-circle', 'label' => 'Delivered'],
+                  'cancelled' => ['icon' => 'bi-x-circle', 'label' => 'Cancelled'],
+                  'returned' => ['icon' => 'bi-arrow-counterclockwise', 'label' => 'Returned'],
+                ];
+                $history = [];
+                if (!empty($orderTimeline['status_history']) && is_array($orderTimeline['status_history'])) {
+                  $history = $orderTimeline['status_history'];
+                } elseif (!empty($orderDetails['status_history']) && is_array($orderDetails['status_history'])) {
+                  $history = $orderDetails['status_history'];
+                }
+              @endphp
+
+              @if(!empty($history) && is_array($history))
+                @foreach($history as $event)
+                  @php
+                    $status = strtolower($event['status'] ?? '');
+                    $icon = $statusMap[$status]['icon'] ?? 'bi-clock';
+                    $label = $statusMap[$status]['label'] ?? ucfirst($status);
+                    $completed = ($event['completed'] ?? false) ? 'completed' : '';
+                    $active = ($event['active'] ?? false) ? 'active' : '';
+                  @endphp
+                  @if($active)
+                    <li class="timeline-item active" data-bs-toggle="tooltip" data-bs-placement="right" title="{{ $label }}">
+                      <span class="timeline-status bg-theme"></span>
+                      <div class="timeline-content">
+                        <span class="fw-bold text-dark"><i class="bi {{ $icon }} me-1 text-dark"></i>{{ $label }}</span>
+                        <span class="text-muted ms-2">
+                          @if(!empty($event['date']))
+                            {{ \Carbon\Carbon::parse($event['date'])->format('d M Y, h:i A') }}
+                          @endif
+                        </span>
+                      </div>
+                    </li>
+                  @else
+                    <li class="timeline-item disabled" data-bs-toggle="tooltip" data-bs-placement="right" title="{{ $label }}" style="opacity:0.5;">
+                      <span class="timeline-status bg-secondary"></span>
+                      <div class="timeline-content">
+                        <span class="fw-bold text-muted"><i class="bi {{ $icon }} me-1"></i>{{ $label }}</span>
+                        {{-- Optionally show date if available: <span class="text-muted ms-2">{{ $event['date'] ?? '' }}</span> --}}
+                      </div>
+                    </li>
+                  @endif
+                @endforeach
+              @else
+                <li class="timeline-item" data-bs-toggle="tooltip" data-bs-placement="right" title="No timeline data available">
+                  <span class="timeline-status bg-secondary"></span>
+                  <div class="timeline-content">
+                    <span class="fw-bold text-dark"><i class="bi bi-clock me-1 text-dark"></i>No timeline data</span>
+                  </div>
+                </li>
+                <pre style="color:red;">DEBUG: No status_history found. orderDetails: {{ var_export($orderDetails, true) }}</pre>
+              @endif
             </ul>
           </div>
         </div>
@@ -207,25 +211,66 @@
             </div>
             <div class="modal-body">
               <div class="mb-3">
-                <div class="d-flex align-items-center mb-2">
-                  <span class="badge bg-primary me-2">Shipped</span>
-                  <span class="text-muted">06 Feb 2026, 2:00 PM</span>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                  <span class="badge bg-warning text-dark me-2">Out for Delivery</span>
-                  <span class="text-muted">07 Feb 2026, 9:00 AM</span>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                  <span class="badge bg-success me-2">Delivered</span>
-                  <span class="text-muted">07 Feb 2026, 2:30 PM</span>
-                </div>
-                <div class="progress mt-3" style="height: 8px;">
-                  <div class="progress-bar bg-success" style="width: 100%"></div>
-                </div>
+                @php
+                  $statusBadgeMap = [
+                    'pending' => 'bg-secondary',
+                    'processing' => 'bg-warning text-dark',
+                    'shipped' => 'bg-primary',
+                    'out for delivery' => 'bg-warning text-dark',
+                    'delivered' => 'bg-success',
+                    'cancelled' => 'bg-danger',
+                    'canceled' => 'bg-danger',
+                    'returned' => 'bg-info',
+                  ];
+                  $history = [];
+                  if (!empty($orderTimeline['status_history']) && is_array($orderTimeline['status_history'])) {
+                    $history = $orderTimeline['status_history'];
+                  } elseif (!empty($orderDetails['status_history']) && is_array($orderDetails['status_history'])) {
+                    $history = $orderDetails['status_history'];
+                  }
+                @endphp
+                @if(!empty($history) && is_array($history))
+                  @foreach($history as $event)
+                    @php
+                      $status = strtolower($event['status'] ?? '');
+                      $label = $statusMap[$status]['label'] ?? ucfirst($status);
+                      $badge = $statusBadgeMap[$status] ?? 'bg-secondary';
+                    @endphp
+                    <div class="d-flex align-items-center mb-2">
+                      <span class="badge {{ $badge }} me-2">{{ $label }}</span>
+                      <span class="text-muted">
+                        @if(!empty($event['date']))
+                          {{ \Carbon\Carbon::parse($event['date'])->format('d M Y, h:i A') }}
+                        @endif
+                      </span>
+                    </div>
+                  @endforeach
+                  <div class="progress mt-3" style="height: 8px;">
+                    @php
+                      // Calculate progress percentage based on completed events
+                      $total = count($history);
+                      $completed = 0;
+                      foreach($history as $ev) {
+                        if (!empty($ev['completed'])) $completed++;
+                      }
+                      $progress = $total > 0 ? intval(($completed / $total) * 100) : 0;
+                      // If last event is active or delivered, set to 100%
+                      if (!empty($history[$total-1]['active']) || (isset($history[$total-1]['status']) && strtolower($history[$total-1]['status']) === 'delivered')) {
+                        $progress = 100;
+                      }
+                      $progressBarClass = ($progress === 100) ? 'bg-success' : 'bg-primary';
+                    @endphp
+                    <div class="progress-bar {{ $progressBarClass }}" style="width: {{ $progress }}%"></div>
+                  </div>
+                @else
+                  <div class="text-muted">No tracking data available.</div>
+                @endif
               </div>
-              <div class="alert alert-info mt-3" role="alert">
-                Your order has been delivered. Thank you for shopping with us!
-              </div>
+              @if(!empty($history) && is_array($history) && isset($history[$total-1]) && (strtolower($history[$total-1]['status'] ?? '') === 'delivered'))
+                {{-- <div class="alert alert-info mt-3" role="alert">
+                  Your order has been delivered. Thank you for shopping with us!
+                </div> --}}
+              @endif
             </div>
           </div>
         </div>
@@ -245,6 +290,9 @@
       <style>
         .text-theme {
           color: #f88400 !important;
+        }
+        .bg-theme{
+            background-color: #f88400 !important;
         }
         body {
           background: #f5f7fa;

@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AddressController;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -65,18 +66,17 @@ Route::view('/thank-you', 'thank-you')->name('thank-you');
 
 Route::middleware(['api.user.auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/orders', function () {
-        // Placeholder orders page
-        return view('orders.index');
-    })->name('orders.index');
-        Route::get('/orders/{order}', function($order) {
-            // For demo, just show static details page
-            return view('orders.details');
-        })->name('orders.details');
-    Route::get('/account/address', function () {
-        // Placeholder address page
-        return view('account.address');
-    })->name('account.address');
+    Route::get('/orders', [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.details');
+    // Address management
+    Route::get('/account/address', [AddressController::class, 'index'])->name('account.address');
+    Route::post('/account/address/save', [AddressController::class, 'save'])->name('account.address.save');
+    Route::post('/account/address/update/{id}', [AddressController::class, 'update'])->name('account.address.update');
+    Route::post('/account/address/delete/{id}', [AddressController::class, 'delete'])->name('account.address.delete');
+    Route::post('/account/address/default/{id}', [AddressController::class, 'setDefault'])->name('account.address.default');
+        // Address AJAX endpoints for state/city dropdowns
+        Route::post('/account/address/state-list', [\App\Http\Controllers\AddressController::class, 'stateList'])->name('account.address.state-list');
+        Route::post('/account/address/city-list', [\App\Http\Controllers\AddressController::class, 'cityList'])->name('account.address.city-list');
     Route::get('/account/settings', function () {
         // Placeholder account settings page
         return view('account.settings');

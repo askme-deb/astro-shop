@@ -72,7 +72,7 @@
         </div>
       @empty
         <!-- Fallback static items if no categories are available -->
-        <div class="col-lg-3 col-md-6">
+        {{-- <div class="col-lg-3 col-md-6">
           <div class="gem-card">
             <img src="images/001.png" alt="Yellow Sapphire">
             <h5>YELLOW SAPPHIRE ›</h5>
@@ -134,7 +134,7 @@
             <h5>HESSONITE ›</h5>
             <p>Pacifies Rahu, Popularity,<br>Speculative Success</p>
           </div>
-        </div>
+        </div> --}}
       @endforelse
 
     </div>
