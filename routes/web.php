@@ -9,6 +9,7 @@ use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Api\WishlistController;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -87,10 +88,11 @@ Route::middleware(['api.user.auth'])->group(function () {
     })->name('wishlist.index');
 });
 
-Route::get('/wishlist', function () {
-    // Placeholder wishlist page
-    return view('wishlist.index');
-})->name('wishlist.index');
+
+use App\Http\Controllers\WishController;
+
+Route::get('/wishlist', [WishController::class, 'index'])->name('wishlist.index');
+Route::post('/wishlist/remove', [WishController::class, 'remove'])->name('wishlist.remove');
 
 // Move the category route to the end to ensure all specific routes are matched first
 Route::get('/{category}', [ProductController::class, 'category'])

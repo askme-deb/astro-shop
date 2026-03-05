@@ -16,6 +16,44 @@ use App\Services\Api\CartUserResolverService;
  */
 class WishlistApiService extends BaseApiClient
 {
+    /**
+     * Get wishlist items for current user/guest.
+     * External endpoint: GET /api/v1/wishlist
+     *
+     * @param Request $request
+     * @return array
+     */
+    public function getWishlistItems(Request $request): array
+    {
+        $options = [];
+        try {
+            $originalToken = $this->token;
+            $userToken = (string) $request->cookie('auth_api_token', '');
+            if ($userToken !== '') {
+                $this->token = $userToken;
+            } else {
+                $resolved = $this->userResolver->resolve($request);
+                if ($resolved['type'] === 'guest') {
+                    $options['query'] = ['guest_user_id' => $resolved['id']];
+                }
+            }
+            $data = $this->request('GET', 'wishlist', $options);
+            $this->token = $originalToken;
+        } catch (\Throwable $exception) {
+            Log::error('Wishlist items API call failed', [
+                'service' => static::class,
+                'message' => $exception->getMessage(),
+            ]);
+            return [];
+        }
+        if (isset($data['data']) && is_array($data['data'])) {
+            return $data['data'];
+        }
+        if (is_array($data)) {
+            return $data;
+        }
+        return [];
+    }
     protected CartUserResolverService $userResolver;
 
     public function __construct(CartUserResolverService $userResolver)
@@ -199,5 +237,46 @@ class WishlistApiService extends BaseApiClient
             'message' => $message,
             'in_wishlist' => $inWishlist,
         ];
+    }
+
+        /**
+     * Remove an item from the wishlist for the current user/guest.
+     * External endpoint: POST /api/v1/delete-wishlist
+     *
+     * @param int $wishlistId
+     * @param Request $request
+     * @return array
+     */
+    public function removeWishlistItem(int $wishlistId, Request $request): array
+    {
+        $payload = [
+            'wishlist_id' => $wishlistId,
+        ];
+        try {
+            $originalToken = $this->token;
+            $userToken = (string) $request->cookie('auth_api_token', '');
+            if ($userToken !== '') {
+                $this->token = $userToken;
+            } else {
+                $resolved = $this->userResolver->resolve($request);
+                if ($resolved['type'] === 'guest') {
+                    $payload['guest_user_id'] = $resolved['id'];
+                }
+            }
+            $result = $this->request('POST', '/api/v1/delete-wishlist', [
+                'json' => $payload,
+            ]);
+            $this->token = $originalToken;
+        } catch (\Throwable $exception) {
+            Log::error('Wishlist delete API call failed', [
+                'service' => static::class,
+                'message' => $exception->getMessage(),
+            ]);
+            return [
+                'success' => false,
+                'message' => 'Unable to remove wishlist item at the moment.'
+            ];
+        }
+        return $result ?? ['success' => false, 'message' => 'Unknown error'];
     }
 }

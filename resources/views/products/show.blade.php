@@ -67,10 +67,10 @@
           <span class="label">Carat:</span>
           <span class="value">{{ $product['carat'] ?? 'N/A' }}</span>
         </div>
-        <div class="origin-wrap">
+        <!-- <div class="origin-wrap">
           <span class="label">Ratti:</span>
           <span class="value">{{ $product['ratti'] ?? 'N/A' }}</span>
-        </div>
+        </div> -->
       </div>
 
 
@@ -96,14 +96,14 @@
       <div class="row g-3 align-items-end mb-3">
 
         <!-- Carat Selection (50%) -->
-        <div class="col-md-6">
+        <!-- <div class="col-md-6">
           <label for="carat" class="fw-semibold mb-1">Select Ratti Weight</label>
           <select id="carat" class="form-select" onchange="updatePrice()">
             @for($carat = 3; $carat <= 15; $carat += 0.5)
               <option value="{{ $carat }}">{{ rtrim(rtrim(number_format($carat, 1), '0'), '.') }} Ratti</option>
             @endfor
           </select>
-        </div>
+        </div> -->
 
         <!-- Quantity (50%) -->
         <div class="col-md-6">
