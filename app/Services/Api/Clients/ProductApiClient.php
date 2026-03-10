@@ -131,6 +131,13 @@ class ProductApiClient extends BaseApiClient
         $response = $this->request('GET', 'product/search', [
             'query' => ['q' => $query],
         ]);
+
+        // Log the raw API response for debugging
+        Log::info('ProductApiClient searchProducts API response', [
+            'query' => $query,
+            'response' => $response,
+        ]);
+
         if (isset($response['data']) && is_array($response['data'])) {
             return array_values($response['data']);
         } elseif (array_is_list($response)) {

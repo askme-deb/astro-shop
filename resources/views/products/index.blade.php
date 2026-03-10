@@ -34,11 +34,7 @@ $filters = [
     'label' => 'Category',
     'options' => [], // Fill dynamically if needed
   ],
-  [
-    'name' => 'brand_id',
-    'label' => 'Brand',
-    'options' => [], // Fill dynamically if needed
-  ],
+ 
   [
     'name' => 'min_price',
     'label' => 'Min Price',
@@ -70,45 +66,14 @@ $filters = [
     'type' => 'number',
     'placeholder' => 'Carat'
   ],
-  [
-    'name' => 'min_ratti',
-    'label' => 'Min Ratti',
-    'type' => 'number',
-    'placeholder' => 'Min ratti'
-  ],
-  [
-    'name' => 'max_ratti',
-    'label' => 'Max Ratti',
-    'type' => 'number',
-    'placeholder' => 'Max ratti'
-  ],
-  [
-    'name' => 'min_carat',
-    'label' => 'Min Carat',
-    'type' => 'number',
-    'placeholder' => 'Min carat'
-  ],
-  [
-    'name' => 'max_carat',
-    'label' => 'Max Carat',
-    'type' => 'number',
-    'placeholder' => 'Max carat'
-  ],
+  
   [
     'name' => 'product_grade_id',
     'label' => 'Product Grade',
     'options' => [], // Fill dynamically if needed
   ],
-  [
-    'name' => 'grade_id',
-    'label' => 'Grade ID',
-    'options' => [], // Fill dynamically if needed
-  ],
-  [
-    'name' => 'grade',
-    'label' => 'Grade',
-    'options' => [], // Fill dynamically if needed
-  ],
+ 
+  
 ];
 $sortOptions = [
   ['value' => 'best', 'label' => 'Best selling'],

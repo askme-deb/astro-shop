@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\ProductApiService;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ProductSearchController
 {
@@ -26,6 +28,18 @@ class ProductSearchController
             'ratti', 'carat', 'min_ratti', 'max_ratti', 'min_carat', 'max_carat', 'product_grade_id', 'grade_id', 'grade'
         ]);
 
+        $query = trim((string) ($filters['q'] ?? ''));
+
+        if ($query !== '' && strlen($query) < 2) {
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'products' => [],
+                'pagination' => [],
+                'message' => 'Query too short',
+            ], 400);
+        }
+
         // category_id[] support
         if ($request->has('category_id')) {
             $filters['category_id'] = $request->input('category_id');
@@ -42,12 +56,41 @@ class ProductSearchController
             $filters['sort'] = $sortMap[$filters['sort']] ?? $filters['sort'];
         }
 
-        $page = (int) ($filters['page'] ?? 1);
         $perPage = (int) ($filters['per_page'] ?? 20);
         $filters['per_page'] = $perPage;
 
-        // Call the correct external API endpoint for product search
-        $response = $this->productApiService->searchProductsWithFilters($filters);
+        try {
+            $response = $this->productApiService->searchProductsWithFilters($filters);
+        } catch (RequestException $exception) {
+            Log::warning('Product search upstream request failed', [
+                'service' => static::class,
+                'filters' => $filters,
+                'status' => $exception->response?->status(),
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'products' => [],
+                'pagination' => [],
+                'message' => 'Product search is temporarily unavailable.',
+            ], 502);
+        } catch (\Throwable $exception) {
+            Log::error('Product search failed unexpectedly', [
+                'service' => static::class,
+                'filters' => $filters,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'data' => [],
+                'products' => [],
+                'pagination' => [],
+                'message' => 'Product search is temporarily unavailable.',
+            ], 500);
+        }
 
         $products = [];
         $pagination = [];
@@ -65,6 +108,8 @@ class ProductSearchController
         }
 
         return response()->json([
+            'status' => true,
+            'data' => $products,
             'products' => $products,
             'pagination' => $pagination,
         ]);

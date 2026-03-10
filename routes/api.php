@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\ProductSearchController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiCheckoutController;
@@ -36,4 +37,4 @@ Route::prefix('checkout')->group(function () {
 Route::get('products/{id}', [ProductController::class, 'show']);
 
 // Product search autocomplete
-Route::get('product/search', [ProductController::class, 'search']);
+Route::get('product/search', ProductSearchController::class);
