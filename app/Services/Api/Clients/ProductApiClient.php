@@ -138,4 +138,17 @@ class ProductApiClient extends BaseApiClient
         }
         return [];
     }
+
+        /**
+     * Public method to call /product/search with filters.
+     *
+     * @param array $filters
+     * @return array
+     */
+    public function searchProductsWithFilters(array $filters = []): array
+    {
+        return $this->request('GET', 'product/search', [
+            'query' => $filters
+        ]);
+    }
 }

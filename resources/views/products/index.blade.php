@@ -21,133 +21,111 @@
  <!-- Page Title -->
 
 
-<section class="collection-filter">
-  <div class="container">
-    <div class="filter-row">
+@php
+$filters = [
+//   [
+//     'name' => 'q',
+//     'label' => 'Search',
+//     'type' => 'text',
+//     'placeholder' => 'Search products...'
+//   ],
+  [
+    'name' => 'category_id',
+    'label' => 'Category',
+    'options' => [], // Fill dynamically if needed
+  ],
+  [
+    'name' => 'brand_id',
+    'label' => 'Brand',
+    'options' => [], // Fill dynamically if needed
+  ],
+  [
+    'name' => 'min_price',
+    'label' => 'Min Price',
+    'type' => 'number',
+    'placeholder' => 'Min price'
+  ],
+  [
+    'name' => 'max_price',
+    'label' => 'Max Price',
+    'type' => 'number',
+    'placeholder' => 'Max price'
+  ],
+  [
+    'name' => 'in_stock',
+    'label' => 'In Stock',
+    'options' => [
+      ['value' => '1', 'label' => 'In Stock Only'],
+    ],
+  ],
+  [
+    'name' => 'ratti',
+    'label' => 'Ratti',
+    'type' => 'number',
+    'placeholder' => 'Ratti'
+  ],
+  [
+    'name' => 'carat',
+    'label' => 'Carat',
+    'type' => 'number',
+    'placeholder' => 'Carat'
+  ],
+  [
+    'name' => 'min_ratti',
+    'label' => 'Min Ratti',
+    'type' => 'number',
+    'placeholder' => 'Min ratti'
+  ],
+  [
+    'name' => 'max_ratti',
+    'label' => 'Max Ratti',
+    'type' => 'number',
+    'placeholder' => 'Max ratti'
+  ],
+  [
+    'name' => 'min_carat',
+    'label' => 'Min Carat',
+    'type' => 'number',
+    'placeholder' => 'Min carat'
+  ],
+  [
+    'name' => 'max_carat',
+    'label' => 'Max Carat',
+    'type' => 'number',
+    'placeholder' => 'Max carat'
+  ],
+  [
+    'name' => 'product_grade_id',
+    'label' => 'Product Grade',
+    'options' => [], // Fill dynamically if needed
+  ],
+  [
+    'name' => 'grade_id',
+    'label' => 'Grade ID',
+    'options' => [], // Fill dynamically if needed
+  ],
+  [
+    'name' => 'grade',
+    'label' => 'Grade',
+    'options' => [], // Fill dynamically if needed
+  ],
+];
+$sortOptions = [
+  ['value' => 'best', 'label' => 'Best selling'],
+  ['value' => 'new', 'label' => 'New arrivals'],
+  ['value' => 'price-low', 'label' => 'Price: Low to High'],
+  ['value' => 'price-high', 'label' => 'Price: High to Low'],
+];
+@endphp
+<x-product-filters :filters="$filters" :sort-options="$sortOptions" />
 
-      <!-- Left Filters -->
-      <div class="filter-left">
 
-        <div class="filter-dropdown">
-          <button class="filter-btn">Product type</button>
-          <ul class="filter-menu">
-            <li data-value="ring">Rings</li>
-            <li data-value="necklace">Necklaces</li>
-            <li data-value="bracelet">Bracelets</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Price</button>
-          <ul class="filter-menu">
-            <li data-value="0-2000">Below ₹2,000</li>
-            <li data-value="2000-5000">₹2,000 – ₹5,000</li>
-            <li data-value="5000+">Above ₹5,000</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Shop For</button>
-          <ul class="filter-menu">
-            <li>Men</li>
-            <li>Women</li>
-            <li>Kids</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Color</button>
-          <ul class="filter-menu">
-            <li>Gold</li>
-            <li>Silver</li>
-            <li>Rose Gold</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Metal</button>
-          <ul class="filter-menu">
-            <li>Gold</li>
-            <li>Silver</li>
-            <li>Platinum</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Stone</button>
-          <ul class="filter-menu">
-            <li>Diamond</li>
-            <li>Ruby</li>
-            <li>Sapphire</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Style</button>
-          <ul class="filter-menu">
-            <li>Classic</li>
-            <li>Modern</li>
-            <li>Minimal</li>
-          </ul>
-        </div>
-
-        <div class="filter-dropdown">
-          <button class="filter-btn">Sub Category</button>
-          <ul class="filter-menu">
-            <li>Daily Wear</li>
-            <li>Party Wear</li>
-            <li>Wedding</li>
-          </ul>
-        </div>
-
-      </div>
-
-      <!-- Right Sort -->
-      <div class="filter-right">
-        <label>Sort by:</label>
-        <select id="sortSelect">
-          <option value="best">Best selling</option>
-          <option value="new">New arrivals</option>
-          <option value="price-low">Price: Low to High</option>
-          <option value="price-high">Price: High to Low</option>
-        </select>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-     
 <!-- Products -->
 <!-- Products -->
 <div class="container my-5 product_warp2">
   <div class="row g-4 d-md-flex">
     @forelse($products ?? [] as $product)
-      <div class="col-md-3 col-sm-6">
-        <div class="product-card">
-          <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
-         <a href="{{ route('products.show', ['slug' => $product['slug'] ?? '']) }}"> <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}"></a>
-          <div class="rating">
-            ⭐ {{ $product['rating'] ?? '4.5' }}
-          </div>
-          <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
-          <div>
-            <span class="price">₹{{ $product['final_price'] ?? $product['total_price'] ?? $product['price'] ?? '0.00' }}</span>
-            @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-              <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
-            @endif
-          </div>
-          @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-            <div class="offer">Save {{ $product['discount_rate'] }}%</div>
-          @else
-            <div class="offer">&nbsp;</div>
-          @endif
-          <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
-            <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>
-          </div>
-        </div>
-      </div>
+      <x-product-card :product="$product" />
     @empty
       <p>No products found.</p>
     @endforelse
@@ -190,6 +168,83 @@
 
 @push('scripts')
 <script>
-    // Specific specific logic if needed, or empty if everything moved
+
+function getSelectedFilters() {
+  const filters = {};
+  // Collect active dropdown filters
+  document.querySelectorAll('.filter-menu li.active').forEach(li => {
+    const filter = li.getAttribute('data-filter');
+    if (!filters[filter]) filters[filter] = [];
+    filters[filter].push(li.getAttribute('data-value'));
+  });
+  // Collect text/number input filters
+  document.querySelectorAll('.filter-input-field').forEach(input => {
+    if (input.value) {
+      filters[input.name] = [input.value];
+    }
+  });
+  return filters;
+}
+
+function getSortValue() {
+  return document.getElementById('sortSelect')?.value || '';
+}
+
+function fetchProducts(page = 1) {
+  const filters = getSelectedFilters();
+  const sort = getSortValue();
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, values]) => {
+    values.forEach(val => params.append(key, val));
+  });
+  if (sort) params.append('sort', sort);
+  params.append('page', page);
+  fetch(`/ajax/products/search?${params.toString()}`)
+    .then(res => res.json())
+    .then(data => {
+      const container = document.querySelector('.product_warp2 .row');
+      if (container) {
+        container.innerHTML = data.products.map(product => renderProductCard(product)).join('');
+      }
+      // Render a product card in JS (matches Blade component as much as possible)
+      function renderProductCard(product) {
+        return `
+          <div class="col-md-3 col-sm-6">
+            <div class="product-card">
+              <img src="${product.image_url || '/assets/images/product-1.jpg'}" alt="${product.name || 'Product'}">
+              <div class="rating">⭐</div>
+              <h6 class="mt-2">${product.name || 'Product'}</h6>
+              <div>
+                <span class="price">₹${product.price || '0.00'}</span>
+              </div>
+              <div class="offer">&nbsp;</div>
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-cart">Add to Cart</button>
+                <button class="btn btn-buy">Buy Now</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      // TODO: update pagination if needed
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.filter-menu li').forEach(li => {
+    li.addEventListener('click', function() {
+      this.classList.toggle('active');
+      fetchProducts();
+    });
+  });
+  document.querySelectorAll('.filter-input-field').forEach(input => {
+    input.addEventListener('input', function() {
+      fetchProducts();
+    });
+  });
+  document.getElementById('sortSelect')?.addEventListener('change', function() {
+    fetchProducts();
+  });
+});
 </script>
 @endpush

@@ -10,6 +10,9 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\Api\ProductSearchController;
+
+use App\Http\Controllers\WishController;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -89,10 +92,13 @@ Route::middleware(['api.user.auth'])->group(function () {
 });
 
 
-use App\Http\Controllers\WishController;
+
 
 Route::get('/wishlist', [WishController::class, 'index'])->name('wishlist.index');
 Route::post('/wishlist/remove', [WishController::class, 'remove'])->name('wishlist.remove');
+
+
+Route::get('/ajax/products/search', ProductSearchController::class)->name('ajax.products.search');
 
 // Move the category route to the end to ensure all specific routes are matched first
 Route::get('/{category}', [ProductController::class, 'category'])

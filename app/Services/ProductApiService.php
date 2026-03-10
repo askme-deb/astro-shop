@@ -463,4 +463,17 @@ class ProductApiService
         }
         return [];
     }
+
+
+        /**
+     * Call the external API /product/search endpoint with filters.
+     *
+     * @param array $filters
+     * @return array
+     */
+    public function searchProductsWithFilters(array $filters = []): array
+    {
+        // Use a public method on ProductApiClient for product search
+        return $this->client->searchProductsWithFilters($filters);
+    }
 }

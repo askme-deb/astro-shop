@@ -14,27 +14,27 @@
     <!-- Slide 1 -->
     <div class="carousel-item active"
       style="background-image: url('{{ asset('assets/images/product_1.jpeg') }}');">
-      <div class="hero-content">
+      {{-- <div class="hero-content">
         <h1>Fresh Drop</h1>
         <p>Consider this your <strong>new silver update</strong></p>
         <button class="hero-btn">SHOP NOW</button>
-      </div>
+      </div> --}}
     </div>
 
     <!-- Slide 2 -->
     <div class="carousel-item"
       style="background-image: url('{{ asset('assets/images/product_2.jpeg') }}');">
-      <div class="hero-content">
+      {{-- <div class="hero-content">
         <h1>New Arrivals</h1>
         <p>Everyday elegance in silver</p>
         <button class="hero-btn">EXPLORE</button>
-      </div>
+      </div> --}}
     </div>
 
   </div>
 
   <!-- Controls -->
-  <button class="carousel-control-prev" type="button"
+  {{-- <button class="carousel-control-prev" type="button"
     data-bs-target="#heroSlider" data-bs-slide="prev">
     <span class="carousel-control-prev-icon"></span>
   </button>
@@ -42,7 +42,7 @@
   <button class="carousel-control-next" type="button"
     data-bs-target="#heroSlider" data-bs-slide="next">
     <span class="carousel-control-next-icon"></span>
-  </button>
+  </button> --}}
 
 </div>
 
@@ -63,8 +63,10 @@
       @forelse(($gemstoneCategories ?? []) as $category)
         <div class="col-lg-3 col-md-6">
           <div class="gem-card">
-            <img src="{{ $category['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $category['name'] ?? 'Gemstone' }}">
-            <h5>{{ $category['name'] ?? 'Gemstone' }} ›</h5>
+            <a href="/{{ $category['slug'] ?? $category['id'] }}">
+                <img src="{{ $category['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $category['name'] ?? 'Gemstone' }}">
+            </a>
+             <a href="/{{ $category['slug'] ?? $category['id'] }}" style="text-decoration: none; color: #000000;"><h5>{{ $category['name'] ?? 'Gemstone' }} ›</h5></a>
             @if(!empty($category['description']))
               <p>{!! nl2br(e($category['description'])) !!}</p>
             @endif
@@ -154,29 +156,7 @@
       <!-- <p class="fw-semibold">PRODUCTS OF TRUSTED EXCELLENCE</p> -->
     </div>
     @forelse($bestSellingProducts ?? [] as $product)
-    <div class="col-md-3 col-sm-6">
-      <div class="product-card">
-        <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
-        <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
-        <div class="rating">⭐ {{ $product['rating'] ?? '4.5' }}</div>
-        <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
-        <div>
-          <span class="price">₹{{ $product['final_price'] ?? $product['total_price'] ?? $product['price'] ?? '0.00' }}</span>
-          @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-          <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
-          @endif
-        </div>
-        @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-        <div class="offer">Save {{ $product['discount_rate'] }}%</div>
-        @else
-        <div class="offer">&nbsp;</div>
-        @endif
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
-          <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>
-        </div>
-      </div>
-    </div>
+        <x-product-card :product="$product" />
     @empty
     <p>No bestselling products found.</p>
     @endforelse
@@ -241,7 +221,7 @@
           On All Products
         </h2>
         <p class="mb-4">Premium quality gemstones & jewellery at exclusive prices.</p>
-        <a href="https://ecommerce.astrorajumaharaj.com/products" class="btn btn-dark px-4">
+        <a href="https://shop.astrorajumaharaj.com/products" class="btn btn-dark px-4">
           Shop Now
         </a>
       </div>
@@ -261,29 +241,7 @@
     </div>
 
     @forelse(($gemstoneCategoryProducts ?? []) as $product)
-   <div class="col-md-3 col-sm-6">
-      <div class="product-card">
-      <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
-        <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
-        <div class="rating">⭐ {{ $product['rating'] ?? '4.5' }}</div>
-        <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
-        <div>
-          <span class="price">₹{{ $product['final_price'] ?? $product['total_price'] ?? $product['price'] ?? '0.00' }}</span>
-          @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-          <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
-          @endif
-        </div>
-        @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-        <div class="offer">Save {{ $product['discount_rate'] }}%</div>
-        @else
-        <div class="offer">&nbsp;</div>
-        @endif
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
-          <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>
-        </div>
-      </div>
-    </div>
+     <x-product-card :product="$product" />
     @empty
       <p>No gemstones found for this category.</p>
     @endforelse
@@ -375,29 +333,7 @@
     </div>
 
     @forelse(($featuredProducts ?? []) as $product)
-      <div class="col-md-3 col-sm-6">
-        <div class="product-card">
-          <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
-          <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
-          <div class="rating">⭐ {{ $product['rating'] ?? '4.5' }}</div>
-          <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
-          <div>
-            <span class="price">₹{{ $product['final_price'] ?? $product['total_price'] ?? $product['price'] ?? '0.00' }}</span>
-            @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-              <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
-            @endif
-          </div>
-          @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-            <div class="offer">Save {{ $product['discount_rate'] }}%</div>
-          @else
-            <div class="offer">&nbsp;</div>
-          @endif
-          <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
-            <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>
-          </div>
-        </div>
-      </div>
+     <x-product-card :product="$product" />
     @empty
       <p>No featured products found.</p>
     @endforelse
