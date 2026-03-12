@@ -68,6 +68,7 @@ class ProductSearchController
             $filters['min_price'] ?? null,
             $filters['max_price'] ?? null,
             $filters['in_stock'] ?? null,
+            $filters['sort'] ?? null,
             $filters['ratti'] ?? null,
             $filters['carat'] ?? null,
             $filters['min_ratti'] ?? null,
