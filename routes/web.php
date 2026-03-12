@@ -5,10 +5,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\ProductSearchController;
 
@@ -46,6 +48,12 @@ Route::post('/checkout/city-list', [CheckoutController::class, 'cityList'])
     ->name('checkout.city-list');
 
 Route::middleware(['guest'])->group(function () {
+    Route::post('/login', [LoginController::class, 'login'])
+        ->name('login.password');
+
+    Route::post('/register', [RegisterController::class, 'register'])
+        ->name('register.store');
+
     Route::post('/login/otp/request', [OtpAuthController::class, 'requestOtp'])
         ->middleware('throttle:otp')
         ->name('login.otp.request');

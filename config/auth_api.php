@@ -5,6 +5,8 @@ return [
     'timeout' => (int) env('ASTRO_AUTH_API_TIMEOUT', env('ASTRO_API_TIMEOUT', 10)),
     'retry' => (int) env('ASTRO_AUTH_API_RETRY', env('ASTRO_API_RETRY', 2)),
     'endpoints' => [
+        'login' => '/login',
+        'register' => '/register',
         'request_otp' => '/login/otp/request',
         'resend_otp' => '/login/otp/resend',
         'verify_otp' => '/login/otp/verify',

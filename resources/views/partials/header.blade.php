@@ -395,7 +395,7 @@
 
 
              <div class="icon_warp">
-                    @if(session()->has('auth.api_token'))
+                        @if(session()->has('auth.api_token'))
                         <form id="header-logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
                             @csrf
                         </form>
@@ -403,10 +403,10 @@
                             <i class="fa fa-user fs-5"></i>
                             <div class="icon-text">DASHBOARD</div>
                         </a>
-                        <!-- <a href="javascript:void(0)" id="header-logout-trigger">
+                        <a href="javascript:void(0)" id="header-logout-trigger">
                             <i class="fa fa-sign-out-alt fs-5"></i>
                             <div class="icon-text">LOGOUT</div>
-                        </a> -->
+                        </a>
                     @else
                         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">
                             <i class="fa fa-user fs-5"></i>
@@ -492,59 +492,355 @@
 
   </div>
 
-<!-- Auth Modal -->
-<div class="modal fade" id="authModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-4">
+@push('styles')
+<style>
+    .auth-modal .modal-dialog {
+        max-width: 760px;
+    }
 
-            <!-- Close -->
-            <button type="button" class="btn-close position-absolute end-0 m-3" data-bs-dismiss="modal"></button>
+    .auth-modal .modal-content {
+        border: 0;
+        border-radius: 1.15rem;
+        overflow: hidden;
+        box-shadow: 0 20px 46px rgba(15, 23, 42, 0.16);
+        background: #ffffff;
+    }
 
-            <h5 class="mb-3">Login with OTP</h5>
+    .auth-side-panel {
+        min-height: 100%;
+        background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+    }
 
-            <div id="header-otp-alert" class="alert alert-info d-none" role="alert"></div>
+    .auth-logo-shell {
+        width: 112px;
+        height: 112px;
+        margin: 0 auto 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.9rem;
+        background: rgba(255, 248, 236, 0.88);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
 
-            <!-- STEP 1: Mobile input -->
-            <div id="header-otp-step-mobile">
-                <div class="mb-3">
-                    <label class="form-label">Mobile Number</label>
-                    <input type="tel" id="header-otp-mobile" class="form-control" placeholder="Enter mobile number" autocomplete="tel" inputmode="numeric">
-                </div>
-                <button type="button" class="btn btn-dark w-100 cdtr" id="header-otp-send-btn">Send OTP</button>
-            </div>
+    .auth-logo-shell img {
+        max-width: 78px;
+        display: block;
+    }
 
-            <!-- STEP 2: OTP verify -->
-            <div id="header-otp-step-verify" style="display:none;">
-                <div class="mb-2 small text-muted" id="header-otp-instructions">
-                    Enter the OTP sent to your mobile number.
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Mobile Number</label>
-                    <input type="tel" id="header-otp-mobile-readonly" class="form-control" readonly>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">OTP</label>
-                    <div class="d-flex gap-2 justify-content-between" style="max-width: 220px;">
-                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
-                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
-                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
-                        <input type="tel" maxlength="1" class="form-control text-center header-otp-digit" inputmode="numeric" autocomplete="one-time-code">
+    .auth-side-panel h3 {
+        margin-bottom: 0.45rem;
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .auth-side-panel p {
+        max-width: 220px;
+        margin: 0 auto;
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+
+    .auth-stars {
+        color: #fff;
+        opacity: 0.95;
+    }
+
+    .auth-panel-right {
+        padding: 1.25rem 1.1rem !important;
+        background: #ffffff;
+        color: #ff9800;
+    }
+
+    .auth-tabs {
+        gap: 0.45rem;
+    }
+
+    .auth-tabs .nav-item {
+        flex: 1 1 0;
+    }
+
+    .auth-tab {
+        width: 100%;
+        min-height: 2.4rem;
+        border: 1px solid #ff9800;
+        border-radius: 0.35rem;
+        background: #ffffff !important;
+        color: #000000 !important;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.18s ease;
+    }
+
+    .auth-modal .nav-pills .nav-link.auth-tab,
+    #login-tab,
+    #register-tab {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border-color: #ff9800 !important;
+    }
+
+    .auth-modal .nav-pills .nav-link.auth-tab.active,
+    .auth-modal .nav-pills .show > .nav-link.auth-tab,
+    #login-tab.active,
+    #register-tab.active {
+        color: #ffffff !important;
+        background-color: #ff9800 !important;
+        border-color: #ff9800 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    }
+    .auth-modal .form-label {
+        color: #ff9800;
+        font-weight: 500;
+        margin-bottom: 0.35rem;
+        font-size: 0.92rem;
+    }
+
+    .auth-modal h4 {
+        font-size: 1.6rem;
+    }
+
+    .auth-modal h4,
+    .auth-modal .text-muted,
+    .auth-modal .btn-link,
+    .auth-modal .invalid-feedback {
+        color: #ff9800 !important;
+    }
+
+    .auth-modal .form-control,
+    .auth-modal .input-group-text,
+    .auth-modal .btn,
+    .auth-modal .btn-outline-secondary {
+        border-radius: 0.45rem;
+    }
+
+    .auth-modal .form-control,
+    .auth-modal .input-group-text {
+        min-height: 40px;
+        border-color: #bdbdbd;
+        box-shadow: none;
+        font-size: 0.95rem;
+    }
+
+    .auth-modal .form-control:focus,
+    .auth-modal .input-group-text:focus-within {
+        border-color: #ff9800;
+        box-shadow: 0 0 0 0.18rem rgba(255, 152, 0, 0.22);
+    }
+
+    .auth-modal .btn-primary,
+    .auth-modal .btn-warning {
+        border: 1px solid #ff9800;
+        background: #ff9800;
+        color: #ffffff;
+        min-height: 42px;
+        font-size: 0.95rem;
+        padding-top: 0.45rem;
+        padding-bottom: 0.45rem;
+    }
+
+    .auth-modal .btn-primary:hover,
+    .auth-modal .btn-warning:hover {
+        background: #ff9800;
+        border-color: #ff9800;
+        color: #ffffff;
+    }
+
+    .auth-modal .btn-outline-secondary {
+        border-color: #ff9800;
+        color: #ff9800;
+        background: #fff;
+        min-width: 44px;
+    }
+
+    .auth-modal .otp-box {
+        padding-top: 0.15rem;
+    }
+
+    .auth-modal .header-otp-digit {
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .auth-modal .alert {
+        border-radius: 0.45rem;
+    }
+
+    .auth-modal .btn-google,
+    .auth-modal .btn-facebook {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+    }
+
+    .auth-modal .text-link-orange {
+        color: #ff9800 !important;
+    }
+
+    @media (max-width: 767px) {
+        .auth-modal .modal-dialog {
+            margin: 12px;
+        }
+
+        .auth-panel-right {
+            padding: 1rem !important;
+        }
+
+        .auth-tabs {
+            gap: 0.35rem;
+        }
+
+        .auth-tab {
+            font-size: 0.88rem;
+            padding-inline: 0.45rem;
+        }
+    }
+</style>
+@endpush
+
+<!-- Modal -->
+<div class="modal fade auth-modal" id="authModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="authModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="row g-0">
+               <div class="col-md-5 d-none d-md-flex align-items-center justify-content-center text-white p-4" style="background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);">
+                    <div class="text-center w-100">
+                        <div style="background:rgba(255,255,255,0.85);border-radius:1rem;display:inline-block;padding:0.5rem 1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                            <img src="{{ asset('assets/images/Logo.png') }}" alt="Logo" class="mb-4 animate__animated animate__fadeInDown" style="max-width:100px;display:block;">
+                        </div>
+                        <h3 class="fw-bold mb-2 animate__animated animate__fadeInUp">Welcome!</h3>
+                        <p class="mb-0 animate__animated animate__fadeInUp animate__delay-1s">Sign in or create an account to access personalized astrology services.</p>
+                        <div class="mt-4 animate__animated animate__fadeIn animate__delay-2s">
+                            <i class="bi bi-stars" style="font-size:2rem;"></i>
+                        </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-success w-100 mb-2" id="header-otp-verify-btn">Verify &amp; Login</button>
-                <div class="d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-link p-0" id="header-otp-change-mobile">Change mobile</button>
-                    <button type="button" class="btn btn-link p-0" id="header-otp-resend-btn">Resend OTP</button>
-                    <span class="small text-muted" id="header-otp-resend-timer" style="display:none;"></span>
+                <div class="col-md-7 col-12 p-4 bg-white auth-panel-right">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-semibold mb-0" id="authModalLabel">Account Access</h4>
+                        <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <ul class="nav nav-pills nav-justified mb-4 auth-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link auth-tab active fw-semibold d-flex align-items-center gap-2" id="login-tab" type="button" role="tab" aria-selected="true" onclick="showTab('login')">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link auth-tab fw-semibold d-flex align-items-center gap-2" id="register-tab" type="button" role="tab" aria-selected="false" onclick="showTab('register')">
+                                <i class="bi bi-person-plus"></i> Register
+                            </button>
+                        </li>
+                    </ul>
+                    <div id="loginBox">
+                        <div id="loginFields">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="header-login-email" placeholder="Enter your email" autocomplete="username">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="header-login-password" placeholder="Enter your password" autocomplete="current-password">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('header-login-password')" aria-label="Show or hide password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="text-end mt-1">
+                                    <a href="#" class="small text-decoration-none text-link-orange" onclick="showForgotForm(event)" style="color: #ff9800;">Forgot Password?</a>
+                                </div>
+                            </div>
+                            <div id="header-login-error" class="alert alert-danger mt-2 d-none"></div>
+                        </div>
+                        <form id="forgotForm" class="flex-column gap-2 mt-2" style="max-width: 100%; display:none;">
+                            <input type="email" class="form-control mb-2" id="header-forgot-email" placeholder="Enter your email for reset" style="font-size:0.95rem;">
+                            <button type="button" class="btn w-100" id="header-forgot-submit" style="border:1px solid #ff9800;color:#ff9800;background:#fff;">Send Reset Link</button>
+                            <button type="button" class="btn btn-link w-100 text-link-orange" onclick="hideForgotForm(event)" style="color:#ff9800;">Back to Login</button>
+                        </form>
+                        <div id="loginButtons">
+                            <button class="btn btn-primary w-100 mb-2" type="button" id="header-login-submit" style="border:1px solid #ff9800;color:#fff;background:#ff9800;">Login</button>
+                            <div class="text-center my-2 text-muted">OR</div>
+                            <button class="btn w-100 mb-2" type="button" onclick="showOtpLogin()" style="border:1px solid #ff9800;color:#ff9800;background:#fff;">Login with OTP</button>
+                        </div>
+                        <div class="otp-box mt-2" id="otpSection" style="display:none">
+                            <div id="header-otp-alert" class="alert d-none mb-2" role="alert"></div>
+                            <div id="header-otp-step-mobile">
+                                <label class="form-label">Mobile Number</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text" style="border-color: #ff9800; color:#ff9800;">+91</span>
+                                    <input type="tel" class="form-control" id="header-otp-mobile" style="border-color: #ff9800; color:#ff9800;" maxlength="15" placeholder="Enter your mobile number" autocomplete="tel">
+                                </div>
+                                <button class="btn btn-warning w-100 mb-2" id="header-otp-send-btn" type="button" style="background: #ff9800; border-color:#ff9800; color: #ffffff;">Send OTP</button>
+                            </div>
+                            <div id="header-otp-step-verify" style="display:none;">
+                                <label class="form-label fw-semibold text-link-orange">Enter OTP</label>
+                                <div class="d-flex align-items-center mb-3 gap-2">
+                                    <input type="tel" class="form-control border border-warning" id="header-otp-mobile-readonly" readonly style="width:100%; font-weight:500; color:#ff9800; background:#fffbe6; border-color:#ff9800 !important;">
+                                    <a href="#" id="header-otp-change-mobile" style="color:#ff9800; font-size:0.97rem; text-decoration:underline; cursor:pointer;">Change</a>
+                                </div>
+                                <div class="d-flex gap-2 justify-content-center mb-3">
+                                    <input type="text" class="form-control text-center header-otp-digit border-2 border-warning" maxlength="1" style="width:2.5rem; font-size:1.5rem; background:#fffbe6; color:#ff9800; box-shadow:none; border-color:#ff9800 !important;" autocomplete="one-time-code">
+                                    <input type="text" class="form-control text-center header-otp-digit border-2 border-warning" maxlength="1" style="width:2.5rem; font-size:1.5rem; background:#fffbe6; color:#ff9800; box-shadow:none; border-color:#ff9800 !important;" autocomplete="one-time-code">
+                                    <input type="text" class="form-control text-center header-otp-digit border-2 border-warning" maxlength="1" style="width:2.5rem; font-size:1.5rem; background:#fffbe6; color:#ff9800; box-shadow:none; border-color:#ff9800 !important;" autocomplete="one-time-code">
+                                    <input type="text" class="form-control text-center header-otp-digit border-2 border-warning" maxlength="1" style="width:2.5rem; font-size:1.5rem; background:#fffbe6; color:#ff9800; box-shadow:none; border-color:#ff9800 !important;" autocomplete="one-time-code">
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <button class="btn btn-warning flex-grow-1 me-2 fw-semibold px-4 py-2" id="header-otp-verify-btn" type="button" style="background: #ff9800; border-color:#ff9800; color: #ffffff;">Verify OTP</button>
+                                    <button class="btn btn-link p-0 fw-semibold text-link-orange" id="header-otp-resend-btn" type="button">Resend</button>
+                                    <span id="header-otp-resend-timer" style="display:none; margin-left:0.5rem; color:#888; font-size:0.95rem;"></span>
+                                </div>
+                            </div>
+                            <button class="btn btn-link w-100 mt-2 text-link-orange" type="button" onclick="showNormalLogin()" style="color:#ff9800;">Back to Password Login</button>
+                        </div>
+                    </div>
+                    <div id="registerBox" style="display:none">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="regFirstName" name="first_name" placeholder="Enter your first name" required autocomplete="given-name">
+                                <div class="invalid-feedback" id="regFirstNameError"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="regLastName" name="last_name" placeholder="Enter your last name" required autocomplete="family-name">
+                                <div class="invalid-feedback" id="regLastNameError"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mobile Number</label>
+                                <input type="tel" class="form-control" id="regMobile" name="mobile_no" placeholder="Enter your mobile number" required autocomplete="tel">
+                                <div class="invalid-feedback" id="regMobileError"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="regEmail" name="email" placeholder="Enter your email" required autocomplete="email">
+                                <div class="invalid-feedback" id="regEmailError"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="regPassword" name="password" placeholder="Create a password" required autocomplete="new-password">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('regPassword')" aria-label="Show or hide password">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback" id="regPasswordError"></div>
+                            </div>
+                            <div id="register-error" class="alert alert-danger mt-2 d-none"></div>
+                            <div id="register-success" class="alert alert-success mt-2 d-none"></div>
+                            <button type="submit" class="btn btn-primary w-100" style="border:1px solid #ff9800;color:#fff;background:#ff9800;">Register</button>
+                        </form>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 @push('scripts')
     <script>
-        // Clear OTP inputs when modal is closed
+        // Clear auth modal state when modal is closed
         var authModalEl = document.getElementById('authModal');
         if (authModalEl) {
             authModalEl.addEventListener('hidden.bs.modal', function () {
@@ -552,9 +848,32 @@
                 otpInputs.forEach(function(input) {
                     input.value = '';
                 });
-                document.getElementById('header-otp-step-mobile').style.display = 'block';
-                document.getElementById('header-otp-step-verify').style.display = 'none';
-                document.getElementById('header-otp-alert').classList.add('d-none');
+                if (typeof window.showTab === 'function') window.showTab('login');
+                if (typeof window.showNormalLogin === 'function') window.showNormalLogin();
+                var mobileStep = document.getElementById('header-otp-step-mobile');
+                var verifyStep = document.getElementById('header-otp-step-verify');
+                var otpAlert = document.getElementById('header-otp-alert');
+                var mobileField = document.getElementById('header-otp-mobile');
+                var loginError = document.getElementById('header-login-error');
+                var registerError = document.getElementById('register-error');
+                var registerSuccess = document.getElementById('register-success');
+
+                if (mobileStep) mobileStep.style.display = 'block';
+                if (verifyStep) verifyStep.style.display = 'none';
+                if (otpAlert) otpAlert.classList.add('d-none');
+                if (mobileField) mobileField.value = '';
+                if (loginError) {
+                    loginError.classList.add('d-none');
+                    loginError.textContent = '';
+                }
+                if (registerError) {
+                    registerError.classList.add('d-none');
+                    registerError.textContent = '';
+                }
+                if (registerSuccess) {
+                    registerSuccess.classList.add('d-none');
+                    registerSuccess.textContent = '';
+                }
             });
         }
 
@@ -666,8 +985,54 @@
         const changeMobileBtn = document.getElementById('header-otp-change-mobile');
         const resendBtn = document.getElementById('header-otp-resend-btn');
         const resendTimer = document.getElementById('header-otp-resend-timer');
+        const loginBox = document.getElementById('loginBox');
+        const registerBox = document.getElementById('registerBox');
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        const loginFields = document.getElementById('loginFields');
+        const loginButtons = document.getElementById('loginButtons');
+        const otpSection = document.getElementById('otpSection');
+        const forgotForm = document.getElementById('forgotForm');
+        const loginError = document.getElementById('header-login-error');
+        const loginSubmit = document.getElementById('header-login-submit');
+        const registerForm = document.getElementById('registerForm');
+        const registerError = document.getElementById('register-error');
+        const registerSuccess = document.getElementById('register-success');
+        const forgotSubmit = document.getElementById('header-forgot-submit');
 
         let headerResendCountdown = null;
+
+        function resetRegisterMessages() {
+            if (registerError) {
+                registerError.classList.add('d-none');
+                registerError.textContent = '';
+            }
+            if (registerSuccess) {
+                registerSuccess.classList.add('d-none');
+                registerSuccess.textContent = '';
+            }
+        }
+
+        function showInlineMessage(element, message) {
+            if (!element) return;
+            element.textContent = message;
+            element.classList.remove('d-none');
+        }
+
+        function clearRegisterFieldErrors() {
+            [
+                ['regFirstName', 'regFirstNameError'],
+                ['regLastName', 'regLastNameError'],
+                ['regMobile', 'regMobileError'],
+                ['regEmail', 'regEmailError'],
+                ['regPassword', 'regPasswordError'],
+            ].forEach(function(field) {
+                var input = document.getElementById(field[0]);
+                var error = document.getElementById(field[1]);
+                if (input) input.classList.remove('is-invalid');
+                if (error) error.textContent = '';
+            });
+        }
 
         function showHeaderAlert(message, type = 'info') {
             if (!alertBox) return;
@@ -682,12 +1047,12 @@
             alertBox.textContent = '';
         }
 
-        function setHeaderLoading(button, isLoading) {
+        function setHeaderLoading(button, isLoading, loadingText) {
             if (!button) return;
             button.disabled = isLoading;
             if (isLoading) {
                 button.dataset.originalText = button.innerText;
-                button.innerText = 'Please wait...';
+                button.innerText = loadingText || 'Please wait...';
             } else if (button.dataset.originalText) {
                 button.innerText = button.dataset.originalText;
             }
@@ -762,6 +1127,277 @@
             }
         }
 
+        window.togglePassword = function(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (!field) return;
+            field.type = field.type === 'password' ? 'text' : 'password';
+        };
+
+        window.showNormalLogin = function() {
+            if (loginFields) loginFields.style.display = 'block';
+            if (loginButtons) loginButtons.style.display = 'block';
+            if (forgotForm) forgotForm.style.display = 'none';
+            if (otpSection) otpSection.style.display = 'none';
+            if (stepMobile) stepMobile.style.display = 'block';
+            if (stepVerify) stepVerify.style.display = 'none';
+            if (mobileInput) mobileInput.value = '';
+            if (mobileReadonly) mobileReadonly.value = '';
+            clearHeaderAlert();
+            clearHeaderOtp();
+            if (loginError) {
+                loginError.classList.add('d-none');
+                loginError.textContent = '';
+            }
+        };
+
+        window.showOtpLogin = function() {
+            if (loginFields) loginFields.style.display = 'none';
+            if (loginButtons) loginButtons.style.display = 'none';
+            if (forgotForm) forgotForm.style.display = 'none';
+            if (otpSection) otpSection.style.display = 'block';
+            if (stepMobile) stepMobile.style.display = 'block';
+            if (stepVerify) stepVerify.style.display = 'none';
+            if (mobileInput) mobileInput.value = '';
+            if (mobileReadonly) mobileReadonly.value = '';
+            clearHeaderAlert();
+            clearHeaderOtp();
+            if (loginError) {
+                loginError.classList.add('d-none');
+                loginError.textContent = '';
+            }
+        };
+
+        window.showForgotForm = function(event) {
+            if (event) event.preventDefault();
+            if (forgotForm) forgotForm.style.display = 'flex';
+            if (loginFields) loginFields.style.display = 'none';
+            if (loginButtons) loginButtons.style.display = 'none';
+            if (otpSection) otpSection.style.display = 'none';
+            clearHeaderAlert();
+            if (loginError) {
+                loginError.classList.add('d-none');
+                loginError.textContent = '';
+            }
+        };
+
+        window.hideForgotForm = function(event) {
+            if (event) event.preventDefault();
+            window.showNormalLogin();
+        };
+
+        window.showTab = function(tab) {
+            var isRegister = tab === 'register';
+
+            if (loginBox) loginBox.style.display = isRegister ? 'none' : 'block';
+            if (registerBox) registerBox.style.display = isRegister ? 'block' : 'none';
+
+            if (!isRegister) {
+                window.showNormalLogin();
+            }
+
+            if (loginTab) {
+                loginTab.classList.toggle('active', !isRegister);
+                loginTab.setAttribute('aria-selected', isRegister ? 'false' : 'true');
+            }
+
+            if (registerTab) {
+                registerTab.classList.toggle('active', isRegister);
+                registerTab.setAttribute('aria-selected', isRegister ? 'true' : 'false');
+            }
+
+            if (loginTab) {
+                loginTab.style.backgroundColor = isRegister ? '#ffffff' : '#ff9800';
+                loginTab.style.borderColor = '#ff9800';
+                loginTab.style.color = isRegister ? '#000000' : '#ffffff';
+            }
+
+            if (registerTab) {
+                registerTab.style.backgroundColor = isRegister ? '#ff9800' : '#ffffff';
+                registerTab.style.borderColor = '#ff9800';
+                registerTab.style.color = isRegister ? '#ffffff' : '#000000';
+            }
+
+            clearHeaderAlert();
+            if (loginError) {
+                loginError.classList.add('d-none');
+                loginError.textContent = '';
+            }
+            resetRegisterMessages();
+            clearRegisterFieldErrors();
+        };
+
+        if (loginSubmit) {
+            loginSubmit.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                var email = document.getElementById('header-login-email')?.value.trim();
+                var password = document.getElementById('header-login-password')?.value;
+
+                if (loginError) {
+                    loginError.classList.add('d-none');
+                    loginError.textContent = '';
+                }
+
+                if (!email || !password) {
+                    showInlineMessage(loginError, 'Please enter both email and password.');
+                    return;
+                }
+
+                setHeaderLoading(loginSubmit, true, 'Logging in...');
+
+                fetch("{{ route('login.password') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                    })
+                })
+                    .then(async function(response) {
+                        var data = await response.json().catch(function() {
+                            return {
+                                success: false,
+                                message: 'Unexpected server response.'
+                            };
+                        });
+
+                        if (!response.ok || data.success === false) {
+                            showInlineMessage(loginError, data.message || 'Login failed.');
+                            return;
+                        }
+
+                        if (loginError) loginError.classList.add('d-none');
+                        if (data.token) sessionStorage.setItem('auth_api_token', data.token);
+                        if (data.user) sessionStorage.setItem('auth_user', JSON.stringify(data.user));
+
+                        var modal = document.getElementById('authModal');
+                        if (modal) {
+                            var bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);
+                            bsModal.hide();
+                        }
+
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function() {
+                        showInlineMessage(loginError, 'Unable to reach authentication service.');
+                    })
+                    .finally(function() {
+                        setHeaderLoading(loginSubmit, false);
+                    });
+            });
+        }
+
+        if (forgotSubmit) {
+            forgotSubmit.addEventListener('click', function() {
+                var forgotEmail = document.getElementById('header-forgot-email')?.value.trim();
+                if (!forgotEmail) {
+                    showInlineMessage(loginError, 'Please enter your email address.');
+                    window.showNormalLogin();
+                    return;
+                }
+
+                showInlineMessage(loginError, 'Password reset API is not configured yet.');
+                window.showNormalLogin();
+            });
+        }
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                var firstName = document.getElementById('regFirstName')?.value.trim();
+                var lastName = document.getElementById('regLastName')?.value.trim();
+                var mobileNo = document.getElementById('regMobile')?.value.trim();
+                var email = document.getElementById('regEmail')?.value.trim();
+                var password = document.getElementById('regPassword')?.value;
+                var submitButton = registerForm.querySelector('button[type="submit"]');
+
+                resetRegisterMessages();
+                clearRegisterFieldErrors();
+
+                if (!firstName || !lastName || !mobileNo || !email || !password) {
+                    showInlineMessage(registerError, 'All fields are required.');
+                    return;
+                }
+
+                setHeaderLoading(submitButton, true, 'Registering...');
+
+                fetch("{{ route('register.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        mobile_no: mobileNo,
+                        email: email,
+                        password: password,
+                    })
+                })
+                    .then(async function(response) {
+                        var data = await response.json().catch(function() {
+                            return {
+                                success: false,
+                                message: 'Unexpected server response.'
+                            };
+                        });
+
+                        if (!response.ok || data.success === false) {
+                            if (data.errors && typeof data.errors === 'object') {
+                                Object.keys(data.errors).forEach(function(key) {
+                                    var fieldMap = {
+                                        first_name: ['regFirstName', 'regFirstNameError'],
+                                        last_name: ['regLastName', 'regLastNameError'],
+                                        mobile_no: ['regMobile', 'regMobileError'],
+                                        email: ['regEmail', 'regEmailError'],
+                                        password: ['regPassword', 'regPasswordError'],
+                                    };
+                                    var mappedField = fieldMap[key];
+                                    if (!mappedField) return;
+
+                                    var input = document.getElementById(mappedField[0]);
+                                    var error = document.getElementById(mappedField[1]);
+                                    if (input) input.classList.add('is-invalid');
+                                    if (error) error.textContent = data.errors[key][0];
+                                });
+                            }
+
+                            showInlineMessage(registerError, data.message || 'Registration failed.');
+                            return;
+                        }
+
+                        showInlineMessage(registerSuccess, data.message || 'Registration successful! You can now log in.');
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(function() {
+                        showInlineMessage(registerError, 'Unable to reach registration service.');
+                    })
+                    .finally(function() {
+                        setHeaderLoading(submitButton, false);
+                    });
+            });
+        }
+
+        window.showTab('login');
+        window.showNormalLogin();
+
         // OTP input UX: auto-advance and backspace behavior
         otpInputs.forEach(function(input, index) {
             input.addEventListener('input', function(e) {
@@ -824,7 +1460,7 @@
 
                 headerPostJson("{{ route('login.otp.verify') }}", {
                     mobile_no: mobile,
-                    country_code: '+91',
+                    country_code: '91',
                     otp: otp,
                     context: 'header',
                 }, function(data) {
@@ -848,7 +1484,8 @@
         }
 
         if (changeMobileBtn) {
-            changeMobileBtn.addEventListener('click', function() {
+            changeMobileBtn.addEventListener('click', function(event) {
+                event.preventDefault();
                 if (stepMobile && stepVerify) {
                     stepVerify.style.display = 'none';
                     stepMobile.style.display = 'block';
@@ -870,7 +1507,7 @@
 
                 headerPostJson("{{ route('login.otp.resend') }}", {
                     mobile_no: mobile,
-                    country_code: '+91',
+                    country_code: '91',
                     context: 'header',
                 }, function(data) {
                     showHeaderAlert(data.message || 'OTP resent.', 'success');

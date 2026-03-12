@@ -251,25 +251,40 @@ public function verifyOtp(VerifyOtpRequest $request): JsonResponse
 
     public function logout(Request $request): JsonResponse
     {
+        Session::forget('auth.api_token');
+        Session::forget('auth.user');
+        Session::forget('auth.roles');
+        Session::forget('api_user_id');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Remove the auth_api_token cookie
-        $removeTokenCookie = cookie(
+        $removeTokenCookie = Cookie::forget(
             'auth_api_token',
-            null,
-            -1,
             '/',
-            null,
-            $request->isSecure(),
-            true,
-            false,
-            'Lax'
+            config('session.domain')
         );
 
-        return response()->json([
+        $removeSessionCookie = Cookie::forget(
+            config('session.cookie'),
+            config('session.path'),
+            config('session.domain')
+        );
+
+        $payload = [
             'success' => true,
             'message' => 'You have been logged out.',
-        ])->cookie($removeTokenCookie);
+            'redirect_url' => url('/'),
+        ];
+
+        $response = $request->expectsJson()
+            ? response()->json($payload)
+            : redirect('/');
+
+        return $response
+            ->withCookie($removeTokenCookie)
+            ->withCookie($removeSessionCookie);
     }
+
+
+    
 }

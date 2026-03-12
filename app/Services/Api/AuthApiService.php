@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class AuthApiService extends BaseApiClient implements Contracts\AuthApiServiceInterface
 {
+    protected string $loginEndpoint;
+    protected string $registerEndpoint;
     protected string $requestOtpEndpoint;
     protected string $resendOtpEndpoint;
     protected string $verifyOtpEndpoint;
@@ -29,9 +31,29 @@ class AuthApiService extends BaseApiClient implements Contracts\AuthApiServiceIn
         $this->timeoutSeconds = (int) ($config['timeout'] ?? $this->timeoutSeconds);
         $this->retryTimes = (int) ($config['retry'] ?? $this->retryTimes);
 
+        $this->loginEndpoint = (string) Arr::get($config, 'endpoints.login', '/login');
+        $this->registerEndpoint = (string) Arr::get($config, 'endpoints.register', '/register');
         $this->requestOtpEndpoint = (string) Arr::get($config, 'endpoints.request_otp', '/login/otp/request');
         $this->resendOtpEndpoint = (string) Arr::get($config, 'endpoints.resend_otp', '/login/otp/resend');
         $this->verifyOtpEndpoint = (string) Arr::get($config, 'endpoints.verify_otp', '/login/otp/verify');
+    }
+
+    public function login(string $email, string $password): array
+    {
+        $correlationId = (string) Str::uuid();
+        $payload = [
+            'email' => $email,
+            'password' => $password,
+        ];
+
+        return $this->callApi('POST', $this->loginEndpoint, $payload, $correlationId);
+    }
+
+    public function register(array $payload): array
+    {
+        $correlationId = (string) Str::uuid();
+
+        return $this->callApi('POST', $this->registerEndpoint, $payload, $correlationId);
     }
 
     public function requestOtp(string $mobile, string $countryCode): DTOs\AuthApiResponse
