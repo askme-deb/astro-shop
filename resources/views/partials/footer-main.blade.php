@@ -185,42 +185,6 @@ let cart = 0;
 </script>
 
 <script>
-  // Toggle dropdowns
-  document.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      closeAll();
-      btn.nextElementSibling.style.display = "block";
-    });
-  });
-
-  // Select option
-  document.querySelectorAll(".filter-menu li").forEach(item => {
-    item.addEventListener("click", () => {
-      const dropdown = item.closest(".filter-dropdown");
-      dropdown.querySelector(".filter-btn").textContent = item.textContent;
-      closeAll();
-
-      console.log("Filter applied:", item.textContent);
-    });
-  });
-
-  // Close on outside click
-  document.addEventListener("click", closeAll);
-
-  function closeAll() {
-    document.querySelectorAll(".filter-menu").forEach(menu => {
-      menu.style.display = "none";
-    });
-  }
-
-  // Sort change
-  // document.getElementById("sortSelect").addEventListener("change", e => {
-  //   console.log("Sort by:", e.target.value);
-  // });
-</script>
-
-<script>
   document.querySelectorAll(".wishlist-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       btn.classList.toggle("active");

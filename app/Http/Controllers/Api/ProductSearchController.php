@@ -27,6 +27,7 @@ class ProductSearchController
             'q', 'category_id', 'brand_id', 'min_price', 'max_price', 'in_stock', 'sort', 'per_page', 'page',
             'ratti', 'carat', 'min_ratti', 'max_ratti', 'min_carat', 'max_carat', 'product_grade_id', 'grade_id', 'grade'
         ]);
+        $categorySlug = trim((string) $request->input('category', ''));
 
         $query = trim((string) ($filters['q'] ?? ''));
 
@@ -45,6 +46,8 @@ class ProductSearchController
             $filters['category_id'] = $request->input('category_id');
         }
 
+        $page = max((int) ($filters['page'] ?? 1), 1);
+
         // Map sort param to API expected value
         if (isset($filters['sort'])) {
             $sortMap = [
@@ -59,8 +62,35 @@ class ProductSearchController
         $perPage = (int) ($filters['per_page'] ?? 20);
         $filters['per_page'] = $perPage;
 
+        $activeFilterValues = array_filter([
+            $filters['category_id'] ?? null,
+            $filters['brand_id'] ?? null,
+            $filters['min_price'] ?? null,
+            $filters['max_price'] ?? null,
+            $filters['in_stock'] ?? null,
+            $filters['ratti'] ?? null,
+            $filters['carat'] ?? null,
+            $filters['min_ratti'] ?? null,
+            $filters['max_ratti'] ?? null,
+            $filters['min_carat'] ?? null,
+            $filters['max_carat'] ?? null,
+            $filters['product_grade_id'] ?? null,
+            $filters['grade_id'] ?? null,
+            $filters['grade'] ?? null,
+            $query,
+        ], static fn ($value) => ! is_null($value) && $value !== '' && $value !== []);
+
         try {
-            $response = $this->productApiService->searchProductsWithFilters($filters);
+            if ($categorySlug !== '') {
+                $response = $this->productApiService->getPaginatedCategoryProducts($categorySlug, $page, false, $filters);
+            } elseif (empty($activeFilterValues)) {
+                $response = $this->productApiService->getPaginatedProducts($page, false, array_filter([
+                    'sort' => $filters['sort'] ?? null,
+                    'per_page' => $filters['per_page'] ?? null,
+                ], static fn ($value) => ! is_null($value) && $value !== ''));
+            } else {
+                $response = $this->productApiService->searchProductsWithFilters($filters);
+            }
         } catch (RequestException $exception) {
             Log::warning('Product search upstream request failed', [
                 'service' => static::class,
@@ -94,7 +124,10 @@ class ProductSearchController
 
         $products = [];
         $pagination = [];
-        if (isset($response['data']) && is_array($response['data'])) {
+        if (isset($response['items']) && is_array($response['items'])) {
+            $products = $response['items'];
+            $pagination = is_array($response['meta'] ?? null) ? $response['meta'] : [];
+        } elseif (isset($response['data']) && is_array($response['data'])) {
             $data = $response['data'];
             if (isset($data['data']) && is_array($data['data'])) {
                 $products = $data['data'];

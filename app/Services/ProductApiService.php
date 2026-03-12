@@ -242,6 +242,82 @@ class ProductApiService
     }
 
     /**
+     * Retrieve paginated products for a specific category with pagination meta.
+     *
+     * @param string $categorySlug
+     * @param int $page
+     * @param bool $forceRefresh
+     * @param array<string, mixed> $filters
+     *
+     * @return array{items: array<int, array<string, mixed>>, meta: array<string, mixed>}
+     */
+    public function getPaginatedCategoryProducts(string $categorySlug, int $page = 1, bool $forceRefresh = false, array $filters = []): array
+    {
+        $filtersWithPage = array_merge($filters, ['page' => $page]);
+        $cacheKey = $this->cacheKeyForCategoryProducts($categorySlug, $filtersWithPage);
+
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+
+        $payload = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($categorySlug, $filtersWithPage) {
+            try {
+                $data = $this->client->getCategoryWiseProducts($categorySlug, $filtersWithPage);
+            } catch (\Throwable $exception) {
+                return [
+                    'items' => [],
+                    'meta' => [],
+                ];
+            }
+
+            $items = [];
+            $meta = [];
+
+            if (isset($data['products']) && is_array($data['products'])) {
+                $inner = $data['products'];
+
+                if (isset($inner['data']) && is_array($inner['data'])) {
+                    $items = array_values($inner['data']);
+                    $meta = $inner;
+                    unset($meta['data']);
+                } elseif (array_is_list($inner)) {
+                    $items = array_values($inner);
+                }
+            } elseif (isset($data['data']) && is_array($data['data'])) {
+                $inner = $data['data'];
+
+                if (isset($inner['data']) && is_array($inner['data'])) {
+                    $items = array_values($inner['data']);
+                    $meta = $inner;
+                    unset($meta['data']);
+                } elseif (array_is_list($inner)) {
+                    $items = array_values($inner);
+                }
+            } elseif (array_is_list($data)) {
+                $items = array_values($data);
+            }
+
+            return [
+                'items' => $items,
+                'meta' => $meta,
+            ];
+        });
+
+        if (! isset($payload['items']) || ! is_array($payload['items'])) {
+            $payload['items'] = [];
+        }
+
+        if (! isset($payload['meta']) || ! is_array($payload['meta'])) {
+            $payload['meta'] = [];
+        }
+
+        return [
+            'items' => $payload['items'],
+            'meta' => $payload['meta'],
+        ];
+    }
+
+    /**
      * Retrieve products, using cache for performance. Set $forceRefresh to true
      * when running background syncs or explicit cache invalidation.
      *
@@ -429,7 +505,7 @@ class ProductApiService
             try {
                 return $this->client->getRelatedProducts($productId);
             } catch (\Throwable $exception) {
-                \Log::error('Failed to fetch related products from external API', [
+                Log::error('Failed to fetch related products from external API', [
                     'service' => static::class,
                     'product_id' => $productId,
                     'message' => $exception->getMessage(),
@@ -455,7 +531,7 @@ class ProductApiService
                 return $response;
             }
         } catch (\Throwable $exception) {
-            \Log::error('Product search failed', [
+            Log::error('Product search failed', [
                 'service' => static::class,
                 'query' => $query,
                 'message' => $exception->getMessage(),

@@ -46,6 +46,7 @@ class ProductController extends Controller
         return view('products.index', [
             'products' => $products,
             'pagination' => $pagination,
+            'category' => $categorySlug,
         ]);
     }
 
