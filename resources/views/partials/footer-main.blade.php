@@ -8,7 +8,7 @@
       <li><img src="{{ asset('assets/images/payments/razorpay.svg') }}" alt="Net Banking"></li>
       <li><img src="{{ asset('assets/images/payments/rupay.png') }}" alt="American Express"></li>
       <li><img src="{{ asset('assets/images/payments/visa.svg') }}" alt="RuPay"></li>
-      <li><img src="{{ asset('assets/images/payments/bhim.svg') }}" alt="BHIM UPI"></li>
+      <!-- <li><img src="{{ asset('assets/images/payments/bhim.svg') }}" alt="BHIM UPI"></li> -->
 
       <li class="custom-option">
         <a href="#">
@@ -67,10 +67,9 @@
 
     <div class="footer-col">
       <h4>Contact Us</h4>
-      <p>BIS : HM/C - 6290031216</p>
-      <p>Indiejewel Fashions Pvt Ltd</p>
-      <p>Bangalore – 560062</p>
-      <p>📞 9228837724</p>
+      <p>Bagda, P.S.-Puncha, Dist. - Purulia </p>
+      <p>West Bengal, Pin - 723151</p>
+      <p>📞 +91 90918 40899</p>
       <p><a href="#">Raise a Ticket</a></p>
     </div>
 
