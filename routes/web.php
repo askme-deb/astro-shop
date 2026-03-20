@@ -16,7 +16,13 @@ use App\Http\Controllers\Api\ProductSearchController;
 
 use App\Http\Controllers\WishController;
 
+use App\Http\Controllers\ContactController;
+
 Route::get('/', [HomeController::class, 'index']);
+
+// Contact page routes
+Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
