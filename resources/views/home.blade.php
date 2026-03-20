@@ -312,7 +312,7 @@
           consultants. Book your one-on-one session today.
         </p>
 
-        <a href="#book-session" class="book-session-btn">
+        <a href="https://jyotish.astrorajumaharaj.com/consultation" class="book-session-btn">
           Book a Session
         </a>
       </div>

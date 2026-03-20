@@ -1,7 +1,7 @@
 <!-- Top Offer Banner (Image) -->
 <!-- Top Bar -->
 <div class="top-bar">
-    Free Shipping | 925 Silver Jewellery
+    Free Shipping | 100% Certified Products | 30 Days Return Policy
 </div>
 
 <!-- Main Header -->
@@ -10,7 +10,7 @@
     <div class="row align-items-center">
       <!-- Logo -->
       <div class="col-6 col-md-1 logo_warp">
-        <a href="./"> <img src="{{ asset('assets/images/Logo.png') }}"></a>
+        <a href="https://astrorajumaharaj.com"> <img src="{{ asset('assets/images/Logo.png') }}"></a>
       </div>
 
       <!-- Search (Full width on mobile) -->
