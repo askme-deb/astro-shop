@@ -17,8 +17,11 @@ use App\Http\Controllers\Api\ProductSearchController;
 use App\Http\Controllers\WishController;
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\AboutController;
 
 Route::get('/', [HomeController::class, 'index']);
+// About page route
+Route::get('/about', [AboutController::class, 'show'])->name('about.show');
 
 // Contact page routes
 Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');
