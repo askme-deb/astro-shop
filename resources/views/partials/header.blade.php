@@ -472,6 +472,7 @@
                     @php
                         $menuItems = [
                             ['label' => 'Home', 'url' => url('/')],
+                            ['label' => 'Products', 'url' => url('/products')],
                             ['label' => 'About', 'url' => url('https://astrorajumaharaj.com/about')],
                             ['label' => 'Contact', 'url' => url('https://astrorajumaharaj.com/contact')],
                         ];
