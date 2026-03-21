@@ -6,7 +6,7 @@
     <title>@yield('title', 'Luxury Jewellery Store')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="icon" href="{{ asset('assets/images/fav.png') }}" type="image/x-icon">
+    <link rel="icon" href="{{ asset('assets/images/fab.png') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
     <!-- Bootstrap CSS -->
