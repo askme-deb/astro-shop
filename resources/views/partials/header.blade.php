@@ -472,8 +472,8 @@
                     @php
                         $menuItems = [
                             ['label' => 'Home', 'url' => url('/')],
-                            ['label' => 'About', 'url' => url('/about')],
-                            ['label' => 'Contact', 'url' => url('/contact')],
+                            ['label' => 'About', 'url' => url('https://astrorajumaharaj.com/about')],
+                            ['label' => 'Contact', 'url' => url('https://astrorajumaharaj.com/contact')],
                         ];
                     @endphp
                     @foreach($menuItems as $item)
