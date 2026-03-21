@@ -3526,3 +3526,11 @@ div#productSlider {float: left;}
 .filter-right {margin-top: 0;}
 .product_warp2 .col-md-3.col-sm-6 {width: 50%;}
 }
+
+
+@media(max-width:1240px){
+.logo_warp a img {
+    padding: 13px 0;
+}
+
+}
