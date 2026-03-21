@@ -337,17 +337,9 @@ class CheckoutController extends Controller
     public function stateList(Request $request): JsonResponse
     {
         $token = (string) $request->session()->get('auth.api_token', '');
-
-        if ($token === '') {
-            return response()->json([
-                'status' => false,
-                'states' => [],
-                'message' => 'You must be logged in to load states.',
-            ], 401);
-        }
-
         $countryId = $request->input('country_id', 101);
 
+        // Allow guests: if no token, use empty string (API should handle guest access)
         try {
             $result = $this->addressApi->getStates($token, $countryId);
         } catch (\Throwable $exception) {
