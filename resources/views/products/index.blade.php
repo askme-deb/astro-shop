@@ -5,16 +5,21 @@
 @section('content')
 <!-- Page Title -->
 
-<section class="py-4 border-bottom inner_warp">
+<section class="py-4 border-bottom inner_warp" aria-labelledby="products-heading">
   <div class="container">
-    <h2 class="fw-bold">Shop</h2>
     @if(!empty($category))
-      <h4 class="fw-bold">Category: {{ ucfirst(str_replace('-', ' ', $category)) }}</h4>
+      <h2 id="products-heading" class="fw-bold mb-2">
+        {{ __(ucfirst(str_replace('-', ' ', $category))) }}
+      </h2>
+    @else
+      <h2 id="products-heading" class="fw-bold mb-2">{{ __('Shop') }}</h2>
     @endif
     @if(!empty($products))
-      <p class="text-muted">Showing {{ count($products) }} products</p>
+      <p class="text-muted">
+        {{ trans_choice('Showing :count product|Showing :count products', count($products), ['count' => count($products)]) }}
+      </p>
     @else
-      <p class="text-muted">No products available at the moment.</p>
+      <p class="text-muted">{{ __('No products available at the moment.') }}</p>
     @endif
   </div>
 </section>
