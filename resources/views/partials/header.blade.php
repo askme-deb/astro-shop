@@ -9,12 +9,12 @@
   <div class="container">
     <div class="row align-items-center">
       <!-- Logo -->
-      <div class="col-6 col-md-1 logo_warp">
+      <div class="col-6 col-md-3 logo_warp">
         <a href="https://astrorajumaharaj.com"> <img src="{{ asset('assets/images/Logo.png') }}"></a>
       </div>
 
       <!-- Search (Full width on mobile) -->
-      <div class="col-12 col-md-7 order-3 order-md-2 mt-3 mt-md-0">
+      <div class="col-12 col-md-5 order-3 order-md-2 mt-3 mt-md-0">
         <div class="d-flex gap-2">
 
 
