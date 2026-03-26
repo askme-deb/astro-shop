@@ -14,7 +14,7 @@
 
         <!-- Wishlist -->
         <div class="wishlist-detail">
-         
+
            <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
           <!-- <span>Add to Wishlist</span> -->
         </div>
@@ -284,21 +284,23 @@
   <div class="owl-carousel bestselling-carousel">
     @foreach($relatedProducts ?? [] as $related)
       <div class="item">
-        <div class="product-card">
-          <i class="bi {{ (!empty($related['is_in_wishlist']) || !empty($related['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $related['id'] ?? 0 }}"></i>
-          <img src="{{ $related['image_url'] ?? asset('images/product-1.jpg') }}" alt="{{ $related['name'] ?? 'Product' }}">
-          <div class="rating">⭐ {{ $related['rating'] ?? 'N/A' }} | {{ $related['reviews_count'] ?? '0' }}</div>
-          <h6>{{ $related['name'] ?? 'Product' }}</h6>
-          <span class="price">₹{{ $related['final_price'] ?? $related['price'] ?? '0.00' }}</span>
-          @if(!empty($related['discount_rate']) && $related['discount_rate'] !== '0.00')
-            <span class="old-price ms-2">₹{{ $related['price'] ?? $related['product_price'] ?? '' }}</span>
-          @endif
-          <div class="offer">{{ !empty($related['discount_rate']) ? 'EXTRA ' . $related['discount_rate'] . '% OFF with coupon' : '&nbsp;' }}</div>
-          <div class="d-grid gap-2 mt-3">
-            <button class="btn btn-cart" onclick="addToCart({ product_id: {{ $related['id'] ?? 0 }}, quantity: 1 }, this)">Add to Cart</button>
-            <button class="btn btn-buy" onclick="buyNow({ product_id: {{ $related['id'] ?? 0 }}, quantity: 1 }, this)">Buy Now</button>
+        <a href="{{ url('product/' . ($related['slug'] ?? $related['id'] ?? '')) }}" class="text-decoration-none text-dark">
+          <div class="product-card">
+            <i class="bi {{ (!empty($related['is_in_wishlist']) || !empty($related['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $related['id'] ?? 0 }}"></i>
+            <img src="{{ $related['image_url'] ?? asset('images/product-1.jpg') }}" alt="{{ $related['name'] ?? 'Product' }}">
+            <div class="rating">⭐ {{ $related['rating'] ?? 'N/A' }} | {{ $related['reviews_count'] ?? '0' }}</div>
+            <h6>{{ $related['name'] ?? 'Product' }}</h6>
+            <span class="price">₹{{ $related['final_price'] ?? $related['price'] ?? '0.00' }}</span>
+            @if(!empty($related['discount_rate']) && $related['discount_rate'] !== '0.00')
+              <span class="old-price ms-2">₹{{ $related['price'] ?? $related['product_price'] ?? '' }}</span>
+            @endif
+            <div class="offer">{{ !empty($related['discount_rate']) ? 'EXTRA ' . $related['discount_rate'] . '% OFF with coupon' : '&nbsp;' }}</div>
+            <div class="d-grid gap-2 mt-3">
+              <button class="btn btn-cart" onclick="event.preventDefault(); addToCart({ product_id: {{ $related['id'] ?? 0 }}, quantity: 1 }, this)">Add to Cart</button>
+              <button class="btn btn-buy" onclick="event.preventDefault(); buyNow({ product_id: {{ $related['id'] ?? 0 }}, quantity: 1 }, this)">Buy Now</button>
+            </div>
           </div>
-        </div>
+        </a>
       </div>
     @endforeach
 
