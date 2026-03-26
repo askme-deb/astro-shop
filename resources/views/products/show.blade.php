@@ -284,7 +284,7 @@
   <div class="owl-carousel bestselling-carousel">
     @foreach($relatedProducts ?? [] as $related)
       <div class="item">
-        <a href="{{ url('product/' . ($related['slug'] ?? $related['id'] ?? '')) }}" class="text-decoration-none text-dark">
+        <a href="{{ url('products/' . ($related['slug'] ?? $related['id'] ?? '')) }}" class="text-decoration-none text-dark">
           <div class="product-card">
             <i class="bi {{ (!empty($related['is_in_wishlist']) || !empty($related['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $related['id'] ?? 0 }}"></i>
             <img src="{{ $related['image_url'] ?? asset('images/product-1.jpg') }}" alt="{{ $related['name'] ?? 'Product' }}">
