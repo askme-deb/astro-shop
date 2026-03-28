@@ -3484,10 +3484,10 @@ div#mobileNav {
 }
 
 .owl-nav{
- display: none; 
+ display: none;
 }
 
-    
+
 
 
 
@@ -3533,4 +3533,21 @@ div#productSlider {float: left;}
     padding: 13px 0;
 }
 
+}
+
+
+
+@media (max-width:1025px) and (min-width:320px){
+.hero-slider .carousel-item {
+  height: 15vh!important;
+  min-height: 290px!important;
+}
+
+/gemstone1 products price/
+@media (max-width: 768px)  and (min-width:320px){
+    .price, .date, .stock {
+        display: flex;
+        justify-content: space-around !important;
+        font-size: 14px;
+    }
 }
