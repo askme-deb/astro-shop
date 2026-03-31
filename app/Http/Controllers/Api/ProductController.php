@@ -8,6 +8,24 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
+
+    /**
+     * Return product details by slug (for API).
+     */
+    public function detailsBySlug($slug): JsonResponse
+    {
+        $product = $this->productApiService->getProductDetailsBySlug($slug);
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'error' => 'Product not found',
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'data' => $product,
+        ]);
+    }
 {
     protected ProductApiService $productApiService;
 

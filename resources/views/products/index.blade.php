@@ -60,7 +60,7 @@ $filters = [
     'label' => 'Category',
     'options' => [], // Fill dynamically if needed
   ],
- 
+
   [
     'name' => 'price_range',
     'label' => 'Price',
@@ -93,14 +93,14 @@ $filters = [
       ['value' => '1', 'label' => 'In Stock Only'],
     ],
   ],
-  
+
   [
     'name' => 'product_grade_id',
     'label' => 'Product Grade',
     'options' => [], // Fill dynamically if needed
   ],
- 
-  
+
+
 ];
 $sortOptions = [
   ['value' => 'best', 'label' => 'Best selling'],
@@ -404,10 +404,15 @@ function fetchProducts(page = 1) {
       renderPagination(data.pagination || {}, page);
       // Render a product card in JS (matches Blade component as much as possible)
       function renderProductCard(product) {
+        // Build the product show URL using the slug (assumes route is /products/{slug})
+        const productUrl = `/products/${encodeURIComponent(product.slug)}`;
+        const productPayload = JSON.stringify({ product_id: product.id || 0, quantity: 1 });
         return `
           <div class="col-md-3 col-sm-6">
             <div class="product-card">
-              <img src="${product.image_url || '/assets/images/product-1.jpg'}" alt="${product.name || 'Product'}">
+              <a href="${productUrl}">
+                <img src="${product.image_url || '/assets/images/product-1.jpg'}" alt="${product.name || 'Product'}">
+              </a>
               <div class="rating">⭐</div>
               <h6 class="mt-2">${product.name || 'Product'}</h6>
               <div>
@@ -415,8 +420,8 @@ function fetchProducts(page = 1) {
               </div>
               <div class="offer">&nbsp;</div>
               <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-cart">Add to Cart</button>
-                <button class="btn btn-buy">Buy Now</button>
+                <button class="btn btn-cart" onclick='addToCart(${productPayload}, this)'>Add to Cart</button>
+                <button class="btn btn-buy" onclick='buyNow(${productPayload}, this)'>Buy Now</button>
               </div>
             </div>
           </div>

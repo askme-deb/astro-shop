@@ -59,8 +59,7 @@ class ProductController extends Controller
         $coupons = [];
         $relatedProducts = [];
         try {
-            $products = $this->productApiService->getProducts();
-            $product = collect($products)->firstWhere('slug', $slug);
+            $product = $this->productApiService->getProductDetailsBySlug($slug);
             if ($product && isset($product['id'])) {
                 $couponService = app(\App\Services\Api\ProductCouponService::class);
                 $coupons = $couponService->getProductCoupons(
@@ -76,7 +75,6 @@ class ProductController extends Controller
                 'message' => $exception->getMessage(),
             ]);
         }
-       // dd($relatedProducts);
         return view('products.show', [
             'product' => $product,
             'slug' => $slug,

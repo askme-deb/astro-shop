@@ -304,21 +304,7 @@
       </div>
     @endforeach
 
- <div class="item">
-      <div class="product-card">
-        <i class="bi bi-heart wishlist"></i>
-        <img src="images/product-1.jpg">
-        <div class="rating">⭐ 4.8 | 316</div>
-        <h6>Rose Gold Princess Earrings</h6>
-        <span class="price">₹3,499</span>
-        <span class="old-price">₹5,799</span>
-        <div class="offer">EXTRA 16% OFF with coupon</div>
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-cart">Add to Cart</button>
-          <button class="btn btn-buy">Buy Now</button>
-        </div>
-      </div>
-    </div>
+
 
 
 

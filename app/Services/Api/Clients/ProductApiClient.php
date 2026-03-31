@@ -158,4 +158,26 @@ class ProductApiClient extends BaseApiClient
             'query' => $filters
         ]);
     }
+
+
+        /**
+     * Fetch product details by slug from the external API.
+     *
+     * @param string $slug
+     * @return array<string, mixed>|null
+     */
+    public function getProductDetailsBySlug(string $slug): ?array
+    {
+        $endpoint = sprintf('product/details/%s', $slug);
+        $response = $this->request('GET', $endpoint);
+        // The external API returns product data under 'product' key
+        if (isset($response['product']) && is_array($response['product'])) {
+            return $response['product'];
+        }
+        // Fallback: If the response is the product itself
+        if (isset($response['id'])) {
+            return $response;
+        }
+        return null;
+    }
 }

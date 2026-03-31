@@ -1522,7 +1522,7 @@
         }
     });
 
-    
+
 (function() {
     const searchInput = document.getElementById('searchInput');
     const suggestionsBox = document.getElementById('searchSuggestions');
@@ -1537,13 +1537,55 @@
         suggestionsBox.innerHTML = items.map(item => {
             const imageUrl = item.image_url || '/assets/images/product-1.jpg';
             const price = item.total_price || item.price || '';
-            return `<div class="suggestion-item" data-id="${item.id}">
-                <img src="${imageUrl}" style="width: 50px; height: 50px; object-fit: cover;" alt="${item.name || 'Product'}">
-                <span>${item.name || 'Product'}</span>
-                ${price ? `<span class="suggestion-price">₹${price}</span>` : ''}
-            </div>`;
+            const slug = item.slug || item.id;
+            return `
+                <a href="/products/${encodeURIComponent(slug)}" class="suggestion-item d-flex align-items-center gap-2 py-2 px-2 border-bottom text-decoration-none" data-id="${item.id}" style="transition:background 0.15s;">
+                    <img src="${imageUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; background: #fafafa;">
+                    <div class="flex-grow-1 ms-1" style="min-width:0;">
+                        <div class="fw-semibold text-dark text-truncate" style="font-size: 1rem;">${item.name || 'Product'}</div>
+                        ${price ? `<div class="suggestion-price fw-bold text-success mt-1" style="font-size: 1.05rem;">₹${price}</div>` : ''}
+                    </div>
+                </a>
+            `;
         }).join('');
         suggestionsBox.classList.add('show');
+    // Add styles for professional suggestion dropdown
+    const suggestionStyles = `
+    .search-suggestions {
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+        border-radius: 0.6rem;
+        background: #fff;
+        border: 1px solid #eee;
+        max-height: 420px;
+        overflow-y: auto;
+        min-width: 320px;
+        padding: 0;
+        margin-top: 0.25rem;
+        z-index: 1002;
+    }
+    .search-suggestions .suggestion-item {
+        cursor: pointer;
+        border-bottom: 1px solid #f2f2f2;
+        transition: background 0.13s;
+    }
+    .search-suggestions .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    .search-suggestions .suggestion-item:hover, .search-suggestions .suggestion-item:focus {
+        background: #f7f7fa;
+        text-decoration: none;
+    }
+    .search-suggestions .suggestion-price {
+        color: #388e3c;
+        font-weight: 600;
+    }
+    `;
+    if (!document.getElementById('search-suggestion-styles')) {
+        const styleTag = document.createElement('style');
+        styleTag.id = 'search-suggestion-styles';
+        styleTag.innerHTML = suggestionStyles;
+        document.head.appendChild(styleTag);
+    }
     }
 
     function fetchSuggestions(query) {

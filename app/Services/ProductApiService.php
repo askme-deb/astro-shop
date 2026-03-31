@@ -30,7 +30,34 @@ class ProductApiService
     }
 
     /**
-     * Retrieve a single product by ID, with caching.
+     * Retrieve product details by slug, with caching.
+     *
+     * @param string $slug
+     * @param bool $forceRefresh
+     * @return array<string, mixed>|null
+     */
+    public function getProductDetailsBySlug(string $slug, bool $forceRefresh = false): ?array
+    {
+        $cacheKey = 'astro.product.details.' . $slug;
+        if ($forceRefresh) {
+            $this->cache->forget($cacheKey);
+        }
+        return $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($slug) {
+            try {
+                $product = $this->client->getProductDetailsBySlug($slug);
+            } catch (\Throwable $exception) {
+                Log::error('Failed to fetch product details by slug from external API', [
+                    'service' => static::class,
+                    'slug' => $slug,
+                    'message' => $exception->getMessage(),
+                ]);
+                return null;
+            }
+            return $product;
+        });
+    }
+    
+     /* Retrieve a single product by ID, with caching.
      *
      * @param int|string $id
      * @param bool $forceRefresh
