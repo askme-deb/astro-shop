@@ -415,10 +415,14 @@ function fetchProducts(page = 1) {
               </a>
               <div class="rating">⭐</div>
               <h6 class="mt-2">${product.name || 'Product'}</h6>
-              <div>
-                <span class="price">₹${product.price || '0.00'}</span>
+              <div class="price-box mb-3">
+                ${(product.discount_price && product.discount_price > 0)
+                  ? `<span class="price fs-3 fw-bold">₹${((product.product_price || 0) - (product.discount_price || 0)).toFixed(2)}</span>
+                     <span class="old-price ms-2">₹${product.product_price}</span>
+                     <span class="badge bg-success ms-2">${product.discount_rate}% OFF</span>`
+                  : `<span class="price fs-3 fw-bold">₹${product.product_price || product.final_price || product.price || '0'}</span><div class='discount-empty'>&nbsp;</div>`
+                }
               </div>
-              <div class="offer">&nbsp;</div>
               <div class="d-grid gap-2 mt-3">
                 <button class="btn btn-cart" onclick='addToCart(${productPayload}, this)'>Add to Cart</button>
                 <button class="btn btn-buy" onclick='buyNow(${productPayload}, this)'>Buy Now</button>

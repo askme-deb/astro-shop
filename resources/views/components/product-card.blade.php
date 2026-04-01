@@ -18,17 +18,16 @@
             ⭐ {{ $product['rating'] ?? '4.5' }}
         </div>
         <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
-        <div>
-            <span class="price">₹{{ $product['final_price'] ?? $product['total_price'] ?? $product['price'] ?? '0.00' }}</span>
-            @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-                <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
+        <div class="price-box mb-3">
+            @if(!empty($product['discount_price']) && $product['discount_price'] > 0)
+                <span class="price fs-3 fw-bold">₹{{ number_format(($product['product_price'] ?? 0) - ($product['discount_price'] ?? 0), 2) }}</span>
+                <span class="old-price ms-2">₹{{ $product['product_price'] }}</span>
+                <span class="badge bg-success ms-2">{{ $product['discount_rate'] }}% OFF</span>
+            @else
+                <span class="price fs-3 fw-bold">₹{{ $product['product_price'] ?? $product['final_price'] ?? $product['price'] ?? '0' }}</span>
+                <div class="">&nbsp;</div>
             @endif
         </div>
-        @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
-            <div class="offer">Save {{ $product['discount_rate'] }}%</div>
-        @else
-            <div class="offer">&nbsp;</div>
-        @endif
         <div class="d-grid gap-2 mt-3">
             <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
             <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>
