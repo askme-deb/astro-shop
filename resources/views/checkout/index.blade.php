@@ -487,13 +487,25 @@
                         body: JSON.stringify(payload)
                     });
                     orderData = await res.json();
+
+                    if (!res.ok || !orderData || orderData.status === false || orderData.success === false) {
+                        const message = orderData && (orderData.message || orderData.error || orderData.raw_body)
+                            ? (orderData.message || orderData.error || orderData.raw_body)
+                            : 'Failed to create order.';
+                        throw new Error(message);
+                    }
                 } catch (err) {
-                    alert('Failed to create order.');
+                    const message = err && err.message ? err.message : 'Failed to create order.';
+                    toast(message, true);
+                    document.querySelector('.checkout-wrapper').style.pointerEvents = '';
+                    document.querySelector('.checkout-wrapper').style.opacity = '';
                     return;
                 }
                 //console.log('Order data from backend:', orderData.order_id, orderData.amount, orderData.key);
                 if (!orderData || !orderData.order_id || !orderData.amount || !orderData.key) {
-                    alert('Invalid order data.');
+                    toast(orderData && orderData.message ? orderData.message : 'Invalid order data.', true);
+                    document.querySelector('.checkout-wrapper').style.pointerEvents = '';
+                    document.querySelector('.checkout-wrapper').style.opacity = '';
                     return;
                 }
 
@@ -913,13 +925,6 @@
 
         .summary-skeleton-line--meta {
             width: 45%;
-        }
-
-        .summary-compare {
-            text-decoration: line-through;
-            color: #888;
-            margin-left: 8px;
-            font-size: 0.95em;
         }
 
         .summary-skeleton-price {
@@ -2705,39 +2710,25 @@
                 console.log('Rendering summary for items:', items);
                 items.forEach(function(item) {
                     const product = item.product || {};
-                    // Use total_price if available, else fallback to discountedPrice * quantity
-                    let lineTotal = 0;
-                    if (product.total_price && !isNaN(Number(product.total_price))) {
-                        lineTotal = parseFloat(product.total_price);
-                    } else {
-                        let unitPrice = parseFloat(product.price || item.amount || 0) || 0;
-                        let discountedPrice = unitPrice;
-                        if (product.discount_rate && parseFloat(product.discount_rate) > 0 && product.discount_price) {
-                            discountedPrice = parseFloat(product.discount_price);
-                        }
-                        const quantity = parseInt(item.quantity || 1, 10) || 1;
-                        lineTotal = discountedPrice * quantity;
-                    }
+                    const unitPrice = parseFloat(product.price || item.amount || 0) || 0;
+                    const comparePriceRaw = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
+                    const quantity = parseInt(item.quantity || 1, 10) || 1;
+                    const lineTotal = unitPrice * quantity;
                     subtotal += lineTotal;
 
                     const imageUrl = product.image_url || '/assets/images/product-1.jpg';
                     const name = product.name || 'Product';
                     const options = product.options_text || '';
-                    const quantity = parseInt(item.quantity || 1, 10) || 1;
                     const metaParts = ['Qty: ' + quantity];
                     if (options) {
                         metaParts.push(options);
                     }
                     const metaText = metaParts.join(' • ');
 
-                    // For compare price, show only if price > lineTotal
-                    let comparePriceRaw = null;
-                    if (product.price && !isNaN(Number(product.price))) {
-                        comparePriceRaw = parseFloat(product.price);
-                    }
-                    const lineCompareTotal = (comparePriceRaw && comparePriceRaw > lineTotal) ? (comparePriceRaw * quantity) : null;
+                    const lineCompareTotal = comparePriceRaw ? (comparePriceRaw * quantity) : null;
 
-                    html += `<div class="summary-item">
+                    html += `
+                        <div class="summary-item">
                             <img src="${imageUrl}" alt="${name}">
                             <div>
                                 <p class="product-name">${name}</p>
@@ -2745,7 +2736,7 @@
                             </div>
                             <div class="summary-price">
                                 <strong>₹${formatCurrency(lineTotal)}</strong>
-                                ${lineCompareTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
+                                ${lineCompareTotal && lineCompareTotal > lineTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
                             </div>
                         </div>`;
                 });
@@ -2764,55 +2755,9 @@
                 }
             }
 
-            async function fetchCheckoutCart() {
+            function fetchCheckoutCart() {
                 showSummarySkeleton();
 
-                // Check for buyNow params in URL
-                const searchParams = new URLSearchParams(window.location.search);
-                const isBuyNow = searchParams.get('buyNow') === '1';
-                const productId = searchParams.get('product_id');
-                const quantity = parseInt(searchParams.get('quantity') || '1', 10) || 1;
-
-                if (isBuyNow && productId) {
-                    // Fetch product details for buyNow
-                    try {
-                        const res = await fetch(`/api/products/${productId}`);
-                        const data = await res.json();
-                        if (!res.ok || !data || !data.data) {
-                            console.error('BuyNow: Product fetch failed or missing data', data);
-                            renderEmpty();
-                            window.cartItems = [];
-                            return;
-                        }
-                        const product = data.data;
-                        // Fallbacks for missing fields
-                        const safeProduct = {
-                            id: product.id || productId,
-                            name: product.name || 'Product',
-                            price: product.price || 0,
-                            image_url: product.image_url || '/assets/images/product-1.jpg',
-                            ...product
-                        };
-                        console.log('BuyNow: Product for summary', safeProduct);
-                        // Build a cart-like item for summary/order
-                        const item = {
-                            product: safeProduct,
-                            product_id: safeProduct.id,
-                            quantity: quantity,
-                            amount: safeProduct.price
-                        };
-                        window.cartItems = [item];
-                        renderSummary([item]);
-                        return;
-                    } catch (e) {
-                        console.error('BuyNow: Exception fetching product', e);
-                        renderEmpty();
-                        window.cartItems = [];
-                        return;
-                    }
-                }
-
-                // Default: fetch cart
                 fetch('/api/cart', {
                         credentials: 'include'
                     })
@@ -3054,38 +2999,23 @@
                     const discountRowEl = document.getElementById('coupon-summary-row');
                     const discountValueEl = document.getElementById('checkout-coupon-discount');
                     const totalEl = document.getElementById('total');
-                    const subtotalEl = document.getElementById('subtotal');
-                    const taxEl = document.getElementById('tax');
 
                     if (discountRowEl && discountValueEl && typeof discountRaw === 'number') {
                         discountRowEl.style.display = discountRaw > 0 ? 'flex' : 'none';
                         discountValueEl.textContent = formatCurrency(discountRaw);
                     }
 
-                    // Use backend grand total if provided, else fallback to formula
-                    if (grandTotalRaw !== null && !isNaN(Number(grandTotalRaw))) {
-                        if (totalEl) totalEl.textContent = formatCurrency(grandTotalRaw);
-                        // Optionally, recalculate tax for display
-                        let subtotal = 0;
-                        if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
-                            subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
-                        }
-                        let discountedSubtotal = subtotal - discountRaw;
-                        if (discountedSubtotal < 0) discountedSubtotal = 0;
-                        const tax = discountedSubtotal * 0.03;
-                        if (taxEl) taxEl.textContent = formatCurrency(tax);
-                    } else {
-                        // Fallback: Total = (Subtotal - Discount) + Tax, Tax = 3% of (Subtotal - Discount)
-                        let subtotal = 0;
-                        if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
-                            subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
-                        }
-                        let discountedSubtotal = subtotal - discountRaw;
-                        if (discountedSubtotal < 0) discountedSubtotal = 0;
-                        const tax = discountedSubtotal * 0.03;
-                        if (taxEl) taxEl.textContent = formatCurrency(tax);
-                        if (totalEl) totalEl.textContent = formatCurrency(discountedSubtotal + tax);
+                    // Correct calculation: Total = (Subtotal - Discount) + Tax, Tax = 3% of (Subtotal - Discount)
+                    const subtotalEl = document.getElementById('subtotal');
+                    const taxEl = document.getElementById('tax');
+                    let subtotal = 0;
+                    if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
+                        subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
                     }
+                    const discountedSubtotal = subtotal - discountRaw;
+                    const tax = discountedSubtotal * 0.03;
+                    if (taxEl) taxEl.textContent = formatCurrency(tax);
+                    if (totalEl) totalEl.textContent = formatCurrency(discountedSubtotal + tax);
 
                     toast(data.message || 'Coupon applied successfully.', false);
                 } catch (error) {
@@ -3185,3 +3115,4 @@
         })();
     </script>
 @endpush
+

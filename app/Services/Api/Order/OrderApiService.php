@@ -7,6 +7,35 @@ use Illuminate\Support\Facades\Log;
 
 class OrderApiService extends BaseApiClient
 {
+    protected function normalizePlaceOrderPayload(array $payload, bool $hasToken): array
+    {
+        if ($hasToken) {
+            unset($payload['user_id'], $payload['guest_user_id']);
+        } else {
+            unset($payload['user_id']);
+        }
+
+        if (! empty($payload['cart_items']) && is_array($payload['cart_items'])) {
+            $payload['cart_items'] = array_values(array_map(function ($item) {
+                $product = is_array($item['product'] ?? null) ? $item['product'] : [];
+
+                return array_filter([
+                    'product_id' => $item['product_id'] ?? $product['id'] ?? null,
+                    'quantity' => isset($item['quantity']) ? (int) $item['quantity'] : 1,
+                    'amount' => isset($item['amount']) ? (float) $item['amount'] : (isset($product['price']) ? (float) $product['price'] : null),
+                    'carat' => $item['carat'] ?? $product['carat'] ?? null,
+                    'variation_name' => $item['variation_name'] ?? null,
+                    'variation_price' => isset($item['variation_price']) ? (float) $item['variation_price'] : null,
+                    'product_variation_options_id' => $item['product_variation_options_id'] ?? null,
+                ], static function ($value) {
+                    return $value !== null && $value !== '';
+                });
+            }, $payload['cart_items']));
+        }
+
+        return $payload;
+    }
+
     /**
      * Fetch order timeline from external API.
      *
@@ -96,9 +125,22 @@ class OrderApiService extends BaseApiClient
         }
     }
 
-    public function placeOrder($payload)
+    public function placeOrder($payload, string $token = null)
     {
-        $response = $this->request('POST', 'checkout/place-order', ['json' => $payload]);
+        $hasToken = $token !== null && $token !== '';
+        $payload = $this->normalizePlaceOrderPayload((array) $payload, $hasToken);
+
+        $options = [
+            'json' => $payload,
+        ];
+
+        if ($hasToken) {
+            $options['headers'] = [
+                'Authorization' => 'Bearer ' . $token,
+            ];
+        }
+
+        $response = $this->request('POST', 'checkout/place-order', $options);
         // If the response contains an error, log it and return it
         if (isset($response['error']) || isset($response['message'])) {
             Log::error('Astro API placeOrder error', [
