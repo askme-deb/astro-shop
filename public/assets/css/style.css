@@ -3479,8 +3479,8 @@ input:disabled, textarea:disabled {
 }
 
 div#mobileNav {
-    border-top: 1px solid #ccc;
-    padding-top: 8px;
+    /* border-top: 1px solid #ccc;
+    padding-top: 8px; */
 }
 
 .owl-nav{
