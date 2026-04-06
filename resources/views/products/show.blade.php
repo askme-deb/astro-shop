@@ -46,7 +46,7 @@
     <div class="col-md-6" style="position: relative;">
 
       <h2 class="mb-2">{{ $product['name'] ?? 'Product Name' }}</h2>
-      <div class="rating mb-2">⭐ {{ $product['rating'] ?? 'N/A' }} | {{ $product['reviews_count'] ?? '0' }} Reviews</div>
+      <div class="rating mb-2" id="product-rating-summary">⭐ {{ $product['rating'] ?? '0.0' }} | <span id="product-rating-count">{{ $product['reviews_count'] ?? '0' }}</span> Reviews</div>
 
       <div class="price-box mb-3">
         @if(!empty($product['discount_price']) && $product['discount_price'] > 0)
@@ -200,8 +200,8 @@
       </li>
 
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews" role="tab">
-          Reviews (316)
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews" role="tab" id="reviews-tab-button">
+          Reviews (<span id="reviews-tab-count">{{ $product['reviews_count'] ?? '0' }}</span>)
         </button>
       </li>
 
@@ -294,10 +294,10 @@
             <div class="card-body">
               <h5 class="card-title mb-3">Customer Reviews</h5>
               <div class="d-flex align-items-center gap-3 mb-2">
-                <span class="fs-2 fw-bold text-warning">
-                  <i class="bi bi-star-fill"></i> {{ $product['rating'] ?? 'N/A' }}
+                <span class="fs-2 fw-bold text-warning" id="review-summary-rating">
+                  <i class="bi bi-star-fill"></i> {{ $product['rating'] ?? '0.0' }}
                 </span>
-                <span class="text-muted">({{ $product['reviews_count'] ?? '0' }} Reviews)</span>
+                <span class="text-muted" id="review-summary-count">({{ $product['reviews_count'] ?? '0' }} Reviews)</span>
               </div>
             </div>
           </div>
@@ -326,39 +326,169 @@
                       @endfor
                       <input type="hidden" name="rating" id="review-rating" value="0">
                     </div>
-                    <script>
-                      document.addEventListener('DOMContentLoaded', function() {
-                        const stars = document.querySelectorAll('.star-rating .star');
-                        const ratingInput = document.getElementById('review-rating');
-                        let currentRating = 0;
-                        stars.forEach((star, idx) => {
-                          star.addEventListener('mouseenter', function() {
-                            for (let j = 0; j <= idx; j++) stars[j].style.color = '#ffc107';
-                            for (let j = idx + 1; j < stars.length; j++) stars[j].style.color = '#ddd';
-                          });
-                          star.addEventListener('mouseleave', function() {
-                            for (let j = 0; j < stars.length; j++)
-                              stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
-                          });
-                          star.addEventListener('click', function() {
-                            currentRating = idx + 1;
-                            ratingInput.value = currentRating;
-                            for (let j = 0; j < stars.length; j++)
-                              stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
-                          });
-                        });
-                      });
-                    </script>
                   </div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Your Review</label>
-                  <textarea class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+                  <input type="text" class="form-control mb-2" id="review-title" placeholder="Review title (min 5 chars)">
+                  <textarea class="form-control" id="review-comment" rows="3" placeholder="Share your experience..."></textarea>
                 </div>
+                <div id="review-error" class="alert alert-danger d-none"></div>
+                <div id="review-success" class="alert alert-success d-none"></div>
                 <div class="d-grid">
-                  <button class="btn btn-dark btn-lg">Submit Review</button>
+                  <button type="button" class="btn btn-dark btn-lg" id="submit-review-btn">Submit Review</button>
                 </div>
               </form>
+              <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  const productId = {{ $product['id'] ?? 0 }};
+
+                  function updateReviewSummary(summary) {
+                    const payload = summary && summary.data && typeof summary.data === 'object'
+                      ? summary.data
+                      : summary;
+                    const ratingValue = Number(payload.average_rating || 0).toFixed(1);
+                    const reviewCount = Number(payload.total_reviews || 0);
+                    const productRatingEl = document.getElementById('product-rating-summary');
+                    const productRatingCountEl = document.getElementById('product-rating-count');
+                    const ratingEl = document.getElementById('review-summary-rating');
+                    const countEl = document.getElementById('review-summary-count');
+                    const tabCountEl = document.getElementById('reviews-tab-count');
+
+                    if (productRatingEl) {
+                      productRatingEl.innerHTML = '⭐ ' + ratingValue + ' | <span id="product-rating-count">' + reviewCount + '</span> Reviews';
+                    } else if (productRatingCountEl) {
+                      productRatingCountEl.textContent = reviewCount;
+                    }
+
+                    if (ratingEl) {
+                      ratingEl.innerHTML = '<i class="bi bi-star-fill"></i> ' + ratingValue;
+                    }
+
+                    if (countEl) {
+                      countEl.textContent = '(' + reviewCount + ' Reviews)';
+                    }
+
+                    if (tabCountEl) {
+                      tabCountEl.textContent = reviewCount;
+                    }
+                  }
+
+                  function loadReviewSummary() {
+                    fetch('/api/v1/reviews/summary?reviewable_type=product&reviewable_id=' + productId, {
+                      method: 'GET',
+                      headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                      }
+                    })
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data && data.status) {
+                          updateReviewSummary(data);
+                        }
+                      })
+                      .catch(() => {
+                      });
+                  }
+
+                  // Star rating logic
+                  const stars = document.querySelectorAll('.star-rating .star');
+                  const ratingInput = document.getElementById('review-rating');
+                  let currentRating = 0;
+                  stars.forEach((star, idx) => {
+                    star.addEventListener('mouseenter', function() {
+                      for (let j = 0; j <= idx; j++) stars[j].style.color = '#ffc107';
+                      for (let j = idx + 1; j < stars.length; j++) stars[j].style.color = '#ddd';
+                    });
+                    star.addEventListener('mouseleave', function() {
+                      for (let j = 0; j < stars.length; j++)
+                        stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
+                    });
+                    star.addEventListener('click', function() {
+                      currentRating = idx + 1;
+                      ratingInput.value = currentRating;
+                      for (let j = 0; j < stars.length; j++)
+                        stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
+                    });
+                  });
+
+                  // Review form AJAX submit
+                  const submitBtn = document.getElementById('submit-review-btn');
+                  const errorDiv = document.getElementById('review-error');
+                  const successDiv = document.getElementById('review-success');
+                  submitBtn.addEventListener('click', function() {
+                    errorDiv.classList.add('d-none');
+                    successDiv.classList.add('d-none');
+                    const rating = parseInt(document.getElementById('review-rating').value);
+                    const title = document.getElementById('review-title').value.trim();
+                    const comment = document.getElementById('review-comment').value.trim();
+                    if (!rating || rating < 1 || rating > 5) {
+                      errorDiv.textContent = 'Please select a rating.';
+                      errorDiv.classList.remove('d-none');
+                      return;
+                    }
+                    if (title.length < 5) {
+                      errorDiv.textContent = 'Title must be at least 5 characters.';
+                      errorDiv.classList.remove('d-none');
+                      return;
+                    }
+                    if (comment.length < 10) {
+                      errorDiv.textContent = 'Comment must be at least 10 characters.';
+                      errorDiv.classList.remove('d-none');
+                      return;
+                    }
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                    fetch('/api/v1/reviews', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                      },
+                      body: JSON.stringify({
+                        reviewable_type: 'product',
+                        reviewable_id: {{ $product['id'] ?? 0 }},
+                        rating: rating,
+                        title: title,
+                        comment: comment
+                      })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                      submitBtn.disabled = false;
+                      submitBtn.textContent = 'Submit Review';
+                      if (!data.status) {
+                        let msg = data.error || 'Failed to submit review.';
+                        if (data.reason) {
+                          msg += ' [' + data.reason + ']';
+                        }
+                        errorDiv.textContent = msg;
+                        errorDiv.classList.remove('d-none');
+                      } else {
+                        successDiv.textContent = 'Review submitted successfully!';
+                        successDiv.classList.remove('d-none');
+                        document.getElementById('review-title').value = '';
+                        document.getElementById('review-comment').value = '';
+                        ratingInput.value = 0;
+                        currentRating = 0;
+                        stars.forEach(star => star.style.color = '#ddd');
+                        loadReviewSummary();
+                      }
+                    })
+                    .catch(() => {
+                      submitBtn.disabled = false;
+                      submitBtn.textContent = 'Submit Review';
+                      errorDiv.textContent = 'Network error. Please try again.';
+                      errorDiv.classList.remove('d-none');
+                    });
+                  });
+
+                  loadReviewSummary();
+                });
+              </script>
             </div>
           </div>
       </div>

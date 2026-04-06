@@ -9,7 +9,7 @@ use App\Http\Controllers\ApiCheckoutController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
-
+use App\Http\Controllers\Api\ReviewController;
 // Remove the 'api' prefix - Laravel adds it automatically in api.php
 Route::prefix('cart')->middleware('cart.user.resolved')->group(function () {
     Route::post('add-to-cart', [CartController::class, 'addToCart']);
@@ -48,3 +48,7 @@ Route::get('product/search', ProductSearchController::class);
 
 Route::post('/v1/login', [LoginController::class, 'login']);
 Route::post('/v1/register', [RegisterController::class, 'register']);
+
+// Review API
+Route::post('v1/reviews', [ReviewController::class, 'store']);
+Route::get('v1/reviews/summary', [ReviewController::class, 'summary']);
