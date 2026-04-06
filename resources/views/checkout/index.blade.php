@@ -2698,10 +2698,15 @@
                 console.log('Rendering summary for items:', items);
                 items.forEach(function(item) {
                     const product = item.product || {};
-                    const unitPrice = parseFloat(product.price || item.amount || 0) || 0;
-                    const comparePriceRaw = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
+                    let unitPrice = parseFloat(product.price || item.amount || 0) || 0;
+                    let discountedPrice = unitPrice;
+                    // Apply discount if available
+                    if (product.discount_rate && parseFloat(product.discount_rate) > 0 && product.discount_price) {
+                        discountedPrice = parseFloat(product.discount_price);
+                    }
+                    const comparePriceRaw = unitPrice !== discountedPrice ? unitPrice : null;
                     const quantity = parseInt(item.quantity || 1, 10) || 1;
-                    const lineTotal = unitPrice * quantity;
+                    const lineTotal = discountedPrice * quantity;
                     subtotal += lineTotal;
 
                     const imageUrl = product.image_url || '/assets/images/product-1.jpg';
@@ -2727,6 +2732,20 @@
                                 ${lineCompareTotal && lineCompareTotal > lineTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
                             </div>
                         </div>`;
+                    const item = document.createElement('div');
+                    item.className = 'summary-item';
+                    item.innerHTML = `
+                        <img src="${imageUrl}" alt="${name}">
+                        <div>
+                            <p class="product-name">${name}</p>
+                            <span class="product-meta">${metaText}</span>
+                        </div>
+                        <div class="summary-price">
+                            <strong>₹${formatCurrency(lineTotal)}</strong>
+                            ${lineCompareTotal && lineCompareTotal > lineTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
+                        </div>
+                    `;
+                    itemsContainer.appendChild(item);
                 });
 
                 itemsContainer.innerHTML = html;
