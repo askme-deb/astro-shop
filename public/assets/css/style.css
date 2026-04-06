@@ -3483,6 +3483,10 @@ div#mobileNav {
     padding-top: 8px; */
 }
 
+.border-bottomx {
+    box-shadow: 0px 0px 1px 0px #00000063;
+    margin-top: 10px;
+}
 .owl-nav{
  display: none;
 }
