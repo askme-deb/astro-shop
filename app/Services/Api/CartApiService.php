@@ -24,7 +24,6 @@ class CartApiService extends BaseApiClient
      */
     public function getProductForBuyNow(int $productId, int $quantity = 1, Request $request = null): array
     {
-        // You may have a product API endpoint, e.g. /api/v1/products/{id}
         $endpoint = "product/details/{$productId}";
         $options = [];
         $originalToken = $this->token;
@@ -33,7 +32,7 @@ class CartApiService extends BaseApiClient
             if ($userToken !== '') {
                 $this->token = null;
                 $options['headers'] = [
-                    'Cookie' => 'shared_api_token=' . $userToken,
+                    'Authorization' => 'Bearer ' . $userToken,
                 ];
             } else {
                 $resolved = $this->userResolverService->resolve($request);
@@ -125,17 +124,19 @@ private function applyAuthToRequest(array $payload, Request $request): array
 
         if ($request) {
             $userToken = $this->resolveUserToken($request);
+            \Log::debug('CartApiService addToCart userToken', ['userToken' => $userToken]);
             if ($userToken !== '') {
-                // Logged-in user: send token as shared_api_token cookie
-                $this->token = null; // Do not use Bearer
+                // Logged-in user: send token as Bearer Authorization header
+                $this->token = null; // Do not use Bearer property, set header manually
                 $options['json'] = $payload;
                 $options['headers'] = [
-                    'Cookie' => 'shared_api_token=' . $userToken,
+                    'Authorization' => 'Bearer ' . $userToken,
                 ];
                 unset($options['json']['guest_user_id'], $options['json']['user_id']);
             } else {
                 // Guest: send guest_user_id, no token
                 $resolved = $this->userResolverService->resolve($request);
+                \Log::debug('CartApiService addToCart guest resolved', $resolved);
                 if (!empty($resolved['id'])) {
                     $payload['guest_user_id'] = $resolved['id'];
                 }
@@ -146,7 +147,9 @@ private function applyAuthToRequest(array $payload, Request $request): array
         } else {
             $options['json'] = $payload;
         }
+        \Log::debug('CartApiService addToCart final options', $options);
 
+      // dd('CartApiService addToCart payload', ['payload' => $options['json']]);
         $result = $this->request('POST', $endpoint, $options);
 
         $this->token = $originalToken;
@@ -193,22 +196,18 @@ private function applyAuthToRequest(array $payload, Request $request): array
 
             $userToken = $this->resolveUserToken($request);
             if ($userToken !== '') {
-                // Logged-in user: send token as shared_api_token cookie
                 $this->token = null;
                 $options['headers'] = [
-                    'Cookie' => 'shared_api_token=' . $userToken,
+                    'Authorization' => 'Bearer ' . $userToken,
                 ];
-                // Remove guest_user_id and user_id from query if present
                 if (isset($options['query'])) {
                     unset($options['query']['guest_user_id'], $options['query']['user_id']);
                 }
             } else {
-                // Guest: send guest_user_id, no token
                 $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $options['query'] = ['guest_user_id' => $resolved['id']];
                 }
-                // Remove user_id if present
                 if (isset($options['query']['user_id'])) {
                     unset($options['query']['user_id']);
                 }
@@ -216,7 +215,6 @@ private function applyAuthToRequest(array $payload, Request $request): array
             }
 
             $result = $this->request('GET', $endpoint, $options);
-
             $this->token = $originalToken;
 
             if ((isset($result['status']) && $result['status']) && isset($result['count'])) {
@@ -241,25 +239,20 @@ private function applyAuthToRequest(array $payload, Request $request): array
         try {
             $originalToken = $this->token;
             $options = [];
-
             $userToken = $this->resolveUserToken($request);
             if ($userToken !== '') {
-                // Logged-in user: send token as shared_api_token cookie
                 $this->token = null;
                 $options['headers'] = [
-                    'Cookie' => 'shared_api_token=' . $userToken,
+                    'Authorization' => 'Bearer ' . $userToken,
                 ];
             } else {
-                // Guest: send guest_user_id, no token
                 $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $options['query'] = ['guest_user_id' => $resolved['id']];
                 }
                 $this->token = null;
             }
-
             $result = $this->request('GET', $endpoint, $options);
-
             $this->token = $originalToken;
 
             if ((isset($result['status']) && $result['status']) && isset($result['data'])) {
@@ -334,23 +327,16 @@ private function applyAuthToRequest(array $payload, Request $request): array
         $endpoint = 'update/cart/quantity';
         $originalToken = $this->token;
         $options = [];
-
         if ($request) {
             $userToken = $this->resolveUserToken($request);
-            //   Log::info('updateCartQuantity token check', [
-            //     'userToken' => $userToken,
-            //     'payload' => $payload,
-            // ]);
             if ($userToken !== '') {
-                // Logged-in user: send token as shared_api_token cookie
                 $this->token = null;
                 $options['json'] = $payload;
                 $options['headers'] = [
-                    'Cookie' => 'shared_api_token=' . $userToken,
+                    'Authorization' => 'Bearer ' . $userToken,
                 ];
                 unset($options['json']['guest_user_id'], $options['json']['user_id']);
             } else {
-                // Guest: send guest_user_id, no token
                 $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $payload['guest_user_id'] = $resolved['id'];
@@ -362,9 +348,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
         } else {
             $options['json'] = $payload;
         }
-
         $result = $this->request('POST', $endpoint, $options);
-
         $this->token = $originalToken;
 
         if ((isset($result['success']) && $result['success']) || (isset($result['status']) && $result['status'])) {
@@ -382,25 +366,16 @@ private function applyAuthToRequest(array $payload, Request $request): array
         $endpoint = 'delete/cart/item';
         $originalToken = $this->token;
         $options = [];
- 
-     
         if ($request) {
-           // dd('deleteCartItem payload');
             $userToken = $this->resolveUserToken($request);
-            // Log::info('deleteCartItem token check', [
-            //     'userToken' => $userToken,
-            //     'payload' => $payload,
-            // ]);
             if ($userToken !== '') {
-                // Logged-in user: send token as shared_api_token cookie
-                $this->token = null; // Do not use Bearer
+                $this->token = null;
                 $options['json'] = $payload;
                 $options['headers'] = [
-                    'Cookie' => 'shared_api_token=' . $userToken,
+                    'Authorization' => 'Bearer ' . $userToken,
                 ];
                 unset($options['json']['guest_user_id'], $options['json']['user_id']);
             } else {
-                // Guest: send guest_user_id, no token
                 $resolved = $this->userResolverService->resolve($request);
                 if (!empty($resolved['id'])) {
                     $payload['guest_user_id'] = $resolved['id'];
@@ -412,11 +387,7 @@ private function applyAuthToRequest(array $payload, Request $request): array
         } else {
             $options['json'] = $payload;
         }
-
-
-
         $result = $this->request('POST', $endpoint, $options);
-
         $this->token = $originalToken;
 
         if ((isset($result['success']) && $result['success']) || (isset($result['status']) && $result['status'])) {

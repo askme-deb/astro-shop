@@ -44,6 +44,8 @@ class CartController extends Controller
                 'status' => 422,
             ], 422);
         }
+
+
         $result = $this->cartApiService->addToCart($payload, $request);
         $resolved = $this->cartUserResolverService->resolve($request);
         $message = $result['message'] ?? ($result['success'] ? 'Product added to cart successfully' : 'Failed to add to cart');
