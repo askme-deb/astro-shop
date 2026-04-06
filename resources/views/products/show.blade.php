@@ -205,25 +205,76 @@
         </button>
       </li>
 
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#specifications" role="tab">
+            Specifications
+          </button>
+        </li>
+
     </ul>
 
     <div class="tab-content border p-4">
 
       <!-- Description -->
       <div class="tab-pane fade show active" id="desc" role="tabpanel">
-        <p>{!! $product['long_description'] ?? $product['sort_description'] ?? 'No description available.' !!}</p>
+        <p>{!! $product['long_description'] ?? $product['sort_description'] ?? $product['short_description'] ?? 'No description available.' !!}</p>
       </div>
 
       <!-- Details -->
       <div class="tab-pane fade" id="details" role="tabpanel">
-        <ul>
-          <li>SKU: {{ $product['sku'] ?? 'N/A' }}</li>
-          <li>Carat: {{ $product['carat'] ?? 'N/A' }}</li>
-          <li>Ratti: {{ $product['ratti'] ?? 'N/A' }}</li>
-          <li>Stock: {{ $product['stock'] ?? 'N/A' }}</li>
-          <li>Type: {{ $product['product_type'] ?? 'N/A' }}</li>
-        </ul>
+        <div class="table-responsive">
+          <table class="table table-striped table-bordered align-middle mb-0">
+            <tbody>
+              <tr>
+                <th style="width: 30%;">SKU</th>
+                <td>{{ $product['sku'] ?? 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th>Carat</th>
+                <td>{{ $product['carat'] ?? 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th>Ratti</th>
+                <td>{{ $product['ratti'] ?? 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th>Stock</th>
+                <td>{{ $product['stock'] ?? 'N/A' }}</td>
+              </tr>
+              <tr>
+                <th>Type</th>
+                <td>{{ $product['product_type'] ?? 'N/A' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
+        <!-- Specifications -->
+        <div class="tab-pane fade" id="specifications" role="tabpanel">
+          @if(!empty($product['specifications']))
+            <div class="table-responsive">
+              <table class="table table-bordered align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width: 30%;">Specification</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($product['specifications'] as $spec)
+                    <tr>
+                      <td class="fw-semibold">{{ $spec['title'] ?? '' }}</td>
+                      <td>{{ $spec['description'] ?? '' }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @else
+            <div class="alert alert-info mb-0">No specifications available.</div>
+          @endif
+        </div>
 
       <!-- Certification -->
       <div class="tab-pane fade" id="cert" role="tabpanel">
@@ -239,35 +290,77 @@
       <!-- Reviews -->
       <div class="tab-pane fade" id="reviews" role="tabpanel">
         <div class="review-summary mb-4">
-          <h5>Customer Reviews</h5>
-          <div class="d-flex align-items-center gap-2">
-            <span class="fs-4 fw-bold">{{ $product['rating'] ?? 'N/A' }}</span>
-            <span>⭐⭐⭐⭐⭐</span>
-            <span class="text-muted">({{ $product['reviews_count'] ?? '0' }} Reviews)</span>
+          <div class="card shadow-sm mb-4 border-0">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Customer Reviews</h5>
+              <div class="d-flex align-items-center gap-3 mb-2">
+                <span class="fs-2 fw-bold text-warning">
+                  <i class="bi bi-star-fill"></i> {{ $product['rating'] ?? 'N/A' }}
+                </span>
+                <span class="text-muted">({{ $product['reviews_count'] ?? '0' }} Reviews)</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="review-item mb-4">
-          <strong>No reviews yet.</strong>
-        </div>
-        <hr>
-        <h6 class="mb-3">Write a Review</h6>
-        <form>
-          <div class="mb-3">
-            <label class="form-label">Your Rating</label>
-            <select class="form-select">
-              <option>★★★★★ (5)</option>
-              <option>★★★★☆ (4)</option>
-              <option>★★★☆☆ (3)</option>
-              <option>★★☆☆☆ (2)</option>
-              <option>★☆☆☆☆ (1)</option>
-            </select>
+          <div class="card mb-4 border-0 bg-light">
+            <div class="card-body py-3">
+              <div class="review-item text-center">
+                <strong class="text-muted">No reviews yet.</strong>
+              </div>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Your Review</label>
-            <textarea class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+          <hr>
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <h6 class="mb-3">Write a Review</h6>
+              <form>
+                <div class="row g-3 align-items-center mb-3">
+                  <div class="col-md-3">
+                    <label class="form-label mb-0 fw-semibold">Your Rating</label>
+                  </div>
+                  <div class="col-md-9">
+                    <div class="star-rating d-flex align-items-center gap-1" style="font-size: 2rem;">
+                      @for ($i = 1; $i <= 5; $i++)
+                        <span class="star" data-value="{{ $i }}" style="cursor:pointer;color:#ddd;transition:color 0.2s;">
+                          <i class="bi bi-star-fill"></i>
+                        </span>
+                      @endfor
+                      <input type="hidden" name="rating" id="review-rating" value="0">
+                    </div>
+                    <script>
+                      document.addEventListener('DOMContentLoaded', function() {
+                        const stars = document.querySelectorAll('.star-rating .star');
+                        const ratingInput = document.getElementById('review-rating');
+                        let currentRating = 0;
+                        stars.forEach((star, idx) => {
+                          star.addEventListener('mouseenter', function() {
+                            for (let j = 0; j <= idx; j++) stars[j].style.color = '#ffc107';
+                            for (let j = idx + 1; j < stars.length; j++) stars[j].style.color = '#ddd';
+                          });
+                          star.addEventListener('mouseleave', function() {
+                            for (let j = 0; j < stars.length; j++)
+                              stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
+                          });
+                          star.addEventListener('click', function() {
+                            currentRating = idx + 1;
+                            ratingInput.value = currentRating;
+                            for (let j = 0; j < stars.length; j++)
+                              stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
+                          });
+                        });
+                      });
+                    </script>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Your Review</label>
+                  <textarea class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+                </div>
+                <div class="d-grid">
+                  <button class="btn btn-dark btn-lg">Submit Review</button>
+                </div>
+              </form>
+            </div>
           </div>
-          <button class="btn btn-dark">Submit Review</button>
-        </form>
       </div>
 
     </div>

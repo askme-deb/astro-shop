@@ -60,6 +60,7 @@ class ProductController extends Controller
         $relatedProducts = [];
         try {
             $product = $this->productApiService->getProductDetailsBySlug($slug);
+           // dd($product);
             if ($product && isset($product['id'])) {
                 $couponService = app(\App\Services\Api\ProductCouponService::class);
                 $coupons = $couponService->getProductCoupons(

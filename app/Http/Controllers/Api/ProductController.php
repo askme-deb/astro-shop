@@ -8,24 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
-
-    /**
-     * Return product details by slug (for API).
-     */
-    public function detailsBySlug($slug): JsonResponse
-    {
-        $product = $this->productApiService->getProductDetailsBySlug($slug);
-        if (!$product) {
-            return response()->json([
-                'status' => false,
-                'error' => 'Product not found',
-            ], 404);
-        }
-        return response()->json([
-            'status' => true,
-            'data' => $product,
-        ]);
-    }
 {
     protected ProductApiService $productApiService;
 
@@ -40,6 +22,7 @@ class ProductController extends Controller
     public function show($id): JsonResponse
     {
         $product = $this->productApiService->getProductById($id);
+        // dd($product);
         if (!$product) {
             return response()->json([
                 'status' => false,
@@ -69,6 +52,24 @@ class ProductController extends Controller
         return response()->json([
             'status' => true,
             'data' => $results,
+        ]);
+    }
+
+        /**
+     * Return product details by slug (for API).
+     */
+    public function detailsBySlug($slug): JsonResponse
+    {
+        $product = $this->productApiService->getProductDetailsBySlug($slug);
+        if (!$product) {
+            return response()->json([
+                'status' => false,
+                'error' => 'Product not found',
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'data' => $product,
         ]);
     }
 }
