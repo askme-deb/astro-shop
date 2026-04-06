@@ -3489,7 +3489,12 @@ div#mobileNav {
 
 
 
-
+.product-card .rating {
+    position: absolute;
+    left: 13px;
+    width: auto;
+    top: 29px;
+}
 
 
 .logo_warp {
