@@ -915,6 +915,13 @@
             width: 45%;
         }
 
+        .summary-compare {
+            text-decoration: line-through;
+            color: #888;
+            margin-left: 8px;
+            font-size: 0.95em;
+        }
+
         .summary-skeleton-price {
             width: 60px;
             height: 12px;
@@ -2698,30 +2705,39 @@
                 console.log('Rendering summary for items:', items);
                 items.forEach(function(item) {
                     const product = item.product || {};
-                    let unitPrice = parseFloat(product.price || item.amount || 0) || 0;
-                    let discountedPrice = unitPrice;
-                    // Apply discount if available
-                    if (product.discount_rate && parseFloat(product.discount_rate) > 0 && product.discount_price) {
-                        discountedPrice = parseFloat(product.discount_price);
+                    // Use total_price if available, else fallback to discountedPrice * quantity
+                    let lineTotal = 0;
+                    if (product.total_price && !isNaN(Number(product.total_price))) {
+                        lineTotal = parseFloat(product.total_price);
+                    } else {
+                        let unitPrice = parseFloat(product.price || item.amount || 0) || 0;
+                        let discountedPrice = unitPrice;
+                        if (product.discount_rate && parseFloat(product.discount_rate) > 0 && product.discount_price) {
+                            discountedPrice = parseFloat(product.discount_price);
+                        }
+                        const quantity = parseInt(item.quantity || 1, 10) || 1;
+                        lineTotal = discountedPrice * quantity;
                     }
-                    const comparePriceRaw = unitPrice !== discountedPrice ? unitPrice : null;
-                    const quantity = parseInt(item.quantity || 1, 10) || 1;
-                    const lineTotal = discountedPrice * quantity;
                     subtotal += lineTotal;
 
                     const imageUrl = product.image_url || '/assets/images/product-1.jpg';
                     const name = product.name || 'Product';
                     const options = product.options_text || '';
+                    const quantity = parseInt(item.quantity || 1, 10) || 1;
                     const metaParts = ['Qty: ' + quantity];
                     if (options) {
                         metaParts.push(options);
                     }
                     const metaText = metaParts.join(' • ');
 
-                    const lineCompareTotal = comparePriceRaw ? (comparePriceRaw * quantity) : null;
+                    // For compare price, show only if price > lineTotal
+                    let comparePriceRaw = null;
+                    if (product.price && !isNaN(Number(product.price))) {
+                        comparePriceRaw = parseFloat(product.price);
+                    }
+                    const lineCompareTotal = (comparePriceRaw && comparePriceRaw > lineTotal) ? (comparePriceRaw * quantity) : null;
 
-                    html += `
-                        <div class="summary-item">
+                    html += `<div class="summary-item">
                             <img src="${imageUrl}" alt="${name}">
                             <div>
                                 <p class="product-name">${name}</p>
@@ -2729,23 +2745,9 @@
                             </div>
                             <div class="summary-price">
                                 <strong>₹${formatCurrency(lineTotal)}</strong>
-                                ${lineCompareTotal && lineCompareTotal > lineTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
+                                ${lineCompareTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
                             </div>
                         </div>`;
-                    const item = document.createElement('div');
-                    item.className = 'summary-item';
-                    item.innerHTML = `
-                        <img src="${imageUrl}" alt="${name}">
-                        <div>
-                            <p class="product-name">${name}</p>
-                            <span class="product-meta">${metaText}</span>
-                        </div>
-                        <div class="summary-price">
-                            <strong>₹${formatCurrency(lineTotal)}</strong>
-                            ${lineCompareTotal && lineCompareTotal > lineTotal ? `<span class="summary-compare">₹${formatCurrency(lineCompareTotal)}</span>` : ''}
-                        </div>
-                    `;
-                    itemsContainer.appendChild(item);
                 });
 
                 itemsContainer.innerHTML = html;
@@ -3052,23 +3054,38 @@
                     const discountRowEl = document.getElementById('coupon-summary-row');
                     const discountValueEl = document.getElementById('checkout-coupon-discount');
                     const totalEl = document.getElementById('total');
+                    const subtotalEl = document.getElementById('subtotal');
+                    const taxEl = document.getElementById('tax');
 
                     if (discountRowEl && discountValueEl && typeof discountRaw === 'number') {
                         discountRowEl.style.display = discountRaw > 0 ? 'flex' : 'none';
                         discountValueEl.textContent = formatCurrency(discountRaw);
                     }
 
-                    // Correct calculation: Total = (Subtotal - Discount) + Tax, Tax = 3% of (Subtotal - Discount)
-                    const subtotalEl = document.getElementById('subtotal');
-                    const taxEl = document.getElementById('tax');
-                    let subtotal = 0;
-                    if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
-                        subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
+                    // Use backend grand total if provided, else fallback to formula
+                    if (grandTotalRaw !== null && !isNaN(Number(grandTotalRaw))) {
+                        if (totalEl) totalEl.textContent = formatCurrency(grandTotalRaw);
+                        // Optionally, recalculate tax for display
+                        let subtotal = 0;
+                        if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
+                            subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
+                        }
+                        let discountedSubtotal = subtotal - discountRaw;
+                        if (discountedSubtotal < 0) discountedSubtotal = 0;
+                        const tax = discountedSubtotal * 0.03;
+                        if (taxEl) taxEl.textContent = formatCurrency(tax);
+                    } else {
+                        // Fallback: Total = (Subtotal - Discount) + Tax, Tax = 3% of (Subtotal - Discount)
+                        let subtotal = 0;
+                        if (subtotalEl && !isNaN(Number(subtotalEl.textContent.replace(/,/g, '')))) {
+                            subtotal = Number(subtotalEl.textContent.replace(/,/g, ''));
+                        }
+                        let discountedSubtotal = subtotal - discountRaw;
+                        if (discountedSubtotal < 0) discountedSubtotal = 0;
+                        const tax = discountedSubtotal * 0.03;
+                        if (taxEl) taxEl.textContent = formatCurrency(tax);
+                        if (totalEl) totalEl.textContent = formatCurrency(discountedSubtotal + tax);
                     }
-                    const discountedSubtotal = subtotal - discountRaw;
-                    const tax = discountedSubtotal * 0.03;
-                    if (taxEl) taxEl.textContent = formatCurrency(tax);
-                    if (totalEl) totalEl.textContent = formatCurrency(discountedSubtotal + tax);
 
                     toast(data.message || 'Coupon applied successfully.', false);
                 } catch (error) {
