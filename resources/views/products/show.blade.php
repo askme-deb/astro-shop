@@ -465,4 +465,5 @@
   window.redirectBuyNow = redirectBuyNow;
 </script>
 @endpush
+</div>
 @endsection
