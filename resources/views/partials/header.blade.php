@@ -403,10 +403,10 @@
                             <i class="fa fa-user fs-5"></i>
                             <div class="icon-text">DASHBOARD</div>
                         </a>
-                        <a href="javascript:void(0)" id="header-logout-trigger">
+                        {{-- <a href="javascript:void(0)" id="header-logout-trigger">
                             <i class="fa fa-sign-out-alt fs-5"></i>
                             <div class="icon-text">LOGOUT</div>
-                        </a>
+                        </a> --}}
                     @else
                         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#authModal">
                             <i class="fa fa-user fs-5"></i>
@@ -444,7 +444,7 @@
   </div>
 
   <!-- Navigation -->
-  <div class="border-bottomx py-2">
+  <div class="border-bottom py-2">
 
     <div class="container">
 
