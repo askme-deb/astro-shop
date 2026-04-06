@@ -444,7 +444,7 @@
   </div>
 
   <!-- Navigation -->
-  <div class="border-bottom py-2">
+  <div class="border-bottomx py-2">
 
     <div class="container">
 
