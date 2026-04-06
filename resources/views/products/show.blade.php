@@ -43,7 +43,7 @@
     </div>
 
     <!-- Product Info -->
-    <div class="col-md-6">
+    <div class="col-md-6" style="position: relative;">
 
       <h2 class="mb-2">{{ $product['name'] ?? 'Product Name' }}</h2>
       <div class="rating mb-2">⭐ {{ $product['rating'] ?? 'N/A' }} | {{ $product['reviews_count'] ?? '0' }} Reviews</div>
