@@ -2,10 +2,8 @@
 
 namespace App\Services\Api;
 
-use Illuminate\Support\Facades\Http;
-
 use App\Services\Api\CouponApiService;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductCouponService
 {
@@ -44,7 +42,26 @@ class ProductCouponService
         } elseif ($guestUserId) {
             $filters['guest_user_id'] = $guestUserId;
         }
-        $result = $this->couponApiService->getCoupons($filters);
+
+        $cacheKey = $this->cacheKeyForCoupons($filters);
+        $ttl = (int) config('services.astrorajumaharaj.cache_ttl', 300);
+
+        $result = Cache::store()->remember($cacheKey, $ttl, function () use ($filters) {
+            return $this->couponApiService->getCoupons($filters);
+        });
+
         return $result['coupons'] ?? [];
+    }
+
+    /**
+     * Build a deterministic cache key for product coupon lookups.
+     *
+     * @param array<string, mixed> $filters
+     */
+    protected function cacheKeyForCoupons(array $filters): string
+    {
+        ksort($filters);
+
+        return 'astro.product.coupons.' . md5(json_encode($filters));
     }
 }

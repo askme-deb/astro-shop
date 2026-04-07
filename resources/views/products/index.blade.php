@@ -130,6 +130,30 @@ $sortOptions = [
 @php
   $currentPage = (int) (($pagination['current_page'] ?? 1));
   $lastPage = (int) (($pagination['last_page'] ?? $currentPage));
+  $paginationItems = [];
+
+  if ($lastPage <= 7) {
+    $paginationItems = range(1, $lastPage);
+  } elseif ($lastPage > 1) {
+    $paginationItems[] = 1;
+
+    if ($currentPage > 3) {
+      $paginationItems[] = 'ellipsis-start';
+    }
+
+    $windowStart = max(2, $currentPage - 1);
+    $windowEnd = min($lastPage - 1, $currentPage + 1);
+
+    for ($page = $windowStart; $page <= $windowEnd; $page++) {
+      $paginationItems[] = $page;
+    }
+
+    if ($currentPage < $lastPage - 2) {
+      $paginationItems[] = 'ellipsis-end';
+    }
+
+    $paginationItems[] = $lastPage;
+  }
 @endphp
 
 <div class="pagination-wrapper" data-current-page="{{ $currentPage }}" data-last-page="{{ $lastPage }}">
@@ -141,11 +165,15 @@ $sortOptions = [
       </li>
 
       {{-- Page numbers --}}
-      @for($page = 1; $page <= $lastPage; $page++)
-        <li class="page-item {{ $page === $currentPage ? 'active' : '' }}">
-          <a href="#" data-page="{{ $page }}">{{ $page }}</a>
-        </li>
-      @endfor
+      @foreach($paginationItems as $page)
+        @if(is_int($page))
+          <li class="page-item {{ $page === $currentPage ? 'active' : '' }}">
+            <a href="#" data-page="{{ $page }}">{{ $page }}</a>
+          </li>
+        @else
+          <li class="page-item page-item-ellipsis"><span>…</span></li>
+        @endif
+      @endforeach
 
       {{-- Next page --}}
       <li class="page-item {{ $currentPage >= $lastPage ? 'disabled' : '' }}">
@@ -400,8 +428,6 @@ function fetchProducts(page = 1) {
         container.innerHTML = products.length
           ? products.map(product => window.AstroShop.renderProductCard(product)).join('')
           : renderEmptyProductsState();
-
-        window.AstroShop.syncProductCardRatings(container);
       }
       renderPagination(data.pagination || {}, page);
       // TODO: update pagination if needed

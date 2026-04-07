@@ -21,7 +21,7 @@
                 <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
             </a>
         @endif
-        <div class="rating" data-review-summary data-product-id="{{ $product['id'] ?? 0 }}">
+        <div class="rating">
             ⭐ {{ $product['rating'] ?? '0.0' }} | {{ $product['reviews_count'] ?? '0' }} Reviews
         </div>
         <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>

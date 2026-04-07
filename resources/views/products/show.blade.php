@@ -382,13 +382,6 @@
                   <button type="button" class="btn btn-dark btn-lg" id="submit-review-btn">Submit Review</button>
                 </div>
               </form>
-              <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                  window.AstroShop.initProductReviewForm({
-                    productId: {{ $product['id'] ?? 0 }}
-                  });
-                });
-              </script>
             </div>
           </div>
       </div>
@@ -411,7 +404,7 @@
           <div class="product-card" data-product-id="{{ $related['id'] ?? 0 }}">
             <i class="bi {{ (!empty($related['is_in_wishlist']) || !empty($related['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $related['id'] ?? 0 }}"></i>
             <img src="{{ $related['image_url'] ?? asset('images/product-1.jpg') }}" alt="{{ $related['name'] ?? 'Product' }}">
-            <div class="rating" data-review-summary data-product-id="{{ $related['id'] ?? 0 }}">⭐ {{ $related['rating'] ?? '0.0' }} | {{ $related['reviews_count'] ?? '0' }} Reviews</div>
+            <div class="rating">⭐ {{ $related['rating'] ?? '0.0' }} | {{ $related['reviews_count'] ?? '0' }} Reviews</div>
             <h6>{{ $related['name'] ?? 'Product' }}</h6>
             <span class="price">₹{{ $related['final_price'] ?? $related['price'] ?? '0.00' }}</span>
             @if(!empty($related['discount_rate']) && $related['discount_rate'] !== '0.00')
@@ -454,6 +447,14 @@
 <script type="text/javascript">
   document.addEventListener('DOMContentLoaded', function() {
     window.AstroShop.syncStoredPincode('pincode');
+    window.AstroShop.initProductReviewForm({
+      productId: {{ $product['id'] ?? 0 }}
+    });
+    window.AstroShop.initDeferredProductReviews({
+      productId: {{ $product['id'] ?? 0 }},
+      triggerId: 'reviews-tab-button',
+      tabPaneId: 'reviews'
+    });
   });
 </script>
 @endpush

@@ -383,6 +383,36 @@ window.AstroShop.syncProductCardRatings = function syncProductCardRatings(root) 
   });
 };
 
+window.AstroShop.initDeferredProductReviews = function initDeferredProductReviews(config) {
+  const settings = config || {};
+  const productId = settings.productId || 0;
+  const trigger = document.getElementById(settings.triggerId || 'reviews-tab-button');
+  const pane = document.getElementById(settings.tabPaneId || 'reviews');
+
+  if (!productId || !trigger) {
+    return;
+  }
+
+  let hasLoaded = false;
+
+  const loadReviews = function loadReviews() {
+    if (hasLoaded) {
+      return;
+    }
+
+    hasLoaded = true;
+    window.AstroShop.loadProductReviewSummary(productId).catch(function() {});
+    window.AstroShop.loadProductReviews(productId).catch(function() {});
+  };
+
+  if (pane && pane.classList.contains('show') && pane.classList.contains('active')) {
+    loadReviews();
+    return;
+  }
+
+  trigger.addEventListener('click', loadReviews, { once: true });
+};
+
 window.AstroShop.updateProductReviewSummary = function updateProductReviewSummary(summary) {
   const payload = summary && summary.data && typeof summary.data === 'object'
     ? summary.data
@@ -574,8 +604,6 @@ window.AstroShop.initProductReviewForm = function initProductReviewForm(config) 
       });
   });
 
-  window.AstroShop.loadProductReviewSummary(productId).catch(function() {});
-  window.AstroShop.loadProductReviews(productId).catch(function() {});
 };
 
 window.AstroShop.syncStoredPincode = function syncStoredPincode(inputId) {
@@ -681,7 +709,7 @@ window.AstroShop.renderProductCard = function renderProductCard(product) {
         <a href="${productUrl}">
           <img src="${imageUrl}" alt="${productName}">
         </a>
-        <div class="rating" data-review-summary data-product-id="${productId}">${window.AstroShop.renderProductRatingSummary(safeProduct)}</div>
+        <div class="rating">${window.AstroShop.renderProductRatingSummary(safeProduct)}</div>
         <h6 class="mt-2">${productName}</h6>
         <div class="price-box mb-3">
           ${(safeProduct.discount_price && safeProduct.discount_price > 0)
@@ -893,7 +921,6 @@ function toggleWishlist(productId, iconEl) {
 // Ensure wishlist hearts reflect server state on initial load/refresh
 document.addEventListener('DOMContentLoaded', function () {
  // syncWishlistHeartsOnLoad();
-  window.AstroShop.syncProductCardRatings(document);
   //alert('Welcome to Astro Shop! Explore our wide range of products and enjoy a seamless shopping experience.'); // Example alert on page load
 });
 

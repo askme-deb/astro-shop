@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Api\ProductCouponService;
 use App\Services\ProductApiService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -11,9 +12,12 @@ class ProductController extends Controller
 {
     protected ProductApiService $productApiService;
 
-    public function __construct(ProductApiService $productApiService)
+    protected ProductCouponService $productCouponService;
+
+    public function __construct(ProductApiService $productApiService, ProductCouponService $productCouponService)
     {
         $this->productApiService = $productApiService;
+        $this->productCouponService = $productCouponService;
     }
 
     /**
@@ -60,10 +64,9 @@ class ProductController extends Controller
         $relatedProducts = [];
         try {
             $product = $this->productApiService->getProductDetailsBySlug($slug);
-           // dd($product);
+
             if ($product && isset($product['id'])) {
-                $couponService = app(\App\Services\Api\ProductCouponService::class);
-                $coupons = $couponService->getProductCoupons(
+                $coupons = $this->productCouponService->getProductCoupons(
                     (int) $product['id'],
                     $product['category_id'] ?? null,
                     ($product['product_price'] ?? 0) - ($product['discount_price'] ?? 0)
