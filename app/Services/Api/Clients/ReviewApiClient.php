@@ -45,4 +45,22 @@ class ReviewApiClient extends BaseApiClient
 
         return $this->request('GET', 'reviews/summary', $options);
     }
+
+    public function getReviews(string $reviewableType, int $reviewableId, ?string $token = null): array
+    {
+        $options = [
+            'query' => [
+                'reviewable_type' => $reviewableType,
+                'reviewable_id' => $reviewableId,
+            ],
+        ];
+
+        if ($token) {
+            $options['headers'] = [
+                'Authorization' => 'Bearer ' . $token,
+            ];
+        }
+
+        return $this->request('GET', 'reviews', $options);
+    }
 }

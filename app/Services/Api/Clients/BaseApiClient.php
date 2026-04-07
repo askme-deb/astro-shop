@@ -98,44 +98,26 @@ abstract class BaseApiClient
         }
 
         if (! $response->successful()) {
-            $body = (string) $response->body();
             Log::error('External API returned non-success status', [
                 'service' => static::class,
                 'uri' => $uri,
                 'status' => $response->status(),
-                'body_preview' => mb_substr($body, 0, 500),
             ]);
 
-            $data = $response->json();
-
-            if (is_array($data)) {
-                return $data;
-            }
-
-            return [
-                'status' => false,
-                'message' => 'Upstream API returned an error.',
-                'raw_body' => $body,
-                'status_code' => $response->status(),
-            ];
+            // Let callers decide how to handle an unsuccessful response.
+            // Here we still attempt to parse JSON safely.
         }
 
         $data = $response->json();
 
         if (! is_array($data)) {
-            $body = (string) $response->body();
             Log::error('External API returned invalid JSON structure', [
                 'service' => static::class,
                 'uri' => $uri,
                 'status' => $response->status(),
-                'body_preview' => mb_substr($body, 0, 500),
             ]);
 
-            return [
-                'status' => false,
-                'message' => 'Unexpected response from upstream API.',
-                'raw_body' => $body,
-            ];
+            return [];
         }
 
         return $data;

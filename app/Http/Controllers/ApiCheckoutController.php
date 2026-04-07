@@ -46,18 +46,11 @@ class ApiCheckoutController extends Controller
             'user_id', 'guest_user_id', 'address_id', 'payment_method', 'coupon_code', 'order_notes', 'cart_items'
         ]);
         try {
-            $token = (string) ($request->cookie('auth_api_token') ?: session('auth.api_token', ''));
-            $result = $this->orderApi->placeOrder($payload, $token);
+            $result = $this->orderApi->placeOrder($payload);
             return response()->json($result);
         } catch (\Throwable $e) {
-            Log::error('Place order API error', [
-                'error' => $e->getMessage(),
-                'payload' => $payload,
-            ]);
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage() ?: 'Unable to place order.',
-            ], 502);
+            Log::error('Place order API error', ['error' => $e->getMessage()]);
+            return response()->json(['status' => false, 'message' => 'Unable to place order.'], 502);
         }
     }
 

@@ -487,25 +487,13 @@
                         body: JSON.stringify(payload)
                     });
                     orderData = await res.json();
-
-                    if (!res.ok || !orderData || orderData.status === false || orderData.success === false) {
-                        const message = orderData && (orderData.message || orderData.error || orderData.raw_body)
-                            ? (orderData.message || orderData.error || orderData.raw_body)
-                            : 'Failed to create order.';
-                        throw new Error(message);
-                    }
                 } catch (err) {
-                    const message = err && err.message ? err.message : 'Failed to create order.';
-                    toast(message, true);
-                    document.querySelector('.checkout-wrapper').style.pointerEvents = '';
-                    document.querySelector('.checkout-wrapper').style.opacity = '';
+                    alert('Failed to create order.');
                     return;
                 }
                 //console.log('Order data from backend:', orderData.order_id, orderData.amount, orderData.key);
                 if (!orderData || !orderData.order_id || !orderData.amount || !orderData.key) {
-                    toast(orderData && orderData.message ? orderData.message : 'Invalid order data.', true);
-                    document.querySelector('.checkout-wrapper').style.pointerEvents = '';
-                    document.querySelector('.checkout-wrapper').style.opacity = '';
+                    alert('Invalid order data.');
                     return;
                 }
 
@@ -2755,9 +2743,55 @@
                 }
             }
 
-            function fetchCheckoutCart() {
+            async function fetchCheckoutCart() {
                 showSummarySkeleton();
 
+                // Check for buyNow params in URL
+                const searchParams = new URLSearchParams(window.location.search);
+                const isBuyNow = searchParams.get('buyNow') === '1';
+                const productId = searchParams.get('product_id');
+                const quantity = parseInt(searchParams.get('quantity') || '1', 10) || 1;
+
+                if (isBuyNow && productId) {
+                    // Fetch product details for buyNow
+                    try {
+                        const res = await fetch(`/api/products/${productId}`);
+                        const data = await res.json();
+                        if (!res.ok || !data || !data.data) {
+                            console.error('BuyNow: Product fetch failed or missing data', data);
+                            renderEmpty();
+                            window.cartItems = [];
+                            return;
+                        }
+                        const product = data.data;
+                        // Fallbacks for missing fields
+                        const safeProduct = {
+                            id: product.id || productId,
+                            name: product.name || 'Product',
+                            price: product.price || 0,
+                            image_url: product.image_url || '/assets/images/product-1.jpg',
+                            ...product
+                        };
+                        console.log('BuyNow: Product for summary', safeProduct);
+                        // Build a cart-like item for summary/order
+                        const item = {
+                            product: safeProduct,
+                            product_id: safeProduct.id,
+                            quantity: quantity,
+                            amount: safeProduct.price
+                        };
+                        window.cartItems = [item];
+                        renderSummary([item]);
+                        return;
+                    } catch (e) {
+                        console.error('BuyNow: Exception fetching product', e);
+                        renderEmpty();
+                        window.cartItems = [];
+                        return;
+                    }
+                }
+
+                // Default: fetch cart
                 fetch('/api/cart', {
                         credentials: 'include'
                     })
@@ -3115,4 +3149,3 @@
         })();
     </script>
 @endpush
-

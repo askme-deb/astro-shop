@@ -398,39 +398,12 @@ function fetchProducts(page = 1) {
       if (container) {
         const products = Array.isArray(data.products) ? data.products : [];
         container.innerHTML = products.length
-          ? products.map(product => renderProductCard(product)).join('')
+          ? products.map(product => window.AstroShop.renderProductCard(product)).join('')
           : renderEmptyProductsState();
+
+        window.AstroShop.syncProductCardRatings(container);
       }
       renderPagination(data.pagination || {}, page);
-      // Render a product card in JS (matches Blade component as much as possible)
-      function renderProductCard(product) {
-        // Build the product show URL using the slug (assumes route is /products/{slug})
-        const productUrl = `/products/${encodeURIComponent(product.slug)}`;
-        const productPayload = JSON.stringify({ product_id: product.id || 0, quantity: 1 });
-        return `
-          <div class="col-md-3 col-sm-6">
-            <div class="product-card">
-              <a href="${productUrl}">
-                <img src="${product.image_url || '/assets/images/product-1.jpg'}" alt="${product.name || 'Product'}">
-              </a>
-              <div class="rating">⭐</div>
-              <h6 class="mt-2">${product.name || 'Product'}</h6>
-              <div class="price-box mb-3">
-                ${(product.discount_price && product.discount_price > 0)
-                  ? `<span class="price fs-3 fw-bold">₹${((product.product_price || 0) - (product.discount_price || 0)).toFixed(2)}</span>
-                     <span class="old-price ms-2">₹${product.product_price}</span>
-                     <span class="badge bg-success ms-2">${product.discount_rate}% OFF</span>`
-                  : `<span class="price fs-3 fw-bold">₹${product.product_price || product.final_price || product.price || '0'}</span><div class='discount-empty'>&nbsp;</div>`
-                }
-              </div>
-              <div class="d-grid gap-2 mt-3">
-                <button class="btn btn-cart" onclick='addToCart(${productPayload}, this)'>Add to Cart</button>
-                <button class="btn btn-buy" onclick='buyNow(${productPayload}, this)'>Buy Now</button>
-              </div>
-            </div>
-          </div>
-        `;
-      }
       // TODO: update pagination if needed
     })
     .catch(() => {

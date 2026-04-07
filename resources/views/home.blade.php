@@ -170,10 +170,10 @@
       <div class="carousel-inner">
         @foreach(($bestSellingProducts ?? []) as $product)
         <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
-          <div class="product-card mx-auto">
+          <div class="product-card mx-auto" data-product-id="{{ $product['id'] ?? 0 }}">
             <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
             <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
-            <div class="rating">⭐ {{ $product['rating'] ?? '4.5' }}</div>
+            <div class="rating" data-review-summary data-product-id="{{ $product['id'] ?? 0 }}">⭐ {{ $product['rating'] ?? '0.0' }} | {{ $product['reviews_count'] ?? '0' }} Reviews</div>
             <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
             <div>
               <span class="price">₹{{ $product['final_price'] ?? $product['total_price'] ?? $product['price'] ?? '0.00' }}</span>
@@ -181,6 +181,12 @@
               <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
               @endif
             </div>
+            @if(!empty($product['sku']))
+            <div class="small text-muted mt-2">SKU: {{ $product['sku'] }}</div>
+            @endif
+            @if(!empty($product['origin_name']))
+            <div class="small text-muted {{ !empty($product['sku']) ? 'mt-1' : 'mt-2' }}">Origin: {{ $product['origin_name'] }}</div>
+            @endif
             @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
             <div class="offer">Save {{ $product['discount_rate'] }}%</div>
             @else

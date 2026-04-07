@@ -3,7 +3,7 @@
 ])
 
 <div class="col-md-3 col-sm-6">
-    <div class="product-card">
+    <div class="product-card" data-product-id="{{ $product['id'] ?? 0 }}">
         <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
         @if(!empty($product['slug']))
             <a href="{{ route('products.show', ['slug' => $product['slug']]) }}">
@@ -14,8 +14,8 @@
                 <img src="{{ $product['image_url'] ?? asset('assets/images/product-1.jpg') }}" alt="{{ $product['name'] ?? 'Product' }}">
             </a>
         @endif
-        <div class="rating">
-            ⭐ {{ $product['rating'] ?? '4.5' }}
+        <div class="rating" data-review-summary data-product-id="{{ $product['id'] ?? 0 }}">
+            ⭐ {{ $product['rating'] ?? '0.0' }} | {{ $product['reviews_count'] ?? '0' }} Reviews
         </div>
         <h6 class="mt-2">{{ $product['name'] ?? 'Product' }}</h6>
         <div class="price-box mb-3">
@@ -28,6 +28,12 @@
                 <div class="">&nbsp;</div>
             @endif
         </div>
+        @if(!empty($product['sku']))
+            <div class="small text-muted mb-1">SKU: {{ $product['sku'] }}</div>
+        @endif
+        @if(!empty($product['origin_name']))
+            <div class="small text-muted mb-3">Origin: {{ $product['origin_name'] }}</div>
+        @endif
         <div class="d-grid gap-2 mt-3">
             <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>
             <button class="btn btn-buy" onclick="buyNow({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Buy Now</button>

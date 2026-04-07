@@ -50,5 +50,6 @@ Route::post('/v1/login', [LoginController::class, 'login']);
 Route::post('/v1/register', [RegisterController::class, 'register']);
 
 // Review API
+Route::get('v1/reviews', [ReviewController::class, 'index']);
 Route::post('v1/reviews', [ReviewController::class, 'store']);
 Route::get('v1/reviews/summary', [ReviewController::class, 'summary']);

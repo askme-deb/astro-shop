@@ -30,6 +30,45 @@ class ProductApiService
     }
 
     /**
+     * Normalize product review fields coming from different API endpoints.
+     *
+     * @param array<string, mixed>|null $product
+     * @return array<string, mixed>|null
+     */
+    protected function normalizeProduct(?array $product): ?array
+    {
+        if (! is_array($product)) {
+            return $product;
+        }
+
+        $product['reviews_count'] = (int) (
+            $product['reviews_count']
+            ?? $product['total_reviews']
+            ?? $product['review_count']
+            ?? 0
+        );
+
+        if (isset($product['rating'])) {
+            $product['rating'] = is_numeric($product['rating'])
+                ? number_format((float) $product['rating'], 1, '.', '')
+                : $product['rating'];
+        }
+
+        return $product;
+    }
+
+    /**
+     * Normalize a product collection from the upstream API.
+     *
+     * @param array<int, array<string, mixed>> $items
+     * @return array<int, array<string, mixed>>
+     */
+    protected function normalizeProductCollection(array $items): array
+    {
+        return array_values(array_map(fn (array $item) => $this->normalizeProduct($item) ?? $item, $items));
+    }
+
+    /**
      * Retrieve product details by slug, with caching.
      *
      * @param string $slug
@@ -42,7 +81,7 @@ class ProductApiService
         if ($forceRefresh) {
             $this->cache->forget($cacheKey);
         }
-        return $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($slug) {
+        $product = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($slug) {
             try {
                 $product = $this->client->getProductDetailsBySlug($slug);
             } catch (\Throwable $exception) {
@@ -53,10 +92,12 @@ class ProductApiService
                 ]);
                 return null;
             }
-            return $product;
+            return $this->normalizeProduct($product);
         });
+
+        return $this->normalizeProduct($product);
     }
-    
+
      /* Retrieve a single product by ID, with caching.
      *
      * @param int|string $id
@@ -69,7 +110,7 @@ class ProductApiService
         if ($forceRefresh) {
             $this->cache->forget($cacheKey);
         }
-        return $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($id) {
+        $product = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($id) {
             try {
                 $product = $this->client->getProductById($id);
             } catch (\Throwable $exception) {
@@ -80,8 +121,10 @@ class ProductApiService
                 ]);
                 return null;
             }
-            return $product;
+            return $this->normalizeProduct($product);
         });
+
+        return $this->normalizeProduct($product);
     }
 
     /**
@@ -129,7 +172,7 @@ class ProductApiService
                 $items = $dataList;
             }
 
-            return $items;
+            return $this->normalizeProductCollection($items);
         });
 
         if (! is_array($items)) {
@@ -137,7 +180,7 @@ class ProductApiService
         }
 
         /** @var array<int, array<string, mixed>> $items */
-        return $items;
+        return $this->normalizeProductCollection($items);
     }
 
     /**
@@ -186,7 +229,7 @@ class ProductApiService
                 $items = $dataList;
             }
 
-            return $items;
+            return $this->normalizeProductCollection($items);
         });
 
         if (! is_array($items)) {
@@ -194,7 +237,7 @@ class ProductApiService
         }
 
         /** @var array<int, array<string, mixed>> $items */
-        return $items;
+        return $this->normalizeProductCollection($items);
     }
 
     /**
@@ -257,7 +300,7 @@ class ProductApiService
                 $items = $dataList;
             }
 
-            return $items;
+            return $this->normalizeProductCollection($items);
         });
 
         if (! is_array($items)) {
@@ -265,7 +308,7 @@ class ProductApiService
         }
 
         /** @var array<int, array<string, mixed>> $items */
-        return $items;
+        return $this->normalizeProductCollection($items);
     }
 
     /**
@@ -339,7 +382,7 @@ class ProductApiService
         }
 
         return [
-            'items' => $payload['items'],
+            'items' => $this->normalizeProductCollection($payload['items']),
             'meta' => $payload['meta'],
         ];
     }
@@ -528,9 +571,9 @@ class ProductApiService
         if ($forceRefresh) {
             $this->cache->forget($cacheKey);
         }
-        return $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($productId) {
+        $items = $this->cache->remember($cacheKey, $this->cacheTtlSeconds, function () use ($productId) {
             try {
-                return $this->client->getRelatedProducts($productId);
+                return $this->normalizeProductCollection($this->client->getRelatedProducts($productId));
             } catch (\Throwable $exception) {
                 Log::error('Failed to fetch related products from external API', [
                     'service' => static::class,
@@ -540,6 +583,8 @@ class ProductApiService
                 return [];
             }
         });
+
+        return is_array($items) ? $this->normalizeProductCollection($items) : [];
     }
 
     /**
@@ -553,9 +598,9 @@ class ProductApiService
         try {
             $response = $this->client->searchProducts($query);
             if (isset($response['data']) && is_array($response['data'])) {
-                return array_values($response['data']);
+                return $this->normalizeProductCollection(array_values($response['data']));
             } elseif (array_is_list($response)) {
-                return $response;
+                return $this->normalizeProductCollection($response);
             }
         } catch (\Throwable $exception) {
             Log::error('Product search failed', [

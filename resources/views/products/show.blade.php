@@ -63,14 +63,28 @@
           <span class="label">SKU:</span>
           <span class="value">{{ $product['sku'] ?? 'N/A' }}</span>
         </div>
-        <div class="origin-wrap">
-          <span class="label">Carat:</span>
-          <span class="value">{{ $product['carat'] ?? 'N/A' }}</span>
+        @php
+          $caratValue = $product['carat'] ?? null;
+          $rattiValue = $product['ratti'] ?? null;
+          $hasCaratValue = !is_null($caratValue) && $caratValue !== '' && (float) $caratValue > 0;
+          $hasRattiValue = !is_null($rattiValue) && $rattiValue !== '' && (float) $rattiValue > 0;
+        @endphp
+        @if($hasCaratValue)
+          <div class="origin-wrap">
+            <span class="label">Carat:</span>
+            <span class="value">{{ $caratValue }}</span>
+          </div>
+        @endif
+          <div class="origin-wrap">
+          <span class="label">Origin:</span>
+          <span class="value">{{ $product['origin_name'] ?? 'N/A' }}</span>
         </div>
-        <!-- <div class="origin-wrap">
-          <span class="label">Ratti:</span>
-          <span class="value">{{ $product['ratti'] ?? 'N/A' }}</span>
-        </div> -->
+        @if($hasRattiValue)
+          <div class="origin-wrap">
+            <span class="label">Ratti:</span>
+            <span class="value">{{ $rattiValue }}</span>
+          </div>
+        @endif
       </div>
 
 
@@ -290,28 +304,57 @@
       <!-- Reviews -->
       <div class="tab-pane fade" id="reviews" role="tabpanel">
         <div class="review-summary mb-4">
-          <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body">
-              <h5 class="card-title mb-3">Customer Reviews</h5>
-              <div class="d-flex align-items-center gap-3 mb-2">
-                <span class="fs-2 fw-bold text-warning" id="review-summary-rating">
-                  <i class="bi bi-star-fill"></i> {{ $product['rating'] ?? '0.0' }}
-                </span>
-                <span class="text-muted" id="review-summary-count">({{ $product['reviews_count'] ?? '0' }} Reviews)</span>
+          <div class="card shadow-sm mb-4 border-0 review-overview-card">
+            <div class="card-body review-overview-body">
+              <div class="review-overview-header flipkart-rating-group">
+                <div class="review-overview-primary">
+                  <span class="review-overview-eyebrow">Trusted by Customers</span>
+                  <h5 class="card-title mb-1">Customer Reviews</h5>
+                  <div class="review-overview-score-row">
+                    <div class="review-overview-score" id="review-summary-rating">
+                      <i class="bi bi-star-fill"></i> {{ $product['rating'] ?? '0.0' }}
+                    </div>
+                    <div class="review-overview-star-strip" id="review-summary-stars" aria-hidden="true">
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star-fill"></i>
+                      <i class="bi bi-star"></i>
+                    </div>
+                  </div>
+                  <div class="review-overview-count-stack text-muted">
+                    <span id="review-summary-total-ratings">{{ $product['reviews_count'] ?? '0' }} ratings</span>
+                    <span id="review-summary-count">{{ $product['reviews_count'] ?? '0' }} reviews</span>
+                  </div>
+                </div>
+                <div class="review-overview-divider" aria-hidden="true"></div>
+                <div class="review-rating-breakdown" id="review-rating-breakdown">
+                  @for ($star = 5; $star >= 1; $star--)
+                    <div class="review-breakdown-row">
+                      <span class="review-breakdown-label">{{ $star }} <i class="bi bi-star-fill"></i></span>
+                      <div class="review-breakdown-track">
+                        <div class="review-breakdown-fill" id="review-breakdown-fill-{{ $star }}" style="width: 0%;"></div>
+                      </div>
+                      <span class="review-breakdown-count" id="review-breakdown-count-{{ $star }}">0</span>
+                    </div>
+                  @endfor
+                </div>
               </div>
             </div>
           </div>
-          <div class="card mb-4 border-0 bg-light">
-            <div class="card-body py-3">
-              <div class="review-item text-center">
-                <strong class="text-muted">No reviews yet.</strong>
-              </div>
+          <div class="card mb-4 border-0 bg-light review-list-card">
+            <div class="card-body py-3" id="product-review-list">
+              <div class="review-item review-loading-state text-center text-muted">Loading reviews...</div>
             </div>
           </div>
           <hr>
-          <div class="card border-0 shadow-sm">
+          <div class="card border-0 shadow-sm review-form-card">
             <div class="card-body">
-              <h6 class="mb-3">Write a Review</h6>
+              <div class="review-form-header mb-3">
+                <span class="review-overview-eyebrow">Share Your Experience</span>
+                <h6 class="mb-1">Write a Review</h6>
+                <p class="text-muted mb-0">Your feedback helps other customers make better decisions.</p>
+              </div>
               <form>
                 <div class="row g-3 align-items-center mb-3">
                   <div class="col-md-3">
@@ -341,152 +384,9 @@
               </form>
               <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                  const productId = {{ $product['id'] ?? 0 }};
-
-                  function updateReviewSummary(summary) {
-                    const payload = summary && summary.data && typeof summary.data === 'object'
-                      ? summary.data
-                      : summary;
-                    const ratingValue = Number(payload.average_rating || 0).toFixed(1);
-                    const reviewCount = Number(payload.total_reviews || 0);
-                    const productRatingEl = document.getElementById('product-rating-summary');
-                    const productRatingCountEl = document.getElementById('product-rating-count');
-                    const ratingEl = document.getElementById('review-summary-rating');
-                    const countEl = document.getElementById('review-summary-count');
-                    const tabCountEl = document.getElementById('reviews-tab-count');
-
-                    if (productRatingEl) {
-                      productRatingEl.innerHTML = '⭐ ' + ratingValue + ' | <span id="product-rating-count">' + reviewCount + '</span> Reviews';
-                    } else if (productRatingCountEl) {
-                      productRatingCountEl.textContent = reviewCount;
-                    }
-
-                    if (ratingEl) {
-                      ratingEl.innerHTML = '<i class="bi bi-star-fill"></i> ' + ratingValue;
-                    }
-
-                    if (countEl) {
-                      countEl.textContent = '(' + reviewCount + ' Reviews)';
-                    }
-
-                    if (tabCountEl) {
-                      tabCountEl.textContent = reviewCount;
-                    }
-                  }
-
-                  function loadReviewSummary() {
-                    fetch('/api/v1/reviews/summary?reviewable_type=product&reviewable_id=' + productId, {
-                      method: 'GET',
-                      headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                      }
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data && data.status) {
-                          updateReviewSummary(data);
-                        }
-                      })
-                      .catch(() => {
-                      });
-                  }
-
-                  // Star rating logic
-                  const stars = document.querySelectorAll('.star-rating .star');
-                  const ratingInput = document.getElementById('review-rating');
-                  let currentRating = 0;
-                  stars.forEach((star, idx) => {
-                    star.addEventListener('mouseenter', function() {
-                      for (let j = 0; j <= idx; j++) stars[j].style.color = '#ffc107';
-                      for (let j = idx + 1; j < stars.length; j++) stars[j].style.color = '#ddd';
-                    });
-                    star.addEventListener('mouseleave', function() {
-                      for (let j = 0; j < stars.length; j++)
-                        stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
-                    });
-                    star.addEventListener('click', function() {
-                      currentRating = idx + 1;
-                      ratingInput.value = currentRating;
-                      for (let j = 0; j < stars.length; j++)
-                        stars[j].style.color = (j < currentRating) ? '#ffc107' : '#ddd';
-                    });
+                  window.AstroShop.initProductReviewForm({
+                    productId: {{ $product['id'] ?? 0 }}
                   });
-
-                  // Review form AJAX submit
-                  const submitBtn = document.getElementById('submit-review-btn');
-                  const errorDiv = document.getElementById('review-error');
-                  const successDiv = document.getElementById('review-success');
-                  submitBtn.addEventListener('click', function() {
-                    errorDiv.classList.add('d-none');
-                    successDiv.classList.add('d-none');
-                    const rating = parseInt(document.getElementById('review-rating').value);
-                    const title = document.getElementById('review-title').value.trim();
-                    const comment = document.getElementById('review-comment').value.trim();
-                    if (!rating || rating < 1 || rating > 5) {
-                      errorDiv.textContent = 'Please select a rating.';
-                      errorDiv.classList.remove('d-none');
-                      return;
-                    }
-                    if (title.length < 5) {
-                      errorDiv.textContent = 'Title must be at least 5 characters.';
-                      errorDiv.classList.remove('d-none');
-                      return;
-                    }
-                    if (comment.length < 10) {
-                      errorDiv.textContent = 'Comment must be at least 10 characters.';
-                      errorDiv.classList.remove('d-none');
-                      return;
-                    }
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Submitting...';
-                    fetch('/api/v1/reviews', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                      },
-                      body: JSON.stringify({
-                        reviewable_type: 'product',
-                        reviewable_id: {{ $product['id'] ?? 0 }},
-                        rating: rating,
-                        title: title,
-                        comment: comment
-                      })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                      submitBtn.disabled = false;
-                      submitBtn.textContent = 'Submit Review';
-                      if (!data.status) {
-                        let msg = data.error || 'Failed to submit review.';
-                        if (data.reason) {
-                          msg += ' [' + data.reason + ']';
-                        }
-                        errorDiv.textContent = msg;
-                        errorDiv.classList.remove('d-none');
-                      } else {
-                        successDiv.textContent = 'Review submitted successfully!';
-                        successDiv.classList.remove('d-none');
-                        document.getElementById('review-title').value = '';
-                        document.getElementById('review-comment').value = '';
-                        ratingInput.value = 0;
-                        currentRating = 0;
-                        stars.forEach(star => star.style.color = '#ddd');
-                        loadReviewSummary();
-                      }
-                    })
-                    .catch(() => {
-                      submitBtn.disabled = false;
-                      submitBtn.textContent = 'Submit Review';
-                      errorDiv.textContent = 'Network error. Please try again.';
-                      errorDiv.classList.remove('d-none');
-                    });
-                  });
-
-                  loadReviewSummary();
                 });
               </script>
             </div>
@@ -508,14 +408,20 @@
     @foreach($relatedProducts ?? [] as $related)
       <div class="item">
         <a href="{{ url('products/' . ($related['slug'] ?? $related['id'] ?? '')) }}" class="text-decoration-none text-dark">
-          <div class="product-card">
+          <div class="product-card" data-product-id="{{ $related['id'] ?? 0 }}">
             <i class="bi {{ (!empty($related['is_in_wishlist']) || !empty($related['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $related['id'] ?? 0 }}"></i>
             <img src="{{ $related['image_url'] ?? asset('images/product-1.jpg') }}" alt="{{ $related['name'] ?? 'Product' }}">
-            <div class="rating">⭐ {{ $related['rating'] ?? 'N/A' }} | {{ $related['reviews_count'] ?? '0' }}</div>
+            <div class="rating" data-review-summary data-product-id="{{ $related['id'] ?? 0 }}">⭐ {{ $related['rating'] ?? '0.0' }} | {{ $related['reviews_count'] ?? '0' }} Reviews</div>
             <h6>{{ $related['name'] ?? 'Product' }}</h6>
             <span class="price">₹{{ $related['final_price'] ?? $related['price'] ?? '0.00' }}</span>
             @if(!empty($related['discount_rate']) && $related['discount_rate'] !== '0.00')
               <span class="old-price ms-2">₹{{ $related['price'] ?? $related['product_price'] ?? '' }}</span>
+            @endif
+            @if(!empty($related['sku']))
+              <div class="small text-muted mt-2">SKU: {{ $related['sku'] }}</div>
+            @endif
+            @if(!empty($related['origin_name']))
+              <div class="small text-muted {{ !empty($related['sku']) ? 'mt-1' : 'mt-2' }}">Origin: {{ $related['origin_name'] }}</div>
             @endif
             <div class="offer">{{ !empty($related['discount_rate']) ? 'EXTRA ' . $related['discount_rate'] . '% OFF with coupon' : '&nbsp;' }}</div>
             <div class="d-grid gap-2 mt-3">
@@ -529,70 +435,14 @@
 
 
 
-
-
-
-
   </div>
 </div>
 
 @push('scripts')
 <script type="text/javascript">
-  // Sync delivery pincode from localStorage to delivery-check input
   document.addEventListener('DOMContentLoaded', function() {
-    try {
-      const savedPincode = window.localStorage.getItem('delivery_pincode');
-      if (savedPincode) {
-        var pincodeInput = document.getElementById('pincode');
-        if (pincodeInput) {
-          pincodeInput.value = savedPincode;
-        }
-      }
-    } catch (e) {}
+    window.AstroShop.syncStoredPincode('pincode');
   });
-  function qtyMinus() {
-    var qtyInput = document.getElementById('qty');
-    var value = parseInt(qtyInput.value, 10);
-    if (value > 1) {
-      qtyInput.value = value - 1;
-    }
-  }
-  function qtyPlus() {
-    var qtyInput = document.getElementById('qty');
-    var value = parseInt(qtyInput.value, 10);
-    qtyInput.value = value + 1;
-  }
-
-  function checkDelivery() {
-    var pincode = document.getElementById('pincode').value;
-    var msgDiv = document.getElementById('delivery-msg');
-    msgDiv.innerHTML = 'Checking...';
-    fetch('/api/check-delivery', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Pincode': pincode
-      },
-      body: JSON.stringify({ pincode: pincode })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        msgDiv.innerHTML = '<span class="text-success">' + data.message + '</span>';
-      } else {
-        msgDiv.innerHTML = '<span class="text-danger">' + (data.message || 'Delivery not available.') + '</span>';
-      }
-    })
-    .catch(() => {
-      msgDiv.innerHTML = '<span class="text-danger">Error checking delivery.</span>';
-    });
-  }
-</script>
-<script type="module">
-  import {
-    redirectBuyNow
-  } from '/resources/js/cart-scripts.js';
-  window.redirectBuyNow = redirectBuyNow;
 </script>
 @endpush
 </div>
