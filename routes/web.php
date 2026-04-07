@@ -117,6 +117,8 @@ Route::post('/wishlist/remove', [WishController::class, 'remove'])->name('wishli
 
 Route::get('/ajax/products/search', ProductSearchController::class)->name('ajax.products.search');
 
+
+
 // Move the category route to the end to ensure all specific routes are matched first
 Route::get('/{category}', [ProductController::class, 'category'])
     ->where('category', '[a-z0-9-]+')
