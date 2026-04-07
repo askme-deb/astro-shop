@@ -181,11 +181,23 @@
               <span class="old-price ms-2">₹{{ $product['price'] ?? $product['product_price'] ?? '' }}</span>
               @endif
             </div>
+            @php
+              $caratValue = $product['carat'] ?? null;
+              $rattiValue = $product['ratti'] ?? null;
+              $hasCaratValue = !is_null($caratValue) && $caratValue !== '' && (float) $caratValue > 0;
+              $hasRattiValue = !is_null($rattiValue) && $rattiValue !== '' && (float) $rattiValue > 0;
+            @endphp
             @if(!empty($product['sku']))
             <div class="small text-muted mt-2">SKU: {{ $product['sku'] }}</div>
             @endif
             @if(!empty($product['origin_name']))
             <div class="small text-muted {{ !empty($product['sku']) ? 'mt-1' : 'mt-2' }}">Origin: {{ $product['origin_name'] }}</div>
+            @endif
+            @if($hasCaratValue)
+            <div class="small text-muted mt-1">Carat: {{ $caratValue }}</div>
+            @endif
+            @if($hasRattiValue)
+            <div class="small text-muted mt-1">Ratti: {{ $rattiValue }}</div>
             @endif
             @if(!empty($product['discount_rate']) && $product['discount_rate'] !== '0.00')
             <div class="offer">Save {{ $product['discount_rate'] }}%</div>

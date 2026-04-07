@@ -2,6 +2,13 @@
     'product' => []
 ])
 
+@php
+    $caratValue = $product['carat'] ?? null;
+    $rattiValue = $product['ratti'] ?? null;
+    $hasCaratValue = !is_null($caratValue) && $caratValue !== '' && (float) $caratValue > 0;
+    $hasRattiValue = !is_null($rattiValue) && $rattiValue !== '' && (float) $rattiValue > 0;
+@endphp
+
 <div class="col-md-3 col-sm-6">
     <div class="product-card" data-product-id="{{ $product['id'] ?? 0 }}">
         <i class="bi {{ (!empty($product['is_in_wishlist']) || !empty($product['in_wishlist'])) ? 'bi-heart-fill' : 'bi-heart' }} wishlist" data-product-id="{{ $product['id'] ?? 0 }}"></i>
@@ -32,7 +39,13 @@
             <div class="small text-muted mb-1">SKU: {{ $product['sku'] }}</div>
         @endif
         @if(!empty($product['origin_name']))
-            <div class="small text-muted mb-3">Origin: {{ $product['origin_name'] }}</div>
+            <div class="small text-muted mb-1">Origin: {{ $product['origin_name'] }}</div>
+        @endif
+        @if($hasCaratValue)
+            <div class="small text-muted mb-1">Carat: {{ $caratValue }}</div>
+        @endif
+        @if($hasRattiValue)
+            <div class="small text-muted mb-3">Ratti: {{ $rattiValue }}</div>
         @endif
         <div class="d-grid gap-2 mt-3">
             <button class="btn btn-cart" onclick="addToCart({{ json_encode(['product_id' => $product['id'] ?? 0, 'quantity' => 1]) }}, this)">Add to Cart</button>

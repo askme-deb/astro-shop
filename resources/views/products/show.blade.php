@@ -417,11 +417,23 @@
             @if(!empty($related['discount_rate']) && $related['discount_rate'] !== '0.00')
               <span class="old-price ms-2">₹{{ $related['price'] ?? $related['product_price'] ?? '' }}</span>
             @endif
+            @php
+              $relatedCaratValue = $related['carat'] ?? null;
+              $relatedRattiValue = $related['ratti'] ?? null;
+              $hasRelatedCaratValue = !is_null($relatedCaratValue) && $relatedCaratValue !== '' && (float) $relatedCaratValue > 0;
+              $hasRelatedRattiValue = !is_null($relatedRattiValue) && $relatedRattiValue !== '' && (float) $relatedRattiValue > 0;
+            @endphp
             @if(!empty($related['sku']))
               <div class="small text-muted mt-2">SKU: {{ $related['sku'] }}</div>
             @endif
             @if(!empty($related['origin_name']))
               <div class="small text-muted {{ !empty($related['sku']) ? 'mt-1' : 'mt-2' }}">Origin: {{ $related['origin_name'] }}</div>
+            @endif
+            @if($hasRelatedCaratValue)
+              <div class="small text-muted mt-1">Carat: {{ $relatedCaratValue }}</div>
+            @endif
+            @if($hasRelatedRattiValue)
+              <div class="small text-muted mt-1">Ratti: {{ $relatedRattiValue }}</div>
             @endif
             <div class="offer">{{ !empty($related['discount_rate']) ? 'EXTRA ' . $related['discount_rate'] . '% OFF with coupon' : '&nbsp;' }}</div>
             <div class="d-grid gap-2 mt-3">

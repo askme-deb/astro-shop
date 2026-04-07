@@ -671,6 +671,8 @@ window.AstroShop.renderProductCard = function renderProductCard(product) {
   const basePrice = safeProduct.product_price || safeProduct.final_price || safeProduct.price || '0';
   const sku = window.AstroShop.escapeHtml(safeProduct.sku || '');
   const originName = window.AstroShop.escapeHtml(safeProduct.origin_name || '');
+  const caratValue = Number(safeProduct.carat || 0) > 0 ? window.AstroShop.escapeHtml(safeProduct.carat) : '';
+  const rattiValue = Number(safeProduct.ratti || 0) > 0 ? window.AstroShop.escapeHtml(safeProduct.ratti) : '';
 
   return `
     <div class="col-md-3 col-sm-6">
@@ -690,7 +692,9 @@ window.AstroShop.renderProductCard = function renderProductCard(product) {
           }
         </div>
         ${sku ? `<div class="small text-muted mb-1">SKU: ${sku}</div>` : ''}
-        ${originName ? `<div class="small text-muted mb-3">Origin: ${originName}</div>` : ''}
+        ${originName ? `<div class="small text-muted mb-1">Origin: ${originName}</div>` : ''}
+        ${caratValue ? `<div class="small text-muted mb-1">Carat: ${caratValue}</div>` : ''}
+        ${rattiValue ? `<div class="small text-muted mb-3">Ratti: ${rattiValue}</div>` : ''}
         <div class="d-grid gap-2 mt-3">
           <button class="btn btn-cart" onclick='addToCart(${productPayload}, this)'>Add to Cart</button>
           <button class="btn btn-buy" onclick='buyNow(${productPayload}, this)'>Buy Now</button>
