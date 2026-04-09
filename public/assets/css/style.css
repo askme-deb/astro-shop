@@ -816,7 +816,7 @@ body {
 }
 
 .logo_warp a img {
-    width: 22% !important;
+    width: 66% !important;
 }
 
 
@@ -3772,7 +3772,7 @@ div#mobileNav {
 
 @media (max-width: 768px) {
 
-.header_pincode_box_subhead {font-size: 12px;}
+.header_pincode_box_subhead {font-size: 10px;}
 .catagory_warp .row.g-4.d-md-flex {width: 100%;margin: 0;}
 .catagory_warp .col-lg-3.col-md-6 {width: 50%;}
 .product_warp .col-md-3.col-sm-6 {width: 50%;margin-top: 0;}
@@ -3782,7 +3782,7 @@ div#mobileNav {
 .sale-banner p.mb-4 {font-size: 13px;}
 .sale-banner-wrapper {padding-bottom: 20px;}
 .gem-recommendation-inner img {height: auto;}
-div#productSlider {float: left;}
+div#productSlider { float: left;width: 100%;}
 .book-session-content { padding: 30px 30px;}
 .book-session-content h2 {font-size: 28px;}
 .footer-col.newsletter {padding: 7px;}
@@ -3807,11 +3807,21 @@ div#productSlider {float: left;}
   min-height: 290px!important;
 }
 
-/gemstone1 products price/
+/* /gemstone1 products price/ */
 @media (max-width: 768px)  and (min-width:320px){
     .price, .date, .stock {
         display: flex;
         justify-content: space-around !important;
         font-size: 14px;
     }
+}
+
+@media (max-width: 768px) {
+
+.search-box input {font-size: 12px;}
+.hero-slider .carousel-item {min-height: 136px !important;}
+span.price.fs-3.fw-bold {font-size: 15px !important;}
+.wishlist {right: 6px;font-size: 17px;}
+.stat p {font-size: 11px;font-weight: bold;}
+.about_rtp .mission img {height: auto;}
 }
