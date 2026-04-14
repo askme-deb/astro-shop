@@ -2695,6 +2695,8 @@
 
                 let subtotal = 0;
                 let html = '';
+                let totalGstRate = 0;
+                let gstRateCount = 0;
                 console.log('Rendering summary for items:', items);
                 items.forEach(function(item) {
                     const product = item.product || {};
@@ -2711,6 +2713,10 @@
                     if (options) {
                         metaParts.push(options);
                     }
+                    // GST Rate logic
+                    let gstRate = (item.gst_rate !== undefined && item.gst_rate !== null && item.gst_rate !== '') ? item.gst_rate : 0;
+                    totalGstRate += Number(gstRate);
+                    gstRateCount++;
                     const metaText = metaParts.join(' • ');
 
                     const lineCompareTotal = comparePriceRaw ? (comparePriceRaw * quantity) : null;
@@ -2721,6 +2727,7 @@
                             <div>
                                 <p class="product-name">${name}</p>
                                 <span class="product-meta">${metaText}</span>
+                                <span class="product-gst">GST: ${gstRate}</span>
                             </div>
                             <div class="summary-price">
                                 <strong>₹${formatCurrency(lineTotal)}</strong>
@@ -2731,12 +2738,15 @@
 
                 itemsContainer.innerHTML = html;
 
-                const taxAmount = subtotal * 0.03;
-                const total = subtotal + taxAmount;
+                // Show GST rate in the summary tax field
+                let displayGstRate = 0;
+                if (gstRateCount > 0) {
+                    displayGstRate = totalGstRate / gstRateCount;
+                }
 
                 if (subtotalEl) subtotalEl.textContent = formatCurrency(subtotal);
-                if (taxEl) taxEl.textContent = formatCurrency(taxAmount);
-                if (totalEl) totalEl.textContent = formatCurrency(total);
+                if (taxEl) taxEl.textContent = displayGstRate ? displayGstRate : '0.00';
+                if (totalEl) totalEl.textContent = formatCurrency(subtotal + Number(displayGstRate));
                 if (placeOrderBtn) {
                     placeOrderBtn.disabled = false;
                     placeOrderBtn.classList.remove('disabled');
