@@ -2698,7 +2698,7 @@
                 console.log('Rendering summary for items:', items);
                 items.forEach(function(item) {
                     const product = item.product || {};
-                    const unitPrice = parseFloat(product.price || item.amount || 0) || 0;
+                    const unitPrice = parseFloat(product.total_price || item.price || 0) || 0;
                     const comparePriceRaw = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
                     const quantity = parseInt(item.quantity || 1, 10) || 1;
                     const lineTotal = unitPrice * quantity;
