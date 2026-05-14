@@ -460,10 +460,10 @@ function fetchProducts(page = 1) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  renderPagination({
-    current_page: Number(document.querySelector('.pagination-wrapper')?.dataset.currentPage || 1),
-    last_page: Number(document.querySelector('.pagination-wrapper')?.dataset.lastPage || 1),
-  });
+
+  // On initial page load, trigger AJAX fetch for products (pagination)
+  const initialPage = Number(document.querySelector('.pagination-wrapper')?.dataset.currentPage || 1);
+  fetchProducts(initialPage);
 
   document.querySelectorAll('.filter-input-field').forEach(input => {
     input.addEventListener('input', function() {
